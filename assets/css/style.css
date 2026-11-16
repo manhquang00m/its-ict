@@ -1,0 +1,65 @@
+:root {
+  --bg: #f7f8fa;
+  --fg: #1f2933;
+  --muted: #616e7c;
+  --primary: #2563eb;
+  --card: #ffffff;
+  --border: #e4e7eb;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main { flex: 1; padding-top: 2rem; padding-bottom: 3rem; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 0 1.25rem; }
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.site-header { background: var(--card); border-bottom: 1px solid var(--border); }
+.site-header .container { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.logo { font-weight: 700; font-size: 1.15rem; color: var(--fg); }
+.site-header nav a { margin-left: 1.25rem; color: var(--muted); font-weight: 500; }
+.site-header nav a.active, .site-header nav a:hover { color: var(--primary); text-decoration: none; }
+
+.lead { color: var(--muted); font-size: 1.1rem; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.card {
+  display: block; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem; color: var(--fg);
+  transition: transform .15s, box-shadow .15s;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.06); text-decoration: none; }
+.card h2 { margin: .5rem 0 .25rem; font-size: 1.2rem; }
+.card p { margin: 0; color: var(--muted); }
+
+.tag {
+  display: inline-block; background: #e0e7ff; color: var(--primary);
+  font-size: .8rem; font-weight: 600; padding: .15rem .55rem; border-radius: 999px;
+}
+
+.lessons { list-style: none; padding: 0; margin-top: 1.5rem; }
+.lessons li { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: .5rem; }
+.lessons li a { display: block; padding: .8rem 1rem; color: var(--fg); }
+.lessons li a:hover { background: #f0f4ff; text-decoration: none; }
+.lessons .num { display: inline-block; width: 2.5rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lessons .empty { padding: .8rem 1rem; color: var(--muted); }
+
+pre, code { font-family: Consolas, "Courier New", monospace; }
+pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: var(--radius); overflow-x: auto; }
+:not(pre) > code { background: #eef2f7; padding: .1rem .35rem; border-radius: 4px; }
+
+.site-footer { border-top: 1px solid var(--border); color: var(--muted); font-size: .9rem; padding: 1rem 0; }
