@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chấm điểm OL13 | ITS ICT</title>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <style>
+    table.grade { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); margin: 1rem 0 2rem; font-size: .95rem; }
+    table.grade th, table.grade td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+    table.grade th { background: #f0f4ff; }
+    table.grade td.n { text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    table.grade tr.total td { font-weight: 700; background: #f7f8fa; }
+    .note { background: #fff8e1; border: 1px solid #f5d27a; border-radius: var(--radius); padding: .8rem 1rem; margin: 1rem 0 2rem; }
+    .note ol { margin: .4rem 0 0 1.2rem; padding: 0; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="../../">ITS ICT</a>
+      <nav>
+        <a href="../tc28/">TC28</a>
+        <a href="./" class="active">OL13</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <p><a href="./">&larr; Quay lại OL13</a></p>
+    <h1>OL13 &mdash; Chấm điểm</h1>
+    <p class="lead">Bài kiểm tra SQL (W3Schools), 90 phút, phạm vi bài 1&ndash;6.</p>
+
+    <h2>Nguyen Gia Khanh &mdash; 65/100</h2>
+    <p>Xếp loại theo đề: <strong>50&ndash;69, cần ôn lại phần JOIN và GROUP BY/HAVING</strong>.</p>
+    <p><em>Điểm tạm tính do Claude chấm nháp bằng cách đọc câu truy vấn, chưa chạy lại trên W3Schools. Điểm chính thức do giáo viên quyết định.</em></p>
+
+    <div class="note">
+      <strong>Cần xác nhận trước khi chốt điểm</strong>
+      <ol>
+        <li>Một số câu (A4, B1, D4, E1&hellip;) trong PDF bị mất chữ cái đầu (<code>elect</code>, <code>lect</code>). Đang coi là lỗi khi in PDF nên không trừ điểm. Nếu học viên thực sự gõ thiếu thì các câu này phải trừ thêm.</li>
+        <li>E3 chỉ hiện <code>select</code> và E4 chỉ hiện từ <code>having</code>. Có thể ô nhập bị cắt khi in. Cần xem lại bài gốc nếu còn.</li>
+        <li>A5, A6, B4 viết giá trị chuỗi thường (<code>'germany'</code>, <code>'usa'</code>). Đã chấm theo giả định SQLite so sánh <code>=</code> có phân biệt hoa thường. Cần chạy thử trên W3S, nếu không phân biệt thì cộng lại khoảng 3&ndash;4 điểm.</li>
+      </ol>
+    </div>
+
+    <h2>Tổng hợp theo phần</h2>
+    <table class="grade">
+      <thead><tr><th>Phần</th><th>Nội dung</th><th>Điểm</th><th>Ghi chú</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>SELECT &amp; Filtering</td><td class="n">16/20</td><td>A5, A6 sai giá trị chuỗi</td></tr>
+        <tr><td>B</td><td>Sorting &amp; Filtering</td><td class="n">13/20</td><td>Nhiều câu lỗi cú pháp hoặc sai tên bảng</td></tr>
+        <tr><td>C</td><td>Aggregate Functions</td><td class="n">11/15</td><td>C3 chưa thay placeholder</td></tr>
+        <tr><td>D</td><td>GROUP BY &amp; HAVING</td><td class="n">16/20</td><td>Logic đúng, mất điểm vì typo và alias</td></tr>
+        <tr><td>E</td><td>JOIN</td><td class="n">9/25</td><td>E3, E5 bỏ trống, E4 dở dang</td></tr>
+        <tr class="total"><td colspan="2">Tổng</td><td class="n">65/100</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Các câu bị trừ điểm</h2>
+    <table class="grade">
+      <thead><tr><th>Câu</th><th>Điểm</th><th>Lỗi</th><th>Cách sửa</th></tr></thead>
+      <tbody>
+        <tr><td>A5</td><td class="n">3/5</td><td><code>' mmexico'</code> có khoảng trắng đầu và thừa chữ m; <code>'germany'</code> viết thường. Dấu ngoặc và AND/OR đúng.</td><td><code>country IN ('Germany','Mexico')</code></td></tr>
+        <tr><td>A6</td><td class="n">2/4</td><td><code>'usa'</code> viết thường nên không loại được ai.</td><td><code>'USA'</code></td></tr>
+        <tr><td>B1</td><td class="n">2/4</td><td><code>order by desc</code> thiếu tên cột.</td><td><code>order by price desc limit 3</code></td></tr>
+        <tr><td>B3</td><td class="n">2/4</td><td>Dùng bảng <code>products</code>, mà <code>OrderDate</code> nằm ở <code>Orders</code>.</td><td><code>from orders</code></td></tr>
+        <tr><td>B4</td><td class="n">2/4</td><td><code>customer</code> thiếu s; giá trị chuỗi viết thường.</td><td><code>from customers</code>, viết hoa chữ đầu</td></tr>
+        <tr><td>B5</td><td class="n">3/4</td><td><code>product</code> thiếu s.</td><td><code>from products</code></td></tr>
+        <tr><td>C2</td><td class="n">2/3</td><td>Alias <code>lowest price</code> có dấu cách.</td><td><code>lowest_price</code></td></tr>
+        <tr><td>C3</td><td class="n">1/4</td><td>Còn nguyên <code>ten_bang</code>, <code>ma_san_pham</code>; alias có dấu cách.</td><td><code>select sum(quantity) as total_quantity from OrderDetails where productID = 11</code></td></tr>
+        <tr><td>D1</td><td class="n">3/4</td><td><code>custoers</code> gõ sai tên bảng.</td><td><code>customers</code></td></tr>
+        <tr><td>D2</td><td class="n">3/5</td><td>Alias <code>total products</code> có dấu cách; <code>group by categoryI</code> thiếu D.</td><td><code>total_products</code>, <code>categoryID</code></td></tr>
+        <tr><td>D4</td><td class="n">5/6</td><td><code>form orders</code> gõ nhầm. WHERE và HAVING dùng đúng.</td><td><code>from orders</code></td></tr>
+        <tr><td>E1</td><td class="n">3/4</td><td><code>o.oderdate</code> gõ sai tên cột.</td><td><code>o.orderdate</code></td></tr>
+        <tr><td>E3</td><td class="n">0/6</td><td>Chỉ có chữ <code>select</code>.</td><td>Xem đáp án mẫu bên dưới</td></tr>
+        <tr><td>E4</td><td class="n">1/5</td><td>Chỉ có <code>having ... order by sum(</code>, thiếu SELECT, FROM, JOIN, GROUP BY. Điều kiện <code>&gt;50000</code> đúng.</td><td>Xem đáp án mẫu bên dưới</td></tr>
+        <tr><td>E5</td><td class="n">0/5</td><td>Bỏ trống.</td><td>Xem đáp án mẫu bên dưới</td></tr>
+      </tbody>
+    </table>
+    <p>Đúng hoàn toàn: A1, A2, A3, A4, B2, C1, C4, D3, E2.</p>
+
+    <h2>Đáp án mẫu E3, E4, E5</h2>
+<pre><code>-- E3
+SELECT c.CustomerName, SUM(od.Quantity * p.Price) AS total_spent
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+JOIN OrderDetails od ON o.OrderID = od.OrderID
+JOIN Products p ON od.ProductID = p.ProductID
+GROUP BY c.CustomerID, c.CustomerName
+ORDER BY total_spent DESC
+LIMIT 10;
+
+-- E4
+SELECT cat.CategoryName, SUM(od.Quantity * p.Price) AS total_revenue
+FROM OrderDetails od
+JOIN Products p ON od.ProductID = p.ProductID
+JOIN Categories cat ON p.CategoryID = cat.CategoryID
+GROUP BY cat.CategoryID, cat.CategoryName
+HAVING SUM(od.Quantity * p.Price) &gt; 50000
+ORDER BY total_revenue DESC;
+
+-- E5
+SELECT c.CustomerName
+FROM Customers c
+LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
+WHERE o.OrderID IS NULL;</code></pre>
+
+    <h2>Nhận xét chung</h2>
+    <ul>
+      <li><strong>Điểm mạnh:</strong> phân biệt đúng WHERE với HAVING, dùng đúng GROUP BY, COUNT(DISTINCT), BETWEEN, IN và JOIN hai bảng (E2).</li>
+      <li><strong>Typo tên bảng/cột:</strong> 6 chỗ (<code>customer</code>, <code>product</code>, <code>custoers</code>, <code>categoryI</code>, <code>oderdate</code>, <code>form</code>). Nên chạy thử từng câu trên W3S trước khi dán vào bài.</li>
+      <li><strong>Alias có dấu cách:</strong> 3 chỗ. Đặt alias dạng <code>total_revenue</code>.</li>
+      <li><strong>Giá trị chuỗi:</strong> viết đúng hoa thường như trong dữ liệu (<code>'USA'</code>, <code>'Germany'</code>). Nếu kết quả rỗng thì phải ghi chú lại.</li>
+      <li><strong>Lỗ hổng lớn nhất:</strong> JOIN 3&ndash;4 bảng và LEFT JOIN &hellip; IS NULL (E3, E4, E5).</li>
+      <li><strong>Chưa hoàn thành:</strong> C3 chưa thay placeholder, E3 và E5 không làm.</li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">&copy; <span id="year"></span> ITS ICT</div>
+  </footer>
+  <script src="../../assets/js/main.js"></script>
+</body>
+</html>

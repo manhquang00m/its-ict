@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kế hoạch và giáo trình OL13 | ITS ICT</title>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <style>
+    table.grade { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); margin: 1rem 0 2rem; font-size: .95rem; }
+    table.grade th, table.grade td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+    table.grade th { background: #f0f4ff; }
+    .lesson-plan { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .lesson-plan h3 { margin: 0 0 .25rem; }
+    .lesson-plan h4 { margin: .8rem 0 .2rem; font-size: .95rem; color: var(--muted); }
+    .lesson-plan ul { margin: .2rem 0 0; padding-left: 1.2rem; }
+    .note { background: #fff8e1; border: 1px solid #f5d27a; border-radius: var(--radius); padding: .8rem 1rem; margin: 1rem 0 2rem; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="../../">ITS ICT</a>
+      <nav>
+        <a href="../tc28/">TC28</a>
+        <a href="./" class="active">OL13</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <p><a href="./">&larr; Quay lại OL13</a></p>
+    <h1>OL13 &mdash; Kế hoạch và giáo trình các bài sau</h1>
+    <p class="lead">Xây dựng từ kết quả bài kiểm tra SQL (W3Schools) 65/100. Bắt đầu từ bài 07, tiếp nối bài 1&ndash;6 đã học.</p>
+
+    <div class="note">
+      <strong>Giả định khi lập kế hoạch</strong>
+      <ul>
+        <li>Mỗi buổi khoảng 90 phút, học trên W3Schools Try-it Editor (SQLite) với bộ dữ liệu mẫu Northwind như bài kiểm tra.</li>
+        <li>Số buổi mỗi tuần và ngày học chưa có thông tin nên chưa gán lịch. Giáo viên điều chỉnh số buổi và thứ tự theo tiến độ thật.</li>
+        <li>Đây là bản đề xuất. Giáo viên quyết định nội dung và thời lượng chính thức.</li>
+      </ul>
+    </div>
+
+    <h2>1. Chẩn đoán từ bài kiểm tra</h2>
+    <table class="grade">
+      <thead><tr><th>Phát hiện</th><th>Bằng chứng</th><th>Xử lý ở bài</th></tr></thead>
+      <tbody>
+        <tr><td>Nắm vững: WHERE/HAVING, GROUP BY, hàm tổng hợp, JOIN 2 bảng</td><td>A1&ndash;A4, C1, C4, D3, D4, E2 đúng logic</td><td>Không cần dạy lại, chỉ ôn nhanh</td></tr>
+        <tr><td>Hay gõ sai tên bảng/cột, thiếu chữ</td><td>B4, B5, D1, D2, D4, E1 (6 chỗ)</td><td>Bài 07 (thói quen debug)</td></tr>
+        <tr><td>Alias có dấu cách</td><td>C2, C3, D2</td><td>Bài 07</td></tr>
+        <tr><td>Giá trị chuỗi sai hoa thường hoặc gõ nhầm, không ghi chú khi kết quả rỗng</td><td>A5, A6, B4</td><td>Bài 07</td></tr>
+        <tr><td>Chọn nhầm bảng, thiếu cột trong ORDER BY, không thay placeholder</td><td>B1, B3, C3</td><td>Bài 07 (đọc kỹ đề, kiểm tra từng bước)</td></tr>
+        <tr><td>Yếu JOIN nhiều bảng và LEFT JOIN &hellip; IS NULL</td><td>E3, E4 dở dang, E5 bỏ trống</td><td>Bài 08, 09</td></tr>
+        <tr><td>Phần cuối bài bỏ trống, có thể hết giờ hoặc bí rồi bỏ</td><td>E3&ndash;E5 (16 điểm)</td><td>Bài 07, 10, 12 (chiến lược làm bài, xây câu truy vấn từng bước)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>2. Mục tiêu và mốc đánh giá</h2>
+    <table class="grade">
+      <thead><tr><th>Mốc</th><th>Hình thức</th><th>Mục tiêu</th></tr></thead>
+      <tbody>
+        <tr><td>Sau bài 07</td><td>Làm lại các câu sai của bài kiểm tra</td><td>Sửa đúng 100% câu lỗi typo và alias, không cần gợi ý</td></tr>
+        <tr><td>Bài 12</td><td>Kiểm tra lại 60 phút (JOIN, GROUP BY, subquery)</td><td>Từ 70 điểm trở lên, làm được E3, E4, E5 dạng tương tự</td></tr>
+        <tr><td>Bài 16</td><td>Kiểm tra tổng hợp cuối khoá</td><td>Từ 85 điểm trở lên ("nắm vững" theo thang của đề)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. Lộ trình từng bài</h2>
+
+    <div class="lesson-plan">
+      <h3>Bài 07 &mdash; Sửa bài kiểm tra và thói quen viết truy vấn sạch</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Tự đọc thông báo lỗi và sửa được lỗi tên bảng, tên cột, alias.</li>
+        <li>Có quy trình làm bài: đọc đề, chọn bảng, viết từng bước, chạy thử, rồi dán đáp án.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Đọc lỗi thường gặp: <code>no such table</code>, <code>no such column</code>, <code>syntax error near ...</code>.</li>
+        <li>Quy tắc alias: không dấu cách, dùng <code>snake_case</code> như <code>total_revenue</code>.</li>
+        <li>Giá trị chuỗi: đúng hoa thường như dữ liệu, kiểm tra bằng <code>SELECT DISTINCT</code> trước khi lọc. Khi kết quả rỗng thì dừng lại kiểm tra và ghi chú.</li>
+        <li>Mẹo SQLite: <code>=</code> phân biệt hoa thường, <code>LIKE</code> không phân biệt với chữ ASCII.</li>
+        <li>Quản lý thời gian: làm câu dễ trước, không bỏ trống, câu dở dang vẫn viết phần chắc chắn.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Làm lại 15 câu bị trừ điểm (A5, A6, B1, B3, B4, B5, C2, C3, D1, D2, D4, E1, E3, E4, E5), tự tìm lỗi trước khi xem đáp án.</li>
+        <li>Bài tập tìm lỗi: 10 câu truy vấn cố ý có lỗi, học viên sửa và giải thích.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Viết checklist cá nhân 5 dòng cho việc rà soát một câu truy vấn trước khi nộp.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 08 &mdash; INNER JOIN nhiều bảng</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Viết đúng truy vấn JOIN 3&ndash;4 bảng kết hợp GROUP BY (dạng E3, E4).</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Đọc sơ đồ quan hệ: khoá chính, khoá ngoại giữa Customers, Orders, OrderDetails, Products, Categories, Suppliers, Employees.</li>
+        <li>Alias bảng (<code>c</code>, <code>o</code>, <code>od</code>, <code>p</code>) và viết điều kiện <code>ON</code> cho từng cặp bảng.</li>
+        <li>Phương pháp xây từng bước: JOIN 2 bảng, chạy thử, thêm bảng thứ 3, rồi mới thêm GROUP BY và hàm tổng hợp.</li>
+        <li>Tính tiền: <code>Quantity * Price</code>, <code>SUM</code> theo khách, theo danh mục, theo nhân viên.</li>
+        <li>GROUP BY theo khoá (<code>CustomerID</code>) cùng với tên để tránh gộp nhầm hai người trùng tên.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Doanh thu theo nhà cung cấp, theo quốc gia khách hàng, theo nhân viên.</li>
+        <li>Top 5 sản phẩm bán chạy nhất (tổng Quantity) kèm tên danh mục.</li>
+        <li>Làm lại E3 và E4 từ đầu, không xem đáp án.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>6 bài JOIN 3&ndash;4 bảng, mỗi bài ghi lại các bước đã chạy thử.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 09 &mdash; LEFT JOIN và tìm dòng không khớp</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Viết được truy vấn dạng "chưa từng &hellip;" bằng LEFT JOIN &hellip; IS NULL (dạng E5).</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>So sánh INNER JOIN và LEFT JOIN trên cùng dữ liệu, đếm số dòng khác nhau.</li>
+        <li>Mẫu anti-join: <code>LEFT JOIN &hellip; WHERE b.key IS NULL</code>.</li>
+        <li>Lưu ý vị trí điều kiện: lọc ở <code>ON</code> khác lọc ở <code>WHERE</code> khi dùng LEFT JOIN.</li>
+        <li>RIGHT JOIN và FULL JOIN: chỉ giới thiệu, cần kiểm tra W3S đang dùng phiên bản SQLite nào có hỗ trợ không. Cách tương đương là đổi thứ tự bảng.</li>
+        <li>SELF JOIN: ví dụ các khách hàng cùng thành phố.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Khách hàng chưa có đơn nào (E5), sản phẩm chưa từng được bán, nhân viên chưa lập đơn nào.</li>
+        <li>Đếm số đơn của mọi khách hàng, gồm cả khách có 0 đơn (<code>COUNT(o.OrderID)</code> khác <code>COUNT(*)</code>).</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>5 bài LEFT JOIN, trong đó 2 bài cần kết hợp GROUP BY và HAVING.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 10 &mdash; Bài toán báo cáo tổng hợp</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Kết hợp WHERE, JOIN, GROUP BY, HAVING, ORDER BY, LIMIT trong một câu truy vấn, làm trọn bài không bỏ trống.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Thứ tự thực thi của truy vấn: FROM, JOIN, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT. Dùng để tự kiểm tra lỗi logic.</li>
+        <li>Hàm ngày trong SQLite: <code>strftime('%Y', OrderDate)</code>, <code>strftime('%Y-%m', OrderDate)</code>, nhóm theo năm, theo tháng.</li>
+        <li><code>CASE WHEN</code> để phân loại (ví dụ nhóm giá thấp/trung bình/cao).</li>
+        <li>Xử lý <code>NULL</code>: <code>COALESCE</code>, <code>IS NULL</code>.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Doanh thu theo tháng, theo nhân viên trong một năm.</li>
+        <li>Khách có tổng chi tiêu trên một ngưỡng, kèm số đơn.</li>
+        <li>Mô phỏng thi: 3 bài báo cáo trong 30 phút, tập quản lý thời gian.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>4 bài báo cáo tổng hợp, mỗi bài ghi chú nếu kết quả rỗng và đã kiểm tra thế nào.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 11 &mdash; Truy vấn con (subquery)</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Biết khi nào dùng subquery, khi nào dùng JOIN, và viết được cả hai cách cho cùng một bài.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Subquery trả về một giá trị (so sánh với <code>AVG</code>, <code>MAX</code>).</li>
+        <li>Subquery trong <code>IN</code> và <code>NOT IN</code>, so với LEFT JOIN &hellip; IS NULL ở bài 09.</li>
+        <li><code>EXISTS</code> và <code>NOT EXISTS</code>.</li>
+        <li>Subquery trong <code>FROM</code> (bảng tạm) và CTE <code>WITH</code>, nếu thời gian cho phép.</li>
+        <li><code>UNION</code>, <code>UNION ALL</code>: gộp kết quả hai truy vấn.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Sản phẩm có giá cao hơn giá trung bình; sản phẩm đắt nhất mỗi danh mục.</li>
+        <li>Khách hàng chưa có đơn viết bằng cả LEFT JOIN và NOT EXISTS, rồi so sánh.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>6 bài subquery, 3 bài trong đó phải viết thêm bản dùng JOIN.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 12 &mdash; Kiểm tra lại giữa khoá (60 phút)</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Đo tiến bộ ở các điểm yếu: JOIN nhiều bảng, LEFT JOIN, độ chính xác khi gõ.</li></ul>
+      <h4>Cấu trúc đề đề xuất (100 điểm)</h4>
+      <ul>
+        <li>Ôn bài 1&ndash;6 (cột A&ndash;D): 30 điểm.</li>
+        <li>JOIN nhiều bảng và GROUP BY: 30 điểm.</li>
+        <li>LEFT JOIN, anti-join: 20 điểm.</li>
+        <li>Subquery: 20 điểm.</li>
+      </ul>
+      <h4>Sau thi</h4>
+      <ul>
+        <li>Chấm và so sánh với bài kiểm tra đầu, theo từng nhóm lỗi trong bảng chẩn đoán ở trên.</li>
+        <li>Điều chỉnh tiến độ bài 13&ndash;16 theo kết quả.</li>
+      </ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 13 &mdash; INSERT, UPDATE, DELETE</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Thay đổi dữ liệu an toàn: luôn kiểm tra bằng SELECT trước khi UPDATE/DELETE.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>INSERT INTO &hellip; VALUES</code>, chèn nhiều dòng, <code>INSERT &hellip; SELECT</code>.</li>
+        <li><code>UPDATE &hellip; SET &hellip; WHERE</code>. Quên <code>WHERE</code> sẽ sửa toàn bộ bảng.</li>
+        <li><code>DELETE FROM &hellip; WHERE</code>, quy trình viết SELECT cùng điều kiện, kiểm tra số dòng, rồi mới đổi sang DELETE.</li>
+        <li>Giao dịch (<code>BEGIN</code>, <code>COMMIT</code>, <code>ROLLBACK</code>): khái niệm và demo ngắn.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Thêm khách hàng và đơn hàng mẫu, sửa giá một nhóm sản phẩm, xoá dữ liệu thử, rồi kiểm tra lại bằng truy vấn.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Bộ 8 bài DML, mỗi bài có kèm câu SELECT kiểm tra trước và sau.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 14 &mdash; Tạo bảng, kiểu dữ liệu và ràng buộc</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Tự thiết kế và tạo một CSDL nhỏ có khoá chính và khoá ngoại.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>CREATE TABLE</code>, kiểu dữ liệu trong SQLite, <code>ALTER TABLE</code>, <code>DROP TABLE</code> (nhấn mạnh sự nguy hiểm).</li>
+        <li>Ràng buộc: <code>PRIMARY KEY</code>, <code>FOREIGN KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>DEFAULT</code>, <code>CHECK</code>.</li>
+        <li>Quan hệ 1&ndash;n, n&ndash;n và bảng trung gian (như OrderDetails).</li>
+        <li>Chuẩn hoá cơ bản: vì sao tách bảng.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Thiết kế CSDL thư viện hoặc cửa hàng nhỏ với 3&ndash;4 bảng, tạo bảng, thêm dữ liệu, rồi truy vấn bằng JOIN.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 15 &mdash; Hàm chuỗi, hàm ngày, VIEW và INDEX</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Làm sạch và định dạng dữ liệu; gói truy vấn dùng lại bằng VIEW.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Hàm chuỗi: <code>UPPER</code>, <code>LOWER</code>, <code>LENGTH</code>, <code>SUBSTR</code>, <code>REPLACE</code>, nối chuỗi bằng <code>||</code>. Dùng <code>LOWER()</code> để so sánh không phân biệt hoa thường.</li>
+        <li>Hàm số: <code>ROUND</code>, <code>ABS</code>.</li>
+        <li><code>CREATE VIEW</code> cho các báo cáo hay dùng (doanh thu theo khách).</li>
+        <li><code>CREATE INDEX</code>: khái niệm, khi nào có lợi.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Chuẩn hoá tên quốc gia, tạo VIEW doanh thu theo danh mục và truy vấn lại trên VIEW.</li></ul>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 16 &mdash; Ôn tập và kiểm tra tổng hợp cuối khoá</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Đạt 85 điểm trở lên theo thang của đề.</li></ul>
+      <h4>Hoạt động</h4>
+      <ul>
+        <li>Nửa đầu: ôn các lỗi còn lặp lại từ bài 12, làm đề luyện.</li>
+        <li>Nửa sau hoặc buổi riêng: bài kiểm tra tổng hợp 90 phút gồm SELECT/Filtering, Aggregate, GROUP BY/HAVING, JOIN nhiều bảng, LEFT JOIN, subquery, DML cơ bản.</li>
+        <li>Chấm điểm, báo cáo lỗi theo nhóm và so sánh với hai bài kiểm tra trước.</li>
+      </ul>
+    </div>
+
+    <h2>4. Quy trình dùng chung cho mọi buổi</h2>
+    <ul>
+      <li>10 phút đầu: chữa bài về nhà, tập trung vào lỗi lặp lại trong checklist.</li>
+      <li>25 phút: giảng ngắn kèm ví dụ trực tiếp trên W3S.</li>
+      <li>45 phút: học viên tự làm bài thực hành, giáo viên chỉ gợi ý hướng, không đưa đáp án ngay.</li>
+      <li>10 phút cuối: tổng kết, giao bài về nhà.</li>
+      <li>Luôn nhắc: chạy thử từng câu, ghi chú khi kết quả rỗng, không để trống câu nào.</li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">&copy; <span id="year"></span> ITS ICT</div>
+  </footer>
+  <script src="../../assets/js/main.js"></script>
+</body>
+</html>
