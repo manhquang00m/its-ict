@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Kiểm tra lại 35 phút: SQL (W3Schools) - OL13</title><style>:root { --navy: #12355b; --orange: #e07a1f; --bg: #f4f6fa; --ok: #1b7f3b; --bad: #b3261e; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #111; background: var(--bg); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+.card { background: #fff; border-radius: 10px; padding: 18px 20px; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+h1 { margin: 0 0 4px; color: var(--navy); font-size: 26px; }
+h2 { margin: 22px 0 6px; font-size: 19px; color: #fff; background: var(--navy); padding: 8px 14px; border-radius: 8px; }
+h3 { margin: 4px 0 10px; font-size: 14px; color: var(--navy); text-transform: uppercase; letter-spacing: .03em; }
+.muted { color: #555; }
+.hidden { display: none !important; }
+label.f { display: block; margin: 12px 0 4px; font-weight: 600; }
+input[type=text] { width: 100%; max-width: 420px; padding: 9px 11px; font: inherit; border: 1.5px solid #9aa7b8; border-radius: 6px; }
+button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; padding: 10px 18px; background: var(--navy); color: #fff; font-weight: 600; }
+button.sec { background: #e3e8ef; color: var(--navy); }
+button.warn { background: var(--orange); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #4a90e2; outline-offset: 2px; }
+.err { color: var(--bad); margin-top: 8px; min-height: 1.4em; }
+ul.rules { margin: 8px 0 14px 20px; padding: 0; }
+code, pre { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+:not(pre) > code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; }
+table.sch { border-collapse: collapse; margin: 8px 0; width: 100%; font-size: 14px; }
+table.sch th, table.sch td { border: 1px solid #aab; padding: 4px 9px; text-align: left; vertical-align: top; }
+table.sch th { background: #e8f0fb; }
+details.card summary { cursor: pointer; font-weight: 600; color: var(--navy); }
+
+/* sticky exam bar */
+#bar { position: sticky; top: 0; z-index: 10; background: var(--navy); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+#bar .in { max-width: 860px; margin: 0 auto; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+#bar .who { flex: 1 1 160px; font-size: 14px; opacity: .9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#timer { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#timer.low { color: #ffb4a8; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .45; } }
+#prog { font-size: 14px; }
+#pal { max-width: 860px; margin: 0 auto; padding: 0 16px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+#pal button { padding: 2px 0; width: 36px; height: 28px; font-size: 13px; border-radius: 5px; background: rgba(255,255,255,.18); }
+#pal button.done { background: #5cb270; color: #04210f; }
+
+/* questions */
+.pintro { margin: 4px 0 12px; color: #444; }
+.q { background: #fff; border-radius: 10px; padding: 14px 18px; margin: 0 0 12px; box-shadow: 0 1px 3px rgba(0,0,0,.12); scroll-margin-top: 110px; }
+.q .qh { font-weight: 600; margin-bottom: 8px; }
+.q .no { color: var(--navy); }
+.q .tag { float: right; font-size: 12px; color: #667; font-weight: 400; }
+.body p { margin: 4px 0; }
+.body pre { background: #f2f3f5; padding: 6px 10px; border-radius: 6px; white-space: pre-wrap; margin: 6px 0; }
+textarea { width: 100%; min-height: 130px; margin-top: 8px; padding: 9px 11px; font-family: Consolas, "Courier New", monospace; font-size: 15px; line-height: 1.45; border: 1.5px solid #9aa7b8; border-radius: 6px; resize: vertical; }
+textarea.big { min-height: 190px; }
+
+/* result */
+.res { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.res span { min-width: 54px; text-align: center; padding: 4px 6px; border-radius: 6px; font-size: 14px; border: 1.5px solid #ccd; }
+.res .ok { background: #e3f4e8; border-color: var(--ok); color: var(--ok); }
+.res .blank { background: #f1f1f1; color: #666; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+#toast { min-height: 1.4em; margin-top: 8px; color: var(--ok); }
+</style></head><body>
+<div id="bar" class="hidden"><div class="in"><div class="who" id="who"></div><div id="prog"></div><div id="timer" aria-live="off">--:--</div><button class="warn" id="submit" type="button">Nộp bài</button></div><div id="pal" aria-label="Danh sách câu hỏi"></div></div>
+<div class="wrap">
+  <div id="start" class="card hidden">
+    <h1>Bài kiểm tra lại 35 phút</h1>
+    <div class="muted">OL13 — SQL (W3Schools Try-it Editor, SQLite)</div>
+    <ul class="rules">
+      <li>Gồm <b id="total"></b> câu viết câu truy vấn SQL, tổng <b id="pts"></b> điểm, do giáo viên chấm.</li>
+      <li>Thời gian <b id="mins"></b> phút, đồng hồ chạy ngay khi bấm Bắt đầu và không dừng lại kể cả khi tải lại trang. Hết giờ bài sẽ tự nộp.</li>
+      <li>Làm bài trên <b>W3Schools Try-it Editor</b>, chạy thử từng câu rồi mới dán vào ô trả lời. Tự làm, không xem tài liệu hay bài giải.</li>
+      <li>Mỗi câu viết đúng một câu truy vấn. Đặt alias rõ ràng, <b>không có dấu cách</b> (ví dụ <code>total_revenue</code>); đề đã cho tên alias thì dùng đúng tên đó.</li>
+      <li>Chỉ lấy đúng các cột được yêu cầu, không dùng <code>SELECT *</code> trừ khi đề nói rõ. Giá trị chuỗi viết đúng như trong dữ liệu. Giới hạn dòng dùng <code>LIMIT</code>, ngày viết dạng <code>'YYYY-MM-DD'</code>.</li>
+      <li>Nếu câu có ngưỡng mà chạy ra kết quả rỗng, ghi chú ngay dưới câu truy vấn rồi làm tiếp. Không bỏ trống câu nào; câu chưa xong vẫn viết phần mình chắc chắn.</li>
+      <li>Cách chấm: đúng hoàn toàn đủ điểm; đúng hướng nhưng lệch nhỏ (gõ sai tên, sai alias, thiếu ORDER BY) trừ 1–2 điểm mỗi lỗi; sai logic (nhầm WHERE/HAVING, thiếu GROUP BY, sai bảng) tối đa 50% điểm câu đó; JOIN làm đúng một phần vẫn được điểm một phần; bỏ trống 0 điểm.</li>
+      <li>Bài làm được lưu tự động trên trình duyệt này. Làm xong, tải file bài làm gửi cho giáo viên.</li>
+    </ul>
+    <label class="f" for="name">Họ và tên</label><input id="name" type="text" maxlength="60" autocomplete="off">
+    <label class="f" for="cls">Lớp</label><input id="cls" type="text" maxlength="30" autocomplete="off">
+    <div class="err" id="serr" role="alert"></div>
+    <button id="go" type="button">Bắt đầu làm bài</button>
+  </div>
+  <div id="exam" class="hidden">
+    <details class="card" open>
+      <summary>Lược đồ dữ liệu W3Schools (bấm để thu gọn / mở rộng)</summary>
+      <table class="sch">
+        <thead><tr><th>Bảng</th><th>Các cột</th></tr></thead>
+        <tbody>
+          <tr><td>Customers</td><td>CustomerID, CustomerName, ContactName, Address, City, PostalCode, Country</td></tr>
+          <tr><td>Categories</td><td>CategoryID, CategoryName, Description</td></tr>
+          <tr><td>Products</td><td>ProductID, ProductName, SupplierID, CategoryID, Unit, Price</td></tr>
+          <tr><td>Suppliers</td><td>SupplierID, SupplierName, ContactName, Address, City, PostalCode, Country, Phone</td></tr>
+          <tr><td>Orders</td><td>OrderID, CustomerID, EmployeeID, OrderDate, ShipperID</td></tr>
+          <tr><td>OrderDetails</td><td>OrderDetailID, OrderID, ProductID, Quantity (không có cột giá: muốn tính tiền phải nối với Products lấy <code>Price</code>)</td></tr>
+          <tr><td>Employees</td><td>EmployeeID, LastName, FirstName, BirthDate, Photo, Notes</td></tr>
+          <tr><td>Shippers</td><td>ShipperID, ShipperName, Phone</td></tr>
+        </tbody>
+      </table>
+      <div class="muted">Thành tiền của một dòng chi tiết đơn hàng = <code>OrderDetails.Quantity * Products.Price</code>.</div>
+    </details>
+    <div id="questions"></div>
+    <div class="card"><button class="warn" id="submit2" type="button">Nộp bài</button></div>
+  </div>
+  <div id="result" class="card hidden">
+    <h1>Đã nộp bài</h1><div class="muted" id="rname"></div>
+    <div class="muted" id="rtime"></div>
+    <div class="res" id="res"></div>
+    <div class="muted" id="rwr"></div>
+    <div class="btns"><button id="dl" type="button">Tải file bài làm (.txt)</button><button class="sec" id="cp" type="button">Sao chép bài làm</button><button class="sec" id="again" type="button">Làm lại từ đầu</button></div>
+    <div id="toast" role="status"></div>
+  </div>
+</div>
+<script type="application/json" id="quiz-data">{
+"build": "ol13-sql35-v1",
+"minutes": 35,
+"parts": [
+  {
+    "id": "A",
+    "title": "Phần A: Tìm và sửa lỗi — 15 điểm (gợi ý 5 phút)",
+    "intro": "Mỗi câu truy vấn dưới đây có lỗi (lỗi cú pháp hoặc dùng sai tên). Chạy thử để đọc thông báo lỗi, rồi viết lại câu đúng vào ô trả lời. Số lỗi mỗi câu có thể khác nhau.",
+    "questions": [
+      {"id": "A1", "topic": "Sửa lỗi", "marks": 5, "body": [
+        {"t": "p", "s": "Mục đích: lấy tên và giá của 5 sản phẩm có giá cao nhất."},
+        {"t": "pre", "s": "select productname, price from product order by desc limit 5"}
+      ]},
+      {"id": "A2", "topic": "Sửa lỗi", "marks": 5, "body": [
+        {"t": "p", "s": "Mục đích: đếm số khách hàng của từng quốc gia."},
+        {"t": "pre", "s": "select country, count(*) as total customers from custoers group by countri"}
+      ]},
+      {"id": "A3", "topic": "Sửa lỗi", "marks": 5, "body": [
+        {"t": "p", "s": "Mục đích: lấy mã đơn và ngày đặt của các đơn trong tháng 12 năm 1996, mới nhất trước."},
+        {"t": "pre", "s": "select orderid, orderdate from products where orderdate between '1996-12-01' and '1996-12-31' order by orderdate desc"}
+      ]}
+    ]
+  },
+  {
+    "id": "B",
+    "title": "Phần B: Lọc, sắp xếp, hàm tổng hợp — 15 điểm (gợi ý 6 phút)",
+    "questions": [
+      {"id": "B1", "topic": "Lọc", "marks": 5, "body": [
+        {"t": "p", "s": "Lấy `CustomerID`, `CustomerName`, `Country` của các khách hàng ở `'UK'` hoặc `'Brazil'`, và có `CustomerID` lớn hơn 30. Chú ý thứ tự ưu tiên của AND/OR."}
+      ]},
+      {"id": "B2", "topic": "Sắp xếp", "marks": 5, "body": [
+        {"t": "p", "s": "Lấy `SupplierName` và `Country` của các nhà cung cấp có Country **không** nằm trong `'USA'`, `'UK'`, `'Germany'` (dùng `NOT IN`). Sắp xếp theo Country tăng dần, nếu cùng quốc gia thì theo SupplierName giảm dần."}
+      ]},
+      {"id": "B3", "topic": "Hàm tổng hợp", "marks": 5, "body": [
+        {"t": "p", "s": "Trên bảng `OrderDetails`, chỉ xét `ProductID = 1`. Trong **một** câu truy vấn, tính tổng `Quantity` (alias `total_quantity`) và số dòng chi tiết (alias `line_count`)."}
+      ]}
+    ]
+  },
+  {
+    "id": "C",
+    "title": "Phần C: GROUP BY và HAVING — 20 điểm (gợi ý 7 phút)",
+    "questions": [
+      {"id": "C1", "topic": "GROUP BY", "marks": 8, "body": [
+        {"t": "p", "s": "Từ bảng `Products`, với mỗi `SupplierID`, tính số sản phẩm (alias `product_count`) và giá trung bình (alias `avg_price`). Chỉ giữ nhà cung cấp có **từ 3 sản phẩm trở lên**. Sắp xếp theo `product_count` giảm dần."}
+      ]},
+      {"id": "C2", "topic": "WHERE và HAVING", "marks": 12, "body": [
+        {"t": "p", "s": "Từ bảng `Orders`, chỉ xét các đơn đặt trong năm 1996 (từ `'1996-01-01'` đến trước `'1997-01-01'`). Tính số đơn của từng `CustomerID` (alias `order_count`), rồi chỉ giữ khách có **từ 3 đơn trở lên**. Sắp xếp theo `order_count` giảm dần."},
+        {"t": "p", "s": "Câu này kiểm tra bạn hiểu `WHERE` và `HAVING` khác nhau thế nào. Nếu kết quả rỗng, hạ ngưỡng xuống 2 và ghi chú lại."}
+      ]}
+    ]
+  },
+  {
+    "id": "D",
+    "title": "Phần D: JOIN nhiều bảng và LEFT JOIN — 50 điểm (gợi ý 17 phút)",
+    "intro": "Gợi ý: nối từng bước, chạy thử sau mỗi lần thêm một bảng. Đặt alias bảng (c, o, od, p) cho gọn. Với D1 và D2, nên GROUP BY theo khoá (CustomerID, EmployeeID...) khi cần.",
+    "questions": [
+      {"id": "D1", "topic": "JOIN 4 bảng", "marks": 15, "big": true, "body": [
+        {"t": "p", "s": "Tính tổng chi tiêu theo `Country` của khách hàng (tổng `Quantity * Price` của mọi đơn thuộc các khách hàng ở quốc gia đó). Kết quả gồm `Country` và `total_spent`, sắp xếp `total_spent` giảm dần, lấy 5 quốc gia đầu."},
+        {"t": "p", "s": "Cần nối: `Customers`, `Orders`, `OrderDetails`, `Products`."}
+      ]},
+      {"id": "D2", "topic": "JOIN 4 bảng + HAVING", "marks": 20, "big": true, "body": [
+        {"t": "p", "s": "Tính doanh thu theo nhân viên. Kết quả gồm `FirstName`, `LastName` và `total_revenue` (tổng `Quantity * Price` của các đơn do nhân viên đó lập). Chỉ giữ nhân viên có `total_revenue` **lớn hơn 50000**, sắp xếp doanh thu giảm dần."},
+        {"t": "p", "s": "Cần nối: `Employees`, `Orders`, `OrderDetails`, `Products`. Nếu kết quả rỗng, ghi chú lại và nộp câu truy vấn đã viết."}
+      ]},
+      {"id": "D3", "topic": "LEFT JOIN (nâng cao)", "marks": 15, "body": [
+        {"t": "p", "s": "Liệt kê `CustomerName` của các khách hàng **chưa từng đặt đơn nào**."},
+        {"t": "p", "s": "Gợi ý: nghĩ đến loại JOIN giữ lại cả những dòng không có cặp, rồi lọc những dòng không khớp (`IS NULL`)."}
+      ]}
+    ]
+  }
+]
+}</script>
+<script>(() => {
+  'use strict';
+  const D = JSON.parse(document.getElementById('quiz-data').textContent);
+  const KEY = 'ol13_quiz_' + D.build;
+  const MAX_TEXT = 4000;
+  const $ = (s) => document.querySelector(s);
+
+  function el(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v);
+    }
+    for (const c of kids) if (c != null) e.append(c);
+    return e;
+  }
+  function load() { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* storage may be blocked */ } }
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+  const allQ = D.parts.flatMap((p) => p.questions);
+  const totalMarks = allQ.reduce((n, q) => n + q.marks, 0);
+
+  // Inline markup in question text: `code` and **bold**. Built with DOM nodes, never innerHTML.
+  function inline(parent, s) {
+    for (const part of s.split(/(`[^`]+`|\*\*[^*]+\*\*)/)) {
+      if (!part) continue;
+      if (part.startsWith('`')) parent.append(el('code', { text: part.slice(1, -1) }));
+      else if (part.startsWith('**')) parent.append(el('b', { text: part.slice(2, -2) }));
+      else parent.append(document.createTextNode(part));
+    }
+  }
+  const plain = (s) => s.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1');
+  const qText = (q) => q.body.map((b) => plain(b.s)).join('\n');
+
+  let S = load();
+  let tick = null;
+  let submitted = false;
+
+  function show(id) { for (const s of ['start', 'exam', 'result']) $('#' + s).classList.toggle('hidden', s !== id); $('#bar').classList.toggle('hidden', id !== 'exam'); window.scrollTo(0, 0); }
+
+  // ---------- start ----------
+  function initStart() {
+    $('#total').textContent = String(allQ.length);
+    $('#pts').textContent = String(totalMarks);
+    $('#mins').textContent = String(D.minutes);
+    $('#go').addEventListener('click', () => {
+      const name = $('#name').value.trim().replace(/\s+/g, ' ');
+      const cls = $('#cls').value.trim().replace(/\s+/g, ' ');
+      if (name.length < 2 || name.length > 60) { $('#serr').textContent = 'Nhập họ và tên (2–60 ký tự).'; return; }
+      if (cls.length > 30) { $('#serr').textContent = 'Lớp tối đa 30 ký tự.'; return; }
+      const now = Date.now();
+      S = { name, cls, start: now, end: now + D.minutes * 60000, answers: {}, submitted: false };
+      save();
+      startExam();
+    });
+  }
+
+  // ---------- exam ----------
+  function buildExam() {
+    const root = $('#questions');
+    root.textContent = '';
+    const pal = $('#pal');
+    pal.textContent = '';
+    for (const p of D.parts) {
+      root.append(el('h2', { text: p.title }));
+      if (p.intro) root.append(el('p', { class: 'pintro', text: p.intro }));
+      for (const q of p.questions) {
+        const card = el('div', { class: 'q', id: 'q-' + q.id });
+        card.append(el('span', { class: 'tag', text: q.topic + ' · ' + q.marks + ' điểm' }));
+        card.append(el('div', { class: 'qh' }, el('span', { class: 'no', text: 'Câu ' + q.id })));
+        const body = el('div', { class: 'body' });
+        for (const b of q.body) {
+          const node = el(b.t === 'pre' ? 'pre' : 'p');
+          if (b.t === 'pre') node.append(el('code', { text: b.s })); else inline(node, b.s);
+          body.append(node);
+        }
+        card.append(body);
+        const ta = el('textarea', { 'aria-label': 'Bài làm câu ' + q.id, maxlength: String(MAX_TEXT), spellcheck: 'false', autocomplete: 'off', placeholder: 'Viết câu truy vấn SQL của em tại đây…' });
+        if (q.big) ta.classList.add('big');
+        ta.value = typeof S.answers[q.id] === 'string' ? S.answers[q.id] : '';
+        ta.addEventListener('input', () => { S.answers[q.id] = ta.value.slice(0, MAX_TEXT); save(); refresh(); });
+        card.append(ta);
+        root.append(card);
+        const b = el('button', { type: 'button', 'data-q': q.id, 'aria-label': 'Đến câu ' + q.id, text: q.id });
+        b.addEventListener('click', () => document.getElementById('q-' + q.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        pal.append(b);
+      }
+    }
+  }
+  function isDone(q) { const a = S.answers[q.id]; return typeof a === 'string' && a.trim().length > 0; }
+  function refresh() {
+    let n = 0;
+    for (const b of document.querySelectorAll('#pal button')) {
+      const q = allQ.find((x) => x.id === b.getAttribute('data-q'));
+      const d = isDone(q); b.classList.toggle('done', d); if (d) n++;
+    }
+    $('#prog').textContent = 'Đã làm ' + n + '/' + allQ.length;
+  }
+  function startExam() {
+    $('#who').textContent = S.name + (S.cls ? ' · ' + S.cls : '');
+    buildExam(); refresh(); show('exam');
+    const t = $('#timer');
+    const upd = () => {
+      const left = S.end - Date.now();
+      t.textContent = fmt(left);
+      t.classList.toggle('low', left <= 5 * 60000);
+      if (left <= 0) { clearInterval(tick); submit(true); }
+    };
+    upd(); tick = setInterval(upd, 1000);
+  }
+
+  // ---------- submit / result ----------
+  function submit(auto) {
+    if (submitted || S.submitted) return;
+    if (!auto) {
+      const left = allQ.filter((q) => !isDone(q)).length;
+      if (!confirm(left ? 'Còn ' + left + ' câu chưa làm. Vẫn nộp bài?' : 'Nộp bài ngay?')) return;
+    }
+    submitted = true;
+    clearInterval(tick);
+    S.submitted = true;
+    S.submittedAt = Math.min(Date.now(), S.end);
+    save();
+    showResult();
+  }
+  function exportText() {
+    const L = [];
+    L.push('BÀI KIỂM TRA LẠI ' + D.minutes + ' PHÚT — OL13 SQL (W3Schools)');
+    L.push('Họ tên: ' + S.name); L.push('Lớp: ' + (S.cls || '(không ghi)'));
+    L.push('Thời gian làm: ' + fmt(S.submittedAt - S.start) + ' / ' + D.minutes + ':00');
+    L.push('Tổng điểm tối đa: ' + totalMarks + ' — giáo viên chấm'); L.push('');
+    for (const q of allQ) {
+      L.push('Câu ' + q.id + ' [' + q.topic + '] (' + q.marks + ' điểm): ' + qText(q));
+      L.push('Trả lời: ' + (S.answers[q.id] || '(bỏ trống)')); L.push('');
+    }
+    return L.join('\n');
+  }
+  function showResult() {
+    const box = $('#res'); box.textContent = '';
+    $('#rname').textContent = S.name + (S.cls ? ' · ' + S.cls : '');
+    $('#rtime').textContent = 'Thời gian làm bài: ' + fmt(S.submittedAt - S.start) + ' / ' + D.minutes + ':00';
+    for (const q of allQ) {
+      const d = isDone(q);
+      box.append(el('span', { class: d ? 'ok' : 'blank', text: q.id + (d ? ' ✓' : ' –') }));
+    }
+    $('#rwr').textContent = 'Đã làm ' + allQ.filter(isDone).length + '/' + allQ.length + ' câu — giáo viên sẽ chấm. Hãy tải file bài làm gửi cho giáo viên.';
+    show('result');
+  }
+  function download() {
+    const safe = S.name.normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40) || 'bai_lam';
+    const blob = new Blob([exportText()], { type: 'text/plain;charset=utf-8' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: 'ol13-kiem-tra-35-phut_' + safe + '.txt' });
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  async function copy() {
+    try { await navigator.clipboard.writeText(exportText()); $('#toast').textContent = 'Đã sao chép bài làm.'; }
+    catch { $('#toast').textContent = 'Không sao chép được — hãy dùng nút Tải file.'; }
+  }
+
+  // ---------- wiring ----------
+  initStart();
+  for (const id of ['#submit', '#submit2']) $(id).addEventListener('click', () => submit(false));
+  $('#dl').addEventListener('click', download);
+  $('#cp').addEventListener('click', copy);
+  $('#again').addEventListener('click', () => {
+    if (!confirm('Xóa bài làm hiện tại và bắt đầu lại từ đầu?')) return;
+    try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+    S = null; location.reload();
+  });
+  window.addEventListener('beforeunload', (e) => { if (S && !S.submitted && !$('#exam').classList.contains('hidden')) { e.preventDefault(); e.returnValue = ''; } });
+
+  if (S && S.submitted) showResult();
+  else if (S && !S.submitted) startExam(); // if time already ran out, the first tick auto-submits
+  else show('start');
+})();
+</script>
+</body></html>

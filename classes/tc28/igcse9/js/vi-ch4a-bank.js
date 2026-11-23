@@ -1,0 +1,142 @@
+window.VI = window.VI || { topics: {}, objectives: {}, bank: {}, glossary: {}, ui: {} };
+
+Object.assign(window.VI.bank, {
+  "4.1a": [
+    ["Vai trò của CPU là gì?", "Xử lý các lệnh và dữ liệu được đưa vào máy tính để có thể xuất ra kết quả", ["Lưu trữ tệp vĩnh viễn", "Hiển thị hình ảnh lên màn hình", "Kết nối máy tính với internet"]],
+    ["Vi xử lý (microprocessor) là gì?", "Một mạch tích hợp trên một chip duy nhất làm công việc của CPU", ["Một ổ cứng rất nhỏ", "Một chương trình điều khiển CPU", "Một loại RAM"]],
+    ["CPU là viết tắt của gì?", "Central processing unit", ["Computer processing unit", "Central program unit", "Control processing utility"], { t: ["bộ xử lý trung tâm"] }],
+    ["Việc nào sau đây CPU KHÔNG chịu trách nhiệm?", "Lưu trữ tệp vĩnh viễn khi máy tính tắt", ["Thực thi các lệnh của chương trình", "Thực hiện các phép tính", "Điều khiển luồng dữ liệu"]],
+    ["Vi xử lý là một loại…", "mạch tích hợp", ["ổ cứng", "cảm biến", "hệ điều hành"], { t: ["mạch tích hợp", "integrated circuit"] }]
+  ],
+  "4.1b": [
+    ["Trong kiến trúc Von Neumann, chương trình và dữ liệu được lưu ở đâu?", "Cùng nhau trong một bộ nhớ", ["Trong các bộ nhớ riêng biệt", "Chỉ trong các thanh ghi của CPU", "Chỉ trên ổ cứng"]],
+    ["Vai trò của bộ điều khiển (CU) là gì?", "Giải mã các lệnh và gửi tín hiệu điều khiển để phối hợp các thành phần khác", ["Thực hiện các phép tính", "Lưu kết quả các phép tính", "Giữ địa chỉ của lệnh kế tiếp"]],
+    ["Vai trò của bộ số học và logic (ALU) là gì?", "Thực hiện các phép tính và phép toán logic", ["Giải mã các lệnh", "Lưu địa chỉ của lệnh kế tiếp", "Gửi dữ liệu đến bộ nhớ"]],
+    ["Thanh ghi nào giữ địa chỉ của lệnh kế tiếp sẽ được nạp?", "Bộ đếm chương trình (PC)", ["Thanh ghi địa chỉ bộ nhớ (MAR)", "Thanh ghi dữ liệu bộ nhớ (MDR)", "Thanh ghi tích lũy (ACC)"], { t: ["PC", "bộ đếm chương trình", "program counter"] }],
+    ["Thanh ghi nào giữ địa chỉ của vị trí nhớ sắp được đọc hoặc ghi?", "Thanh ghi địa chỉ bộ nhớ (MAR)", ["Bộ đếm chương trình (PC)", "Thanh ghi lệnh hiện hành (CIR)", "Thanh ghi dữ liệu bộ nhớ (MDR)"], { t: ["MAR", "thanh ghi địa chỉ bộ nhớ", "memory address register"] }],
+    ["Thanh ghi nào giữ dữ liệu hoặc lệnh vừa được nạp từ bộ nhớ (hoặc sắp được ghi vào)?", "Thanh ghi dữ liệu bộ nhớ (MDR)", ["Thanh ghi địa chỉ bộ nhớ (MAR)", "Bộ đếm chương trình (PC)", "Thanh ghi tích lũy (ACC)"], { t: ["MDR", "thanh ghi dữ liệu bộ nhớ", "memory data register"] }],
+    ["Thanh ghi nào giữ lệnh đang được giải mã và thực thi?", "Thanh ghi lệnh hiện hành (CIR)", ["Bộ đếm chương trình (PC)", "Thanh ghi dữ liệu bộ nhớ (MDR)", "Thanh ghi địa chỉ bộ nhớ (MAR)"], { t: ["CIR", "thanh ghi lệnh hiện hành", "current instruction register"] }],
+    ["Thanh ghi nào tạm thời lưu kết quả các phép tính do ALU thực hiện?", "Thanh ghi tích lũy (ACC)", ["Bộ đếm chương trình (PC)", "Thanh ghi địa chỉ bộ nhớ (MAR)", "Thanh ghi lệnh hiện hành (CIR)"], { t: ["ACC", "thanh ghi tích lũy", "accumulator"] }],
+    ["Bus nào truyền địa chỉ bộ nhớ từ CPU đến bộ nhớ?", "Bus địa chỉ", ["Bus dữ liệu", "Bus điều khiển", "USB"], { t: ["bus địa chỉ", "address bus"] }],
+    ["Bus nào truyền dữ liệu và lệnh giữa CPU và bộ nhớ?", "Bus dữ liệu", ["Bus địa chỉ", "Bus điều khiển", "Bus nối tiếp"], { t: ["bus dữ liệu", "data bus"] }],
+    ["Bus nào truyền các tín hiệu như 'đọc', 'ghi' và xung nhịp?", "Bus điều khiển", ["Bus địa chỉ", "Bus dữ liệu", "Bus lệnh"], { t: ["bus điều khiển", "control bus"] }],
+    ["Bus nào là một chiều (chỉ đi một hướng)?", "Bus địa chỉ", ["Bus dữ liệu", "Bus điều khiển", "Tất cả"], { t: ["bus địa chỉ", "address bus"] }],
+    ["Những bus nào là hai chiều?", "Bus dữ liệu và bus điều khiển", ["Bus địa chỉ và bus dữ liệu", "Chỉ bus địa chỉ", "Bus địa chỉ và bus điều khiển"]],
+    ["Thanh ghi (register) là gì?", "Một vị trí nhớ rất nhỏ, rất nhanh nằm bên trong CPU", ["Một phần của ổ cứng", "Danh sách tất cả người dùng", "Một loại bus"]],
+    ["Vì sao bus địa chỉ chỉ đi một chiều?", "CPU gửi địa chỉ đến bộ nhớ, nhưng bộ nhớ không bao giờ cần gửi địa chỉ ngược lại", ["Nó quá mỏng để truyền dữ liệu hai chiều", "Địa chỉ được mã hóa", "Nó chỉ truyền tín hiệu xung nhịp"]]
+  ],
+  "4.2a": [
+    ["Ba giai đoạn của chu trình xử lý là gì?", "Nạp, giải mã, thực thi", ["Nhập, xử lý, xuất", "Đọc, ghi, lưu", "Tải, chạy, lưu"]],
+    ["Khi bắt đầu giai đoạn nạp, địa chỉ trong PC được sao chép sang…", "MAR", ["MDR", "CIR", "ACC"], { t: ["thanh ghi địa chỉ bộ nhớ", "memory address register"] }],
+    ["Trong giai đoạn nạp, lệnh đi từ bộ nhớ đến MDR qua…", "bus dữ liệu", ["bus địa chỉ", "bus điều khiển", "USB"], { t: ["bus dữ liệu", "data bus"] }],
+    ["Trong giai đoạn nạp, lệnh được sao chép từ MDR sang…", "CIR", ["PC", "MAR", "ALU"], { t: ["thanh ghi lệnh hiện hành", "current instruction register"] }],
+    ["Điều gì xảy ra với bộ đếm chương trình trong giai đoạn nạp?", "Nó được tăng lên để trỏ đến lệnh kế tiếp", ["Nó được đặt lại về 0", "Nó lưu kết quả", "Không có gì xảy ra với nó"]],
+    ["Thành phần nào giải mã lệnh?", "Bộ điều khiển", ["ALU", "MDR", "Bus địa chỉ"], { t: ["CU", "bộ điều khiển", "control unit"] }],
+    ["Trong giai đoạn thực thi, phép tính được thực hiện bởi…", "ALU", ["CU", "MAR", "PC"], { t: ["bộ số học và logic", "arithmetic logic unit"] }],
+    ["Thứ tự đúng của giai đoạn nạp là gì?", "PC → MAR → bộ nhớ → MDR → CIR", ["MDR → PC → CIR → MAR", "CIR → MDR → MAR → PC", "MAR → PC → CIR → MDR"]],
+    ["Các lệnh được nạp từ đâu trong chu trình FDE?", "RAM (bộ nhớ chính)", ["Ổ cứng", "Bàn phím", "Chỉ từ ROM"]],
+    ["Tín hiệu nào được gửi qua bus điều khiển khi CPU muốn nạp một lệnh?", "Tín hiệu đọc", ["Tín hiệu ghi", "Một ngắt (interrupt)", "Tín hiệu đặt lại xung nhịp"]]
+  ],
+  "4.2b": [
+    ["Tốc độ xung nhịp (clock speed) của CPU là gì?", "Số chu kỳ FDE (xung) mà CPU thực hiện trong mỗi giây", ["Giờ trên đồng hồ của máy tính", "Tốc độ của quạt", "Số nhân"]],
+    ["Một CPU có tốc độ xung nhịp 3.2 GHz. Điều này có nghĩa là gì?", "Nó thực hiện 3,2 tỷ chu kỳ mỗi giây", ["Nó có 3,2 nhân", "Nó có 3,2 GiB bộ nhớ đệm", "Nó chạy trong 3,2 giờ"]],
+    ["Nhân (core) là gì?", "Một đơn vị xử lý độc lập bên trong CPU có ALU, CU và các thanh ghi riêng", ["Một loại bộ nhớ", "Tâm của một ổ cứng", "Một phần của nguồn điện"]],
+    ["Bộ nhớ đệm (cache) là gì?", "Một lượng nhỏ bộ nhớ rất nhanh bên trong hoặc gần CPU, lưu các dữ liệu và lệnh dùng thường xuyên", ["Bộ nhớ chính của máy tính", "Bộ nhớ phụ trên ổ cứng", "Một loại bus"]],
+    ["Vì sao nhiều cache hơn lại cải thiện hiệu năng?", "CPU có thể lấy dữ liệu dùng thường xuyên từ cache nhanh thay vì từ RAM chậm hơn", ["Cache làm xung nhịp nhanh hơn", "Cache thêm nhiều nhân hơn", "Cache lưu tệp vĩnh viễn"]],
+    ["Vì sao tốc độ xung nhịp cao hơn lại cải thiện hiệu năng?", "Có thể xử lý nhiều lệnh hơn mỗi giây", ["CPU dùng ít điện hơn", "Lưu trữ được nhiều dữ liệu hơn", "Màn hình làm tươi nhanh hơn"]],
+    ["Vì sao tăng gấp đôi số nhân không phải lúc nào cũng làm tốc độ gấp đôi?", "Phần mềm phải được viết để dùng tất cả các nhân, và các nhân mất thời gian để trao đổi với nhau", ["Các nhân không thể chạy cùng lúc", "Mỗi nhân chậm đi một nửa", "Các nhân dùng chung một thanh ghi"]],
+    ["Rủi ro khi tăng tốc độ xung nhịp quá mức (ép xung) là gì?", "CPU có thể quá nhiệt và máy tính có thể hoạt động không ổn định", ["Làm giảm dung lượng RAM", "Xóa bộ nhớ đệm", "Tắt các nhân"]],
+    ["Ba yếu tố nào ảnh hưởng đến hiệu năng CPU trong chương trình IGCSE?", "Tốc độ xung nhịp, số nhân và dung lượng cache", ["Kích thước màn hình, bàn phím và chuột", "Màu RAM, kích thước thùng máy và quạt", "Ổ cứng, máy in và loa"]],
+    ["Computer A: 2.0 GHz, quad-core. Computer B: 2.0 GHz, dual-core. Khi chạy phần mềm được thiết kế cho nhiều nhân, máy nào có khả năng nhanh hơn?", "Computer A", ["Computer B", "Hoàn toàn giống nhau", "Cả hai đều không chạy được"], { t: ["A"] }],
+    ["Tốc độ xung nhịp được đo bằng…", "hertz (ví dụ GHz)", ["byte", "điểm ảnh", "bit trên mỗi điểm ảnh"]]
+  ],
+  "4.3a": [
+    ["Tập lệnh (instruction set) là gì?", "Danh sách tất cả các lệnh (lệnh mã máy) mà một CPU có thể xử lý", ["Danh sách các chương trình cài trên máy tính", "Một bộ quy tắc để viết mã giả", "Thực đơn của một hệ điều hành"]],
+    ["Các lệnh trong tập lệnh ở dạng…", "mã máy", ["Python", "mã giả", "HTML"], { t: ["nhị phân", "mã máy", "binary", "machine code"] }],
+    ["Trong một lệnh mã máy, opcode cho CPU biết điều gì?", "Thao tác nào cần thực hiện (ví dụ ADD, LOAD)", ["Địa chỉ của lệnh kế tiếp", "Màu của đầu ra", "Tốc độ của xung nhịp"]],
+    ["Trong một lệnh mã máy, toán hạng (operand) là gì?", "Dữ liệu hoặc địa chỉ mà thao tác sử dụng", ["Loại thao tác", "Tên của chương trình", "Dung lượng bộ nhớ đệm"]],
+    ["Vì sao một chương trình đã biên dịch cho loại CPU này không phải lúc nào cũng chạy được trên loại khác?", "Các họ CPU khác nhau có tập lệnh khác nhau", ["Mỗi CPU có một màn hình khác nhau", "Chương trình chỉ chạy được một lần", "Các CPU dùng bảng chữ cái khác nhau"]],
+    ["Khi CPU giải mã một lệnh, nó dùng gì để hiểu lệnh đó nghĩa là gì?", "Tập lệnh của nó", ["Trình quản lý tệp của hệ điều hành", "Bộ nhớ đệm", "Bàn phím"]]
+  ],
+  "4.3b": [
+    ["Hệ thống nhúng (embedded system) là gì?", "Một hệ thống máy tính được tích hợp vào một thiết bị để thực hiện một chức năng chuyên dụng", ["Một máy tính đa dụng như laptop", "Một chương trình chạy trong trình duyệt web", "Một loại bộ nhớ phụ"]],
+    ["Thiết bị nào sau đây là hệ thống nhúng?", "Bộ điều khiển trong máy giặt", ["Máy tính để bàn", "Laptop", "Máy chơi game dùng cho nhiều việc"]],
+    ["Hệ thống nhúng khác máy tính đa dụng ở điểm nào?", "Nó thực hiện một chức năng chuyên dụng thay vì nhiều chức năng khác nhau", ["Nó không có bộ xử lý", "Nó không thể dùng cảm biến", "Nó có màn hình lớn hơn"]],
+    ["Đâu là một ưu điểm của hệ thống nhúng?", "Chúng nhỏ, rẻ để sản xuất và tiêu thụ ít điện", ["Chúng dễ nâng cấp", "Chúng làm được mọi nhiệm vụ", "Chúng không thể bị tấn công"]],
+    ["Đâu là một nhược điểm của hệ thống nhúng?", "Chúng khó nâng cấp hoặc sửa chữa", ["Chúng rất lớn", "Chúng tiêu thụ nhiều điện", "Chúng đắt khi sản xuất hàng loạt"]],
+    ["Thiết bị nào sau đây ÍT có khả năng là hệ thống nhúng nhất?", "Máy tính cá nhân", ["Lò vi sóng", "Hệ thống chống bó cứng phanh của ô tô", "Máy bán hàng tự động"]],
+    ["Các lệnh của hệ thống nhúng thường được lưu ở đâu?", "Trong ROM hoặc bộ nhớ flash, để không bị mất khi tắt điện", ["Trên đĩa DVD", "Chỉ trên đám mây", "Trong đầu người dùng"]],
+    ["Hãy nêu một lý do vì sao hệ thống nhúng kết nối internet có thể là rủi ro.", "Nó có thể bị tấn công (hack)", ["Nó sẽ chạy quá nhanh", "Nó sẽ dùng quá ít điện", "Nó sẽ cần một bàn phím"]],
+    ["Thiết bị nào sau đây là ví dụ về hệ thống nhúng?", "Hệ thống báo động an ninh", ["Một bảng tính", "Một trình duyệt web", "Một phần mềm xử lý văn bản"]],
+    ["Một bộ điều nhiệt thông minh mà bạn điều khiển bằng ứng dụng điện thoại là ví dụ của…", "hệ thống nhúng", ["máy tính đa dụng", "trình biên dịch", "máy quét 3D"], { t: ["hệ thống nhúng", "embedded system", "embedded"] }]
+  ],
+  "4.4a": [
+    ["Thiết bị nhập (input device) là gì?", "Phần cứng cho phép đưa dữ liệu vào máy tính, chuyển nó thành dữ liệu số", ["Phần cứng hiển thị kết quả xử lý", "Phần mềm điều khiển phần cứng", "Thiết bị lưu trữ dữ liệu vĩnh viễn"]],
+    ["Vì sao cần có thiết bị nhập?", "Để chuyển dữ liệu thế giới thực thành dạng số mà máy tính có thể xử lý", ["Để hiển thị đầu ra cho người dùng", "Để lưu chương trình", "Để làm mát CPU"]],
+    ["Chuột quang phát hiện chuyển động như thế nào?", "Một đèn LED chiếu sáng bề mặt và một cảm biến chụp nhiều ảnh mỗi giây, các ảnh được so sánh để tìm ra chuyển động", ["Một quả bóng cao su lăn trên hai con lăn", "Nó dùng GPS", "Nó đo áp suất không khí"]],
+    ["Bàn phím gửi một lần bấm phím đến máy tính như thế nào?", "Bấm phím làm kín một mạch điện; một chip xác định phím nào và gửi mã ký tự của nó", ["Nó gửi một bức ảnh của phím", "Nó gửi sóng âm", "Nó gửi màu của phím"]],
+    ["Micro thu âm thanh như thế nào?", "Âm thanh làm màng rung dao động, tạo ra tín hiệu điện rồi được chuyển thành dạng số", ["Nó chụp ảnh âm thanh", "Nó dùng tia laser", "Nó đo nhiệt độ"]],
+    ["Màn hình cảm ứng điện trở phát hiện một lần chạm như thế nào?", "Lực ấn đẩy hai lớp vào nhau, làm kín mạch điện tại điểm đó", ["Ngón tay làm thay đổi điện trường", "Ngón tay chặn các tia hồng ngoại", "Một camera quan sát ngón tay"]],
+    ["Màn hình cảm ứng điện dung phát hiện một lần chạm như thế nào?", "Ngón tay, vốn dẫn điện, làm thay đổi điện dung tại điểm đó", ["Hai lớp bị ấn vào nhau", "Ngón tay chặn một tia laser", "Nó cân ngón tay"]],
+    ["Màn hình cảm ứng hồng ngoại phát hiện một lần chạm như thế nào?", "Ngón tay chặn một lưới các tia hồng ngoại, và những tia bị chặn cho biết vị trí", ["Hai lớp chạm vào nhau", "Ngón tay làm thay đổi điện dung", "Nó lắng nghe tiếng gõ"]],
+    ["Loại màn hình cảm ứng nào dùng được khi đeo găng tay và rẻ, nhưng cần ấn lực?", "Điện trở", ["Điện dung", "Hồng ngoại", "OLED"], { t: ["điện trở", "resistive"] }],
+    ["Loại màn hình cảm ứng nào được dùng trong hầu hết smartphone vì rất nhạy và hỗ trợ đa chạm?", "Điện dung", ["Điện trở", "Hồng ngoại", "Áp lực"], { t: ["điện dung", "capacitive"] }],
+    ["Loại màn hình cảm ứng nào phù hợp với màn hình rất lớn và dùng được với mọi vật?", "Hồng ngoại", ["Điện trở", "Điện dung", "Từ"], { t: ["hồng ngoại", "infra-red", "infrared"] }],
+    ["Vì sao chuột quang có thể hoạt động không tốt trên mặt bàn kính?", "Cảm biến không phát hiện đủ độ nhám bề mặt trong các ảnh", ["Kính chặn Bluetooth", "Kính quá lạnh", "Quả bóng bị trượt"]],
+    ["Thiết bị nào sau đây là thiết bị nhập?", "Micro", ["Loa", "Cơ cấu chấp hành", "Máy in phun"], { t: ["micro", "microphone"] }],
+    ["Đâu là một nhược điểm của bàn phím?", "Chậm khi nhập lượng dữ liệu lớn và có thể gây RSI", ["Nó không nhập được số", "Nó cần internet", "Nó chỉ gõ được chữ in hoa"]]
+  ],
+  "4.4b": [
+    ["Thiết bị xuất (output device) là gì?", "Phần cứng nhận dữ liệu đã xử lý từ máy tính và trình bày nó dưới dạng người dùng có thể hiểu hoặc sử dụng", ["Phần cứng đưa dữ liệu vào máy tính", "Thiết bị lưu trữ dữ liệu vĩnh viễn", "Phần mềm dịch mã"]],
+    ["Vì sao cần có thiết bị xuất?", "Để có thể nhìn, nghe hoặc sử dụng kết quả xử lý", ["Để nhập dữ liệu", "Để lưu hệ điều hành", "Để tăng tốc CPU"]],
+    ["Thiết bị nào sau đây là thiết bị xuất?", "Loa", ["Micro", "Máy quét mã vạch", "Bàn phím"], { t: ["loa", "speaker"] }],
+    ["Thiết bị nào sau đây là thiết bị xuất?", "Cơ cấu chấp hành", ["Cảm biến", "Máy quét mã QR", "Chuột quang"], { t: ["cơ cấu chấp hành", "actuator"] }],
+    ["Thiết bị nào sau đây KHÔNG phải là thiết bị xuất?", "Máy quét 2D", ["Màn hình LCD", "Máy in laser", "Máy chiếu DLP"]],
+    ["Màn hình cảm ứng vừa là…", "thiết bị nhập vừa là thiết bị xuất", ["chỉ là thiết bị nhập", "chỉ là thiết bị xuất", "thiết bị lưu trữ"]]
+  ],
+  "4.5a": [
+    ["Thư viện sẽ dùng thiết bị nào để đọc nhanh các con số trên nhãn sách ở quầy?", "Máy quét mã vạch", ["Máy quét 3D", "Micro", "Máy chiếu DLP"]],
+    ["Thiết bị nào có thể quét một chi tiết bị hỏng để sao chép lại bằng máy in 3D?", "Máy quét 3D", ["Máy quét mã vạch", "Máy quét 2D", "Chuột quang"]],
+    ["Loại mã nào có thể lưu địa chỉ một trang web mà khách hàng quét bằng điện thoại?", "Mã QR", ["Mã vạch", "Chữ số kiểm tra", "Địa chỉ MAC"], { t: ["mã QR", "QR code", "QR"] }],
+    ["Vì sao mã vạch 1D vẫn được dùng trong siêu thị?", "Chúng rẻ để in và quét nhanh với một mã sản phẩm ngắn", ["Chúng chứa nhiều dữ liệu hơn mã QR", "Chúng không thể quét được", "Chúng lưu ảnh của sản phẩm"]],
+    ["Máy quét mã vạch đọc mã vạch như thế nào?", "Ánh sáng được chiếu lên mã vạch; các vạch tối phản xạ ít ánh sáng hơn, và cảm biến phát hiện mẫu đó", ["Nó chụp một bức ảnh độ phân giải cao rồi dùng OCR", "Nó cân sản phẩm", "Nó đọc một dải từ"]],
+    ["Sau khi mã vạch được quét, lần quét được kiểm tra lỗi như thế nào?", "Chữ số kiểm tra được tính lại và so sánh", ["Thu ngân đọc to lên", "Một bit chẵn lẻ được thêm vào", "Nó được quét ba lần"]],
+    ["Cơ sở dữ liệu của siêu thị lưu gì cho mỗi số mã vạch?", "Các thông tin như tên sản phẩm, giá và lượng hàng tồn kho", ["Tên của khách hàng", "Ảnh của mã vạch", "Màu của mã vạch"]],
+    ["Vì sao mã QR chứa được nhiều dữ liệu hơn mã vạch?", "Nó là ma trận hai chiều các ô vuông thay vì một hàng các vạch", ["Nó được in lớn hơn", "Nó dùng màu sắc", "Nó có chữ số kiểm tra dài hơn"]],
+    ["Ba ô vuông lớn ở các góc của mã QR dùng để làm gì?", "Giúp máy quét tìm ra mã và hướng của nó", ["Để lưu giá", "Chỉ để trang trí", "Để mã hóa dữ liệu"]],
+    ["Đâu là một ưu điểm của mã QR so với mã vạch?", "Có thể đọc từ mọi góc và chứa nhiều dữ liệu hơn", ["Chúng không thể bị sao chép", "Chúng không bao giờ liên kết đến trang web", "Chúng không cần camera"]],
+    ["Đâu là một rủi ro của mã QR?", "Một mã QR độc hại có thể dẫn đến trang web giả mạo (attagging)", ["Chúng có thể làm hỏng camera", "Chúng tự động xóa dữ liệu điện thoại", "Chúng chỉ hoạt động vào ban ngày"]],
+    ["Trong máy ảnh kỹ thuật số, bộ phận nào chuyển ánh sáng thành tín hiệu điện?", "Cảm biến hình ảnh (CCD hoặc CMOS) gồm các tế bào nhạy sáng", ["Thấu kính", "Thẻ nhớ", "Đèn flash"]],
+    ["Điều gì quyết định độ phân giải tối đa của máy ảnh kỹ thuật số?", "Số tế bào nhạy sáng (điểm ảnh) trên cảm biến hình ảnh", ["Dung lượng thẻ nhớ", "Độ sáng của đèn flash", "Thời lượng pin"]],
+    ["Máy quét 2D được dùng để làm gì?", "Biến tài liệu phẳng hoặc ảnh thành ảnh số", ["Tạo mô hình 3D của vật thể rắn", "Đọc dải từ", "Đo nhiệt độ"]],
+    ["Phần mềm nào có thể biến ảnh quét chứa chữ thành văn bản chỉnh sửa được?", "OCR (nhận dạng ký tự quang học)", ["Trình biên dịch", "Phần mềm diệt virus", "Bảng tính"], { t: ["OCR", "nhận dạng ký tự quang học", "optical character recognition"] }],
+    ["Máy quét 3D được dùng để làm gì?", "Quét các vật thể rắn để tạo mô hình số ba chiều", ["Quét tài liệu giấy phẳng", "Đọc mã QR", "In vật thể từng lớp một"]],
+    ["Thiết bị nào sau đây là ví dụ về máy quét 3D?", "Máy chụp CT trong bệnh viện", ["Đầu đọc mã vạch", "Webcam", "Máy photocopy"]],
+    ["Sân bay sẽ dùng thiết bị nhập nào để đọc trang dữ liệu của hộ chiếu?", "Máy quét 2D", ["Máy in 3D", "Micro", "Gia tốc kế"]],
+    ["Đâu là một nhược điểm của máy quét mã vạch?", "Mã vạch bị hỏng hoặc bẩn có thể không quét được", ["Chúng chậm hơn việc gõ tay", "Chúng không đọc được số", "Chúng cần một máy in 3D"]]
+  ],
+  "4.6a": [
+    ["Công nghệ màn hình nào cần đèn nền vì các điểm ảnh của nó không tự phát sáng?", "LCD", ["LED (OLED)", "DLP", "Laser"], { t: ["LCD", "màn hình LCD"] }],
+    ["Một hội trường trường học cần máy chiếu có độ tương phản cao, nhỏ và nhẹ. Loại nào tốt nhất?", "Máy chiếu DLP", ["Máy chiếu LCD", "Máy chiếu phun mực", "Máy chiếu 3D"]],
+    ["Đâu là một nhược điểm của máy chiếu LCD?", "Độ tương phản thấp hơn, nên màu đen có thể trông xám", ["Chúng không có màu sắc", "Chúng dùng gương siêu nhỏ dễ hỏng", "Chúng không chiếu được video"]],
+    ["Vì sao màn hình LCD cần đèn nền?", "Các tinh thể lỏng không tự tạo ra ánh sáng", ["Để giữ ấm màn hình", "Để làm điểm ảnh lớn hơn", "Để tiết kiệm điện"]],
+    ["Đèn nền trong các màn hình LCD hiện đại thường dùng gì?", "LED", ["Nến", "Laser", "Ống CRT"], { t: ["LED", "điốt phát sáng", "light emitting diodes"] }],
+    ["Trong một màn hình LED thực sự, ánh sáng được tạo ra như thế nào?", "Mỗi điểm ảnh được tạo từ các LED tự phát sáng", ["Một bóng đèn duy nhất phía sau màn hình", "Các tinh thể lỏng phát sáng", "Một tia laser quét qua màn hình"]],
+    ["Đâu là một ưu điểm của đèn nền LED?", "Đạt độ sáng tối đa nhanh và dùng ít điện hơn", ["Làm màn hình nặng hơn", "Tỏa nhiều nhiệt hơn", "Cần thời gian khởi động"]],
+    ["Máy chiếu DLP tạo ra hình ảnh như thế nào?", "Dùng hàng triệu gương siêu nhỏ nghiêng để làm mỗi điểm ảnh sáng hoặc tối, cùng một bánh xe màu", ["Dùng ba tấm LCD", "Dùng trống của máy in", "Dùng các giọt mực"]],
+    ["Máy chiếu LCD tạo ra hình ảnh như thế nào?", "Ánh sáng được tách thành đỏ, lục và lam rồi đi qua ba tấm LCD, sau đó được ghép lại", ["Dùng các gương siêu nhỏ nghiêng", "Dùng một đĩa quay", "Dùng laser và mực bột"]],
+    ["Loại máy chiếu nào thường cho độ tương phản cao hơn và màu đen sâu hơn?", "Máy chiếu DLP", ["Máy chiếu LCD", "Cả hai giống hệt nhau", "Không loại nào"], { t: ["DLP", "máy chiếu DLP"] }],
+    ["Loại máy chiếu nào thường cho màu sáng hơn và đậm hơn?", "Máy chiếu LCD", ["Máy chiếu DLP", "Cả hai giống hệt nhau", "Không loại nào"], { t: ["LCD", "máy chiếu LCD"] }],
+    ["LCD là viết tắt của gì?", "Liquid crystal display", ["Light colour diode", "Large computer display", "Liquid colour diode"], { t: ["liquid crystal display", "màn hình tinh thể lỏng"] }],
+    ["LED là viết tắt của gì?", "Light emitting diode", ["Liquid electronic display", "Large electric diode", "Light energy display"], { t: ["light emitting diode", "điốt phát sáng"] }],
+    ["DLP là viết tắt của gì?", "Digital light processing", ["Digital laser printer", "Direct light projector", "Data link protocol"], { t: ["digital light processing", "xử lý ánh sáng kỹ thuật số"] }]
+  ],
+  "4.6b": [
+    ["Cơ cấu chấp hành (actuator) là gì?", "Một thiết bị xuất tạo ra chuyển động vật lý, như động cơ hoặc van", ["Một thiết bị nhập đo nhiệt độ", "Một loại thiết bị lưu trữ", "Một màn hình"]],
+    ["Thiết bị nào sau đây là ví dụ về cơ cấu chấp hành?", "Một động cơ mở cửa sổ nhà kính", ["Một cảm biến nhiệt độ", "Một bàn phím", "Một ổ SSD"]],
+    ["Trong loa, bộ phận nào chuyển dữ liệu âm thanh số thành tín hiệu tương tự?", "Bộ chuyển đổi số sang tương tự (DAC)", ["Bộ chuyển đổi tương tự sang số (ADC)", "Trình biên dịch", "Cơ cấu chấp hành"], { t: ["DAC", "bộ chuyển đổi số sang tương tự", "digital to analogue converter"] }],
+    ["Loa tạo ra âm thanh như thế nào?", "Dòng điện biến thiên trong cuộn dây gần nam châm làm màng loa rung, tạo ra sóng âm", ["Một tia laser làm rung không khí", "Các tinh thể lỏng rung", "CPU rung"]],
+    ["Trong một hệ thống điều khiển, thiết bị nào thực sự bật máy sưởi?", "Cơ cấu chấp hành", ["Cảm biến", "ADC", "Bàn phím"], { t: ["cơ cấu chấp hành", "actuator"] }],
+    ["Thiết bị nào sau đây là cơ cấu chấp hành?", "Một nam châm điện (solenoid) khóa cửa", ["Một cảm biến ánh sáng", "Một máy quét mã QR", "Một micro"]]
+  ]
+});
