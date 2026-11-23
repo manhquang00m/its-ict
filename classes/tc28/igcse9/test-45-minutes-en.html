@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>45-minute test: Data Representation &amp; Data Transmission</title><style>:root { --navy: #12355b; --orange: #e07a1f; --bg: #f4f6fa; --ok: #1b7f3b; --bad: #b3261e; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #111; background: var(--bg); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+.card { background: #fff; border-radius: 10px; padding: 18px 20px; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+h1 { margin: 0 0 4px; color: var(--navy); font-size: 26px; }
+h2 { margin: 22px 0 10px; font-size: 19px; color: #fff; background: var(--navy); padding: 8px 14px; border-radius: 8px; }
+h3 { margin: 4px 0 10px; font-size: 14px; color: var(--navy); text-transform: uppercase; letter-spacing: .03em; }
+.muted { color: #555; }
+.hidden { display: none !important; }
+label.f { display: block; margin: 12px 0 4px; font-weight: 600; }
+input[type=text] { width: 100%; max-width: 420px; padding: 9px 11px; font: inherit; border: 1.5px solid #9aa7b8; border-radius: 6px; }
+button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; padding: 10px 18px; background: var(--navy); color: #fff; font-weight: 600; }
+button.sec { background: #e3e8ef; color: var(--navy); }
+button.warn { background: var(--orange); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #4a90e2; outline-offset: 2px; }
+.err { color: var(--bad); margin-top: 8px; min-height: 1.4em; }
+ul.rules { margin: 8px 0 14px 20px; padding: 0; }
+
+/* sticky exam bar */
+#bar { position: sticky; top: 0; z-index: 10; background: var(--navy); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+#bar .in { max-width: 860px; margin: 0 auto; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+#bar .who { flex: 1 1 160px; font-size: 14px; opacity: .9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#timer { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#timer.low { color: #ffb4a8; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .45; } }
+#prog { font-size: 14px; }
+#pal { max-width: 860px; margin: 0 auto; padding: 0 16px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+#pal button { padding: 2px 0; width: 32px; height: 28px; font-size: 13px; border-radius: 5px; background: rgba(255,255,255,.18); }
+#pal button.done { background: #5cb270; color: #04210f; }
+
+/* questions */
+.q { background: #fff; border-radius: 10px; padding: 14px 18px; margin: 0 0 12px; box-shadow: 0 1px 3px rgba(0,0,0,.12); scroll-margin-top: 110px; }
+.q .qh { font-weight: 600; margin-bottom: 8px; }
+.q .no { color: var(--navy); }
+.q .tag { float: right; font-size: 12px; color: #667; font-weight: 400; }
+.opt { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; margin: 4px 0; border: 1.5px solid #d6dce5; border-radius: 8px; cursor: pointer; }
+.opt:hover { background: #f1f5fb; }
+.opt input { margin-top: 5px; }
+.opt:has(input:checked) { border-color: var(--navy); background: #e8f0fb; }
+.body p { margin: 4px 0; } .body ol { margin: 4px 0 4px 22px; padding: 0; }
+.body pre, .body code { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+.body pre { background: #f2f3f5; padding: 6px 10px; border-radius: 6px; white-space: pre-wrap; }
+.body table { border-collapse: collapse; margin: 6px 0; } .body th, .body td { border: 1px solid #888; padding: 3px 9px; }
+textarea { width: 100%; min-height: 110px; margin-top: 8px; padding: 9px 11px; font: inherit; border: 1.5px solid #9aa7b8; border-radius: 6px; resize: vertical; }
+
+/* result */
+.score { font-size: 42px; font-weight: 800; color: var(--navy); margin: 4px 0; }
+.res { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.res span { min-width: 54px; text-align: center; padding: 4px 6px; border-radius: 6px; font-size: 14px; border: 1.5px solid #ccd; }
+.res .ok { background: #e3f4e8; border-color: var(--ok); color: var(--ok); }
+.res .no { background: #fde8e6; border-color: var(--bad); color: var(--bad); }
+.res .blank { background: #f1f1f1; color: #666; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+#toast { min-height: 1.4em; margin-top: 8px; color: var(--ok); }
+</style></head><body>
+<div id="bar" class="hidden"><div class="in"><div class="who" id="who"></div><div id="prog"></div><div id="timer" aria-live="off">--:--</div><button class="warn" id="submit" type="button">Submit</button></div><div id="pal" aria-label="Question list"></div></div>
+<div class="wrap">
+  <div id="start" class="card hidden">
+    <h1>45-minute test</h1>
+    <div class="muted">IGCSE Computer Science (0478) — Data Representation &amp; Data Transmission and Encryption</div>
+    <ul class="rules">
+      <li><b id="total"></b> questions: <b id="nmcq"></b> multiple-choice (1 mark each) and <b id="nwr"></b> short-answer / calculation questions (marked by your teacher).</li>
+      <li>You have <b id="mins"></b> minutes. The timer starts as soon as you press Start and keeps running even if you reload the page. Your test is submitted automatically when time runs out.</li>
+      <li>Your answers are saved automatically in this browser. When you finish, download your answer file and send it to your teacher.</li>
+    </ul>
+    <label class="f" for="name">Full name</label><input id="name" type="text" maxlength="60" autocomplete="off">
+    <label class="f" for="cls">Class</label><input id="cls" type="text" maxlength="30" autocomplete="off">
+    <div class="err" id="serr" role="alert"></div>
+    <button id="go" type="button">Start test</button>
+  </div>
+  <div id="exam" class="hidden"><div id="questions"></div><div class="card"><button class="warn" id="submit2" type="button">Submit</button></div></div>
+  <div id="result" class="card hidden">
+    <h1>Test submitted</h1><div class="muted" id="rname"></div>
+    <h3>Multiple-choice score</h3><div class="score" id="rscore"></div>
+    <div class="muted" id="rtime"></div><div class="err" id="rnote"></div>
+    <div class="res" id="res"></div>
+    <div class="muted" id="rwr"></div>
+    <div class="btns"><button id="dl" type="button">Download answer file (.txt)</button><button class="sec" id="cp" type="button">Copy answers</button><button class="sec" id="again" type="button">Start over</button></div>
+    <div id="toast" role="status"></div>
+  </div>
+</div>
+<script type="application/json" id="quiz-data">{"build":"14e5cda4a0","salt":"c3ce3fe1d772c1a192f93466","minutes":45,"ui":{"errName":"Enter your full name (2–60 characters).","errCls":"Class must be 30 characters or fewer.","qNo":"Question {n}. ","mark1":" · 1 mark","markN":" · {m} marks","taLabel":"Answer for question {n}","taHint":"Write your answer here…","goTo":"Go to question {n}","prog":"Answered {n}/{t}","confirmLeft":"{n} question(s) not answered yet. Submit anyway?","confirmNow":"Submit now?","exTitle":"{m}-MINUTE TEST — Data Representation / Data Transmission & Encryption","exName":"Name: ","exClass":"Class: ","exNoClass":"(not given)","exTime":"Time taken: ","exMcq":"Multiple choice: ","exNoGrade":"not auto-marked (browser not supported)","exWr":"Short answer / calculations: marked by teacher","exQMcq":"Q{n} [{t}] MCQ: ","exBlank":"(left blank)","exOk":"correct","exNo":"wrong","exEmpty":"blank","exQWr":"Q{n} [{t}] ({m} marks): ","exAns":"Answer: ","rTime":"Time taken: ","rNote":"This browser cannot mark the test automatically. Open the file in Chrome/Edge or send your answer file to your teacher.","rWr":"Short answer / calculations: {n}/{t} answered — your teacher will mark them.","copied":"Answers copied.","copyFail":"Could not copy — please use the Download button.","confirmAgain":"Delete your current answers and start over?","fileBase":"test-answers_"},"parts":[{"id":"A","title":"Part A: Data Representation","questions":[{"id":"A-m-1.1a-13","type":"mcq","topic":"1.1","q":"How many different values can be stored using 4 bits?","opts":["15","8","16","32"],"h":"0c3783ecc260779e215d8a5364290be99c532f57faa70489d5077175d8ffae0f"},{"id":"A-m-1.1b-1","type":"mcq","topic":"1.1","q":"What is the place value of the left-most bit in a 16-bit binary number?","opts":["65536","16384","1024","32768"],"h":"6f5cc782dff8971d07adf25c28f24f4afc966cbfc74681176dcf6b404802911b"},{"id":"A-m-1.2a-2","type":"mcq","topic":"1.2","q":"What is the denary value of hex digit F?","opts":["6","14","16","15"],"h":"d41e08c58aba25e518b2ca86aec4b5f911cedd2fa98246f1096b56e65775b15a"},{"id":"A-m-1.2b-13","type":"mcq","topic":"1.2","q":"In a URL, %20 is hexadecimal for which character?","opts":["A full stop","A space","A slash","The letter T"],"h":"7ffcbebc19f04454a124a00c9ebe892f7c9d6b359cb8cb6bb8a808e5277cd72e"},{"id":"A-m-1.3a-6","type":"mcq","topic":"1.3","q":"A right shift loses a 1 from the least significant end. What is the effect?","opts":["The result is no longer exact — the remainder is lost","An overflow error always occurs","The number becomes negative","The number doubles"],"h":"7c6b2d177d077318d3e6204928166ff627bfac0b44b1e0937e67688b3ffba265"},{"id":"A-m-1.3b-10","type":"mcq","topic":"1.3","q":"Why can't +200 be stored in 8-bit two's complement?","opts":["It needs a parity bit","Two's complement is only for negative numbers","200 is an even number","The largest positive value is +127"],"h":"9085b32f21ee807b64617a718494c21e9a953ad2cc76c9ec6980949b21e5e853"},{"id":"A-m-1.4a-14","type":"mcq","topic":"1.4","q":"Is the character '5' stored with the same code as the number 5?","opts":["Only in Unicode","Only in extended ASCII","Yes, always","No — the character '5' has its own character code (53 in ASCII)"],"h":"dc9488d66554dea9d35dc8260aa9e30206e64c93418c180b47f1fce61865e31f"},{"id":"A-m-1.4a-12","type":"mcq","topic":"1.4","q":"How much bigger is the ASCII code of a lowercase letter than its uppercase letter?","opts":["1","26","32","64"],"h":"162a4b153c998ca45be08765358c692afa132a492c4fc9a5d8da6fd47a00a542"},{"id":"A-m-1.5a-2","type":"mcq","topic":"1.5","q":"What is the sample rate?","opts":["The volume of the sound","The number of samples taken per second","The number of bits used for each sample","The length of the recording"],"h":"ea37c9e98044b15e89cea10a492b23a4ca95610b9bd990e0334da814fff039c5"},{"id":"A-m-1.5b-1","type":"mcq","topic":"1.5","q":"To change a file size from bits to bytes you…","opts":["multiply by 1024","divide by 8","multiply by 8","divide by 1024"],"h":"f310fabac304f471f5ebb932fdb15096b9d13d7396d4e7cfad5ff16edf218670"},{"id":"A-m-1.6a-2","type":"mcq","topic":"1.6","q":"What is colour depth?","opts":["How bright the image is","The number of colours on the screen at once","The number of pixels in the image","The number of bits used to represent the colour of each pixel"],"h":"16c6942a97145b6641384bb55c12f0a3e269ae365ba5d563e688993e124f29e1"},{"id":"A-m-1.6b-2","type":"mcq","topic":"1.6","q":"An image's width and height are both doubled. What happens to the file size?","opts":["It stays the same","It doubles","It is multiplied by 4","It is multiplied by 8"],"h":"98cc2e8fcd51e568a3138b09be916c9fe46cc9530e4fe4c0de6a640e64fcd23f"},{"id":"A-m-1.7a-7","type":"mcq","topic":"1.7","q":"Which unit is 4 bits?","opts":["Bit","Kibibyte","Byte","Nibble"],"h":"7d215e1f56d7e15ade10c3007704012aef32217247c734596ab460d6a82db801"},{"id":"A-m-1.7b-7","type":"mcq","topic":"1.7","q":"Why might a company that stores files in the cloud compress them?","opts":["To make files harder to open","To check them for viruses","To make them load more slowly","To reduce storage costs, as they pay for the space used"],"h":"ae92b5365f62567246d0359a1c1d54465e46c3ff8f85cd9c06c08b5e7131c6d4"},{"id":"A-w-1.1-e3","type":"calc","topic":"1.1","marks":3,"html":"\u003cp>Convert the denary number 203 to an 8-bit binary number. Show your working. [3]\u003c/p>","text":"Convert the denary number 203 to an 8-bit binary number. Show your working. [3]"},{"id":"A-w-1.1-e8","type":"calc","topic":"1.1","marks":3,"html":"\u003cp>A game stores the player's score in an 8-bit register. The score is currently 240 and the player earns 25 more points.\u003c/p>\u003cp>(a) Explain what goes wrong when the program adds the points. [2]\u003c/p>\u003cp>(b) Suggest one change the programmer could make to stop this from happening. [1]\u003c/p>","text":"A game stores the player's score in an 8-bit register. The score is currently 240 and the player earns 25 more points.\n(a) Explain what goes wrong when the program adds the points. [2]\n(b) Suggest one change the programmer could make to stop this from happening. [1]"},{"id":"A-w-1.2-e3","type":"calc","topic":"1.2","marks":2,"html":"\u003cp>Convert the denary number 218 to hexadecimal. Show your working. [2]\u003c/p>","text":"Convert the denary number 218 to hexadecimal. Show your working. [2]"},{"id":"A-w-1.2-e7","type":"open","topic":"1.2","marks":3,"html":"\u003cp>Programmers often show memory addresses in hexadecimal rather than in binary.\u003c/p>\u003cp>Describe \u003cb>two\u003c/b> reasons why. Also state whether the computer itself processes data in hexadecimal. [3]\u003c/p>","text":"Programmers often show memory addresses in hexadecimal rather than in binary.\nDescribe two reasons why. Also state whether the computer itself processes data in hexadecimal. [3]"},{"id":"A-w-1.3-e5","type":"calc","topic":"1.3","marks":3,"html":"\u003cp>Represent the denary number −45 as an 8-bit two's complement binary number. Show each step of your working. [3]\u003c/p>","text":"Represent the denary number −45 as an 8-bit two's complement binary number. Show each step of your working. [3]"},{"id":"A-w-1.3-e2","type":"calc","topic":"1.3","marks":2,"html":"\u003cp>The 8-bit register below holds \u003ccode>00001101\u003c/code> (denary 13). Show the contents of the register after a logical left shift of 2 places, and give its denary value. [2]\u003c/p>","text":"The 8-bit register below holds 00001101 (denary 13). Show the contents of the register after a logical left shift of 2 places, and give its denary value. [2]"},{"id":"A-w-1.4-e1","type":"open","topic":"1.4","marks":2,"html":"\u003cp>(a) State what is meant by a \u003ci>character set\u003c/i>. [1]\u003c/p>\u003cp>(b) State the number of different characters that 7-bit ASCII can represent. [1]\u003c/p>","text":"(a) State what is meant by a character set . [1]\n(b) State the number of different characters that 7-bit ASCII can represent. [1]"},{"id":"A-w-1.4-e3","type":"calc","topic":"1.4","marks":3,"html":"\u003cp>The binary codes \u003ccode>01000011 01000001 01010100\u003c/code> are 8-bit ASCII codes for three capital letters. Use the fact that 'A' = 65 to decode them. Show the denary value of each code and write the word. [3]\u003c/p>","text":"The binary codes 01000011 01000001 01010100 are 8-bit ASCII codes for three capital letters. Use the fact that 'A' = 65 to decode them. Show the denary value of each code and write the word. [3]"},{"id":"A-w-1.5-e2","type":"open","topic":"1.5","marks":2,"html":"\u003cp>(a) State what is meant by the \u003ci>sample resolution\u003c/i>. [1]\u003c/p>\u003cp>(b) State the effect on the file size of increasing the sample resolution. [1]\u003c/p>","text":"(a) State what is meant by the sample resolution . [1]\n(b) State the effect on the file size of increasing the sample resolution. [1]"},{"id":"A-w-1.5-e4","type":"calc","topic":"1.5","marks":3,"html":"\u003cp>A mono sound clip lasts 5 seconds. It is recorded with a sample rate of 8000 Hz and a sample resolution of 8 bits.\u003c/p>\u003cp>Calculate the file size in KiB. Show your working. [3]\u003c/p>","text":"A mono sound clip lasts 5 seconds. It is recorded with a sample rate of 8000 Hz and a sample resolution of 8 bits.\nCalculate the file size in KiB. Show your working. [3]"},{"id":"A-w-1.6-e3","type":"calc","topic":"1.6","marks":3,"html":"\u003cp>A bitmap image is 640 pixels wide and 480 pixels high. It has a colour depth of 8 bits.\u003c/p>\u003cp>Calculate the file size in KiB. Show your working. [3]\u003c/p>","text":"A bitmap image is 640 pixels wide and 480 pixels high. It has a colour depth of 8 bits.\nCalculate the file size in KiB. Show your working. [3]"},{"id":"A-w-1.6-e4","type":"open","topic":"1.6","marks":3,"html":"\u003cp>A photographer increases the resolution and the colour depth of the photographs her camera takes.\u003c/p>\u003cp>Describe the effect on the image quality and on the file size. [3]\u003c/p>","text":"A photographer increases the resolution and the colour depth of the photographs her camera takes.\nDescribe the effect on the image quality and on the file size. [3]"},{"id":"A-w-1.7-e5","type":"open","topic":"1.7","marks":2,"html":"\u003cp>State \u003cb>one\u003c/b> difference between lossy and lossless compression. [2]\u003c/p>","text":"State one difference between lossy and lossless compression. [2]"},{"id":"A-w-1.7-e6","type":"calc","topic":"1.7","marks":3,"html":"\u003cp>One row of pixels in an image is shown below (W = white, B = black).\u003c/p>\u003cpre>WWWWBBBWWWWWWBW\u003c/pre>\u003cp>(a) Show how run-length encoding (RLE) would store this row. [2]\u003c/p>\u003cp>(b) State how many characters the original row has and how many the encoded row has. [1]\u003c/p>","text":"One row of pixels in an image is shown below (W = white, B = black).\nWWWWBBBWWWWWWBW\n(a) Show how run-length encoding (RLE) would store this row. [2]\n(b) State how many characters the original row has and how many the encoded row has. [1]"}]},{"id":"B","title":"Part B: Data Transmission & Encryption","questions":[{"id":"B-m-2.1a-7","type":"mcq","topic":"2.1","q":"Why does each packet have a packet number?","opts":["So the packets can be put back in the correct order when they arrive","So the packet can be encrypted","So the payload can be compressed","So the router knows the speed"],"h":"b15414dc656aae011c64f6e4cf613b9957bc3749e800bc0df629b439e88cc7e1"},{"id":"B-m-2.1b-9","type":"mcq","topic":"2.1","q":"Put these in order: (1) packets are reordered (2) data is split into packets (3) packets travel by different routes","opts":["2, 1, 3","1, 2, 3","2, 3, 1","3, 2, 1"],"h":"cb4a9c4c1667b0f3ae49f5640fd69578cdbd3de3264def5112adb42d9e71f937"},{"id":"B-m-2.2a-1","type":"mcq","topic":"2.2","q":"What is parallel data transmission?","opts":["Data is sent one bit at a time down one wire","Several bits are sent at the same time down several wires","Data is sent in packets over the internet","Data travels in one direction only"],"h":"9b00482882c9ddba734b830c514e9a2eb0f2fcc7390ca0facf79d671bc66dfc3"},{"id":"B-m-2.2b-3","type":"mcq","topic":"2.2","q":"Which is a drawback of USB?","opts":["It is not an industry standard","It can't power devices","Devices must be configured manually","The standard cable length is limited (about 5 m)"],"h":"1fdcf81a6cfac969afdfafca1b6e0d63ec225a1f49f6a24daced629765e53d88"},{"id":"B-m-2.3a-5","type":"mcq","topic":"2.3","q":"Some packets never arriving at the destination is an example of…","opts":["data gain","skew","data loss","data change"],"h":"09f8240c18dee269297fba52aab46727655a83351b8b0f6738f429cb008709ad"},{"id":"B-m-2.3b-3","type":"mcq","topic":"2.3","q":"Which error can a simple parity check NOT detect?","opts":["A single bit flipped from 0 to 1","One bit being changed","A single bit flipped from 1 to 0","Two bits being changed in the same byte"],"h":"43539bf36044a55ef6b5b634861de2e7dd9f779bf7078ff74062a516fe90a271"},{"id":"B-m-2.4a-6","type":"mcq","topic":"2.4","q":"Which of these would most need to be encrypted when sent?","opts":["Online banking details","A public news web page","A weather forecast","A school's opening times"],"h":"f04b2f749b1ec16a45646b834bcda2bc267c721e8d0d30fc3860f04b72a53a98"},{"id":"B-m-2.4b-0","type":"mcq","topic":"2.4","q":"In symmetric encryption, how many keys are used?","opts":["Three","One — the same key encrypts and decrypts","Two — a public key and a private key","None"],"h":"18b416058ee392c329100e22e882f143a3f644b62d27787400ca2c70715622a5"},{"id":"B-w-2.1-e1","type":"open","topic":"2.1","marks":2,"html":"\u003cp>State \u003cb>two\u003c/b> items of data that are stored in a packet header. [2]\u003c/p>","text":"State two items of data that are stored in a packet header. [2]"},{"id":"B-w-2.1-e4","type":"calc","topic":"2.1","marks":3,"html":"\u003cp>A file of 1 000 000 bytes is sent across a network. Each packet carries a payload of 1 500 bytes (the last packet may carry less). The header and trailer of each packet together add 40 bytes.\u003c/p>\u003col>\u003cli>Calculate the number of packets needed. [2]\u003c/li>\u003cli>Calculate the total number of extra bytes (header and trailer) sent. [1]\u003c/li>\u003c/ol>","text":"A file of 1 000 000 bytes is sent across a network. Each packet carries a payload of 1 500 bytes (the last packet may carry less). The header and trailer of each packet together add 40 bytes.\nCalculate the number of packets needed. [2]\nCalculate the total number of extra bytes (header and trailer) sent. [1]"},{"id":"B-w-2.2-e1","type":"open","topic":"2.2","marks":2,"html":"\u003cp>State the difference between \u003cb>simplex\u003c/b> and \u003cb>full-duplex\u003c/b> data transmission. [2]\u003c/p>","text":"State the difference between simplex and full-duplex data transmission. [2]"},{"id":"B-w-2.2-e6","type":"open","topic":"2.2","marks":4,"html":"\u003cp>A student plugs a new USB memory stick into a computer. Describe what happens so that the memory stick can be used. [4]\u003c/p>","text":"A student plugs a new USB memory stick into a computer. Describe what happens so that the memory stick can be used. [4]"},{"id":"B-w-2.3-e1","type":"open","topic":"2.3","marks":2,"html":"\u003cp>State \u003cb>two\u003c/b> types of error that can happen to data during transmission. [2]\u003c/p>","text":"State two types of error that can happen to data during transmission. [2]"},{"id":"B-w-2.3-e2","type":"calc","topic":"2.3","marks":2,"html":"\u003cp>A parity bit is added to the left of each 7-bit value. Write down the complete 8-bit byte in each case.\u003c/p>\u003col>\u003cli>1100101 using \u003cb>even\u003c/b> parity [1]\u003c/li>\u003cli>0101110 using \u003cb>odd\u003c/b> parity [1]\u003c/li>\u003c/ol>","text":"A parity bit is added to the left of each 7-bit value. Write down the complete 8-bit byte in each case.\n1100101 using even parity [1]\n0101110 using odd parity [1]"},{"id":"B-w-2.3-e5","type":"calc","topic":"2.3","marks":3,"html":"\u003cp>The first 12 digits of an ISBN-13 are 978123456789. Calculate the check digit using the ISBN-13 method (multiply the digits alternately by 1 and 3, add them, find the remainder after dividing by 10 and subtract it from 10; a result of 10 becomes 0). Show your working. [3]\u003c/p>","text":"The first 12 digits of an ISBN-13 are 978123456789. Calculate the check digit using the ISBN-13 method (multiply the digits alternately by 1 and 3, add them, find the remainder after dividing by 10 and subtract it from 10; a result of 10 becomes 0). Show your working. [3]"},{"id":"B-w-2.4-e3","type":"calc","topic":"2.4","marks":3,"html":"\u003cp>A Caesar cipher uses a key of 4: each letter is moved 4 places forward in the alphabet when encrypting.\u003c/p>\u003col>\u003cli>Encrypt the word \u003ccode>CODE\u003c/code>. [1]\u003c/li>\u003cli>Decrypt the ciphertext \u003ccode>LIPPS\u003c/code>. [1]\u003c/li>\u003cli>State whether this is symmetric or asymmetric encryption and give a reason. [1]\u003c/li>\u003c/ol>","text":"A Caesar cipher uses a key of 4: each letter is moved 4 places forward in the alphabet when encrypting.\nEncrypt the word CODE . [1]\nDecrypt the ciphertext LIPPS . [1]\nState whether this is symmetric or asymmetric encryption and give a reason. [1]"},{"id":"B-w-2.4-e5","type":"open","topic":"2.4","marks":4,"html":"\u003cp>Describe how symmetric encryption works and give its main problem. [4]\u003c/p>","text":"Describe how symmetric encryption works and give its main problem. [4]"}]}]}</script>
+<script>(() => {
+  'use strict';
+  const D = JSON.parse(document.getElementById('quiz-data').textContent);
+  const KEY = 'igcse9_quiz_' + D.build;
+  const MAX_TEXT = 4000;
+  const $ = (s) => document.querySelector(s);
+  const U = D.ui;
+  const T = (k, v) => U[k].replace(/\{(\w+)\}/g, (_, n) => String(v[n]));
+  const hasCrypto = !!(window.crypto && crypto.subtle && crypto.getRandomValues);
+
+  function el(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v);
+    }
+    for (const c of kids) if (c != null) e.append(c);
+    return e;
+  }
+  function load() { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* storage may be blocked */ } }
+  function rng(seedStr) {
+    let h = 1779033703 ^ seedStr.length;
+    for (let i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+    let a = h >>> 0;
+    return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  async function sha256(s) {
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(b), (x) => x.toString(16).padStart(2, '0')).join('');
+  }
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+  const allQ = D.parts.flatMap((p) => p.questions);
+  const mcqs = allQ.filter((q) => q.type === 'mcq');
+
+  let S = load();
+  let tick = null;
+  let submitting = false;
+
+  function show(id) { for (const s of ['start', 'exam', 'result']) $('#' + s).classList.toggle('hidden', s !== id); $('#bar').classList.toggle('hidden', id !== 'exam'); window.scrollTo(0, 0); }
+
+  // ---------- start ----------
+  function initStart() {
+    $('#total').textContent = String(allQ.length);
+    $('#mins').textContent = String(D.minutes);
+    $('#nmcq').textContent = String(mcqs.length);
+    $('#nwr').textContent = String(allQ.length - mcqs.length);
+    $('#go').addEventListener('click', () => {
+      const name = $('#name').value.trim().replace(/\s+/g, ' ');
+      const cls = $('#cls').value.trim().replace(/\s+/g, ' ');
+      if (name.length < 2 || name.length > 60) { $('#serr').textContent = U.errName; return; }
+      if (cls.length > 30) { $('#serr').textContent = U.errCls; return; }
+      const now = Date.now();
+      const seed = hasCrypto ? Array.from(crypto.getRandomValues(new Uint32Array(2)), (x) => x.toString(16)).join('') : String(now);
+      S = { name, cls, seed, start: now, end: now + D.minutes * 60000, answers: {}, submitted: false };
+      save();
+      startExam();
+    });
+  }
+
+  // ---------- exam ----------
+  function buildExam() {
+    const root = $('#questions');
+    root.textContent = '';
+    const pal = $('#pal');
+    pal.textContent = '';
+    let no = 0;
+    for (const p of D.parts) {
+      root.append(el('h2', { text: p.title }));
+      for (const q of p.questions) {
+        no++;
+        const card = el('div', { class: 'q', id: 'q-' + q.id });
+        const head = el('div', { class: 'qh' }, el('span', { class: 'no', text: T('qNo', { n: no }) }));
+        card.append(el('span', { class: 'tag', text: q.topic + (q.type === 'mcq' ? U.mark1 : T('markN', { m: q.marks })) }));
+        if (q.type === 'mcq') {
+          head.append(document.createTextNode(q.q));
+          card.append(head);
+          const order = q.opts.map((_, i) => i);
+          const r = rng(S.seed + '|' + q.id);
+          for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+          order.forEach((oi, k) => {
+            const inp = el('input', { type: 'radio', name: 'r-' + q.id, value: String(oi) });
+            if (S.answers[q.id] === oi) inp.checked = true;
+            inp.addEventListener('change', () => { S.answers[q.id] = oi; save(); refresh(); });
+            card.append(el('label', { class: 'opt' }, inp, el('span', { text: 'ABCD'[k] + '. ' + q.opts[oi] })));
+          });
+        } else {
+          card.append(head);
+          const body = el('div', { class: 'body' });
+          body.innerHTML = q.html; // project-owned trusted HTML from the course data; never user input
+          card.append(body);
+          const ta = el('textarea', { 'aria-label': T('taLabel', { n: no }), maxlength: String(MAX_TEXT), placeholder: U.taHint });
+          ta.value = typeof S.answers[q.id] === 'string' ? S.answers[q.id] : '';
+          ta.addEventListener('input', () => { S.answers[q.id] = ta.value.slice(0, MAX_TEXT); save(); refresh(); });
+          card.append(ta);
+        }
+        root.append(card);
+        const b = el('button', { type: 'button', 'data-q': q.id, 'aria-label': T('goTo', { n: no }), text: String(no) });
+        b.addEventListener('click', () => document.getElementById('q-' + q.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        pal.append(b);
+      }
+    }
+  }
+  function isDone(q) { const a = S.answers[q.id]; return q.type === 'mcq' ? typeof a === 'number' : typeof a === 'string' && a.trim().length > 0; }
+  function refresh() {
+    let n = 0;
+    for (const b of document.querySelectorAll('#pal button')) {
+      const q = allQ.find((x) => x.id === b.getAttribute('data-q'));
+      const d = isDone(q); b.classList.toggle('done', d); if (d) n++;
+    }
+    $('#prog').textContent = T('prog', { n, t: allQ.length });
+  }
+  function startExam() {
+    $('#who').textContent = S.name + (S.cls ? ' · ' + S.cls : '');
+    buildExam(); refresh(); show('exam');
+    const t = $('#timer');
+    const upd = () => {
+      const left = S.end - Date.now();
+      t.textContent = fmt(left);
+      t.classList.toggle('low', left <= 5 * 60000);
+      if (left <= 0) { clearInterval(tick); submit(true); }
+    };
+    upd(); tick = setInterval(upd, 1000);
+  }
+
+  // ---------- submit / result ----------
+  async function submit(auto) {
+    if (submitting || S.submitted) return;
+    if (!auto) {
+      const left = allQ.filter((q) => !isDone(q)).length;
+      if (!confirm(left ? T('confirmLeft', { n: left }) : U.confirmNow)) return;
+    }
+    submitting = true;
+    clearInterval(tick);
+    S.submitted = true;
+    S.submittedAt = Math.min(Date.now(), S.end);
+    let score = 0; let graded = hasCrypto; const marks = {};
+    if (hasCrypto) {
+      for (const q of mcqs) {
+        const a = S.answers[q.id];
+        if (typeof a !== 'number') { marks[q.id] = 'blank'; continue; }
+        const ok = Number.isInteger(a) && q.opts[a] !== undefined && (await sha256(D.salt + '|' + q.id + '|' + q.opts[a])) === q.h;
+        marks[q.id] = ok ? 'ok' : 'no'; if (ok) score++;
+      }
+    }
+    S.result = { score, total: mcqs.length, graded, marks };
+    save();
+    submitting = false;
+    showResult();
+  }
+  function exportText() {
+    const r = S.result; const L = [];
+    L.push(T('exTitle', { m: D.minutes }));
+    L.push(U.exName + S.name); L.push(U.exClass + (S.cls || U.exNoClass));
+    L.push(U.exTime + fmt(S.submittedAt - S.start) + ' / ' + D.minutes + ':00');
+    L.push(U.exMcq + (r.graded ? r.score + '/' + r.total : U.exNoGrade));
+    L.push(U.exWr); L.push('');
+    let no = 0;
+    for (const q of allQ) {
+      no++;
+      if (q.type === 'mcq') {
+        const a = S.answers[q.id];
+        L.push(T('exQMcq', { n: no, t: q.topic }) + (typeof a === 'number' ? q.opts[a] : U.exBlank) + (r.graded ? '  -> ' + ({ ok: U.exOk, no: U.exNo, blank: U.exEmpty })[r.marks[q.id]] : ''));
+      } else {
+        L.push(T('exQWr', { n: no, t: q.topic, m: q.marks }) + q.text);
+        L.push(U.exAns + (S.answers[q.id] || U.exBlank)); L.push('');
+      }
+    }
+    return L.join('\n');
+  }
+  function showResult() {
+    const r = S.result; const box = $('#res'); box.textContent = '';
+    $('#rname').textContent = S.name + (S.cls ? ' · ' + S.cls : '');
+    $('#rscore').textContent = r.graded ? r.score + '/' + r.total : '—';
+    $('#rtime').textContent = U.rTime + fmt(S.submittedAt - S.start) + ' / ' + D.minutes + ':00';
+    $('#rnote').textContent = r.graded ? '' : U.rNote;
+    let no = 0;
+    for (const q of allQ) {
+      no++;
+      if (q.type !== 'mcq') continue;
+      const m = r.graded ? r.marks[q.id] : (typeof S.answers[q.id] === 'number' ? 'ok' : 'blank');
+      if (!r.graded) continue;
+      box.append(el('span', { class: m, text: no + (m === 'ok' ? ' ✓' : m === 'no' ? ' ✗' : ' –') }));
+    }
+    const wr = allQ.filter((q) => q.type !== 'mcq');
+    $('#rwr').textContent = T('rWr', { n: wr.filter(isDone).length, t: wr.length });
+    show('result');
+  }
+  function download() {
+    const safe = S.name.normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40) || U.fileFallback;
+    const blob = new Blob([exportText()], { type: 'text/plain;charset=utf-8' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: U.fileBase + safe + '.txt' });
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  async function copy() {
+    try { await navigator.clipboard.writeText(exportText()); $('#toast').textContent = U.copied; }
+    catch { $('#toast').textContent = U.copyFail; }
+  }
+
+  // ---------- wiring ----------
+  initStart();
+  for (const id of ['#submit', '#submit2']) $(id).addEventListener('click', () => submit(false));
+  $('#dl').addEventListener('click', download);
+  $('#cp').addEventListener('click', copy);
+  $('#again').addEventListener('click', () => {
+    if (!confirm(U.confirmAgain)) return;
+    try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+    S = null; location.reload();
+  });
+  window.addEventListener('beforeunload', (e) => { if (S && !S.submitted && !$('#exam').classList.contains('hidden')) { e.preventDefault(); e.returnValue = ''; } });
+
+  if (S && S.submitted && S.result) showResult();
+  else if (S && !S.submitted) startExam(); // if time already ran out, the first tick auto-submits
+  else show('start');
+})();
+</script>
+</body></html>

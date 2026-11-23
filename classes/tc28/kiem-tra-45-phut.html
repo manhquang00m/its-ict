@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Kiểm tra 45 phút: Data Representation &amp; Data Transmission</title><style>:root { --navy: #12355b; --orange: #e07a1f; --bg: #f4f6fa; --ok: #1b7f3b; --bad: #b3261e; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #111; background: var(--bg); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+.card { background: #fff; border-radius: 10px; padding: 18px 20px; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+h1 { margin: 0 0 4px; color: var(--navy); font-size: 26px; }
+h2 { margin: 22px 0 10px; font-size: 19px; color: #fff; background: var(--navy); padding: 8px 14px; border-radius: 8px; }
+h3 { margin: 4px 0 10px; font-size: 14px; color: var(--navy); text-transform: uppercase; letter-spacing: .03em; }
+.muted { color: #555; }
+.hidden { display: none !important; }
+label.f { display: block; margin: 12px 0 4px; font-weight: 600; }
+input[type=text] { width: 100%; max-width: 420px; padding: 9px 11px; font: inherit; border: 1.5px solid #9aa7b8; border-radius: 6px; }
+button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; padding: 10px 18px; background: var(--navy); color: #fff; font-weight: 600; }
+button.sec { background: #e3e8ef; color: var(--navy); }
+button.warn { background: var(--orange); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #4a90e2; outline-offset: 2px; }
+.err { color: var(--bad); margin-top: 8px; min-height: 1.4em; }
+ul.rules { margin: 8px 0 14px 20px; padding: 0; }
+
+/* sticky exam bar */
+#bar { position: sticky; top: 0; z-index: 10; background: var(--navy); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+#bar .in { max-width: 860px; margin: 0 auto; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+#bar .who { flex: 1 1 160px; font-size: 14px; opacity: .9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#timer { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#timer.low { color: #ffb4a8; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .45; } }
+#prog { font-size: 14px; }
+#pal { max-width: 860px; margin: 0 auto; padding: 0 16px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+#pal button { padding: 2px 0; width: 32px; height: 28px; font-size: 13px; border-radius: 5px; background: rgba(255,255,255,.18); }
+#pal button.done { background: #5cb270; color: #04210f; }
+
+/* questions */
+.q { background: #fff; border-radius: 10px; padding: 14px 18px; margin: 0 0 12px; box-shadow: 0 1px 3px rgba(0,0,0,.12); scroll-margin-top: 110px; }
+.q .qh { font-weight: 600; margin-bottom: 8px; }
+.q .no { color: var(--navy); }
+.q .tag { float: right; font-size: 12px; color: #667; font-weight: 400; }
+.opt { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; margin: 4px 0; border: 1.5px solid #d6dce5; border-radius: 8px; cursor: pointer; }
+.opt:hover { background: #f1f5fb; }
+.opt input { margin-top: 5px; }
+.opt:has(input:checked) { border-color: var(--navy); background: #e8f0fb; }
+.body p { margin: 4px 0; } .body ol { margin: 4px 0 4px 22px; padding: 0; }
+.body pre, .body code { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+.body pre { background: #f2f3f5; padding: 6px 10px; border-radius: 6px; white-space: pre-wrap; }
+.body table { border-collapse: collapse; margin: 6px 0; } .body th, .body td { border: 1px solid #888; padding: 3px 9px; }
+textarea { width: 100%; min-height: 110px; margin-top: 8px; padding: 9px 11px; font: inherit; border: 1.5px solid #9aa7b8; border-radius: 6px; resize: vertical; }
+
+/* result */
+.score { font-size: 42px; font-weight: 800; color: var(--navy); margin: 4px 0; }
+.res { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.res span { min-width: 54px; text-align: center; padding: 4px 6px; border-radius: 6px; font-size: 14px; border: 1.5px solid #ccd; }
+.res .ok { background: #e3f4e8; border-color: var(--ok); color: var(--ok); }
+.res .no { background: #fde8e6; border-color: var(--bad); color: var(--bad); }
+.res .blank { background: #f1f1f1; color: #666; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+#toast { min-height: 1.4em; margin-top: 8px; color: var(--ok); }
+</style></head><body>
+<div id="bar" class="hidden"><div class="in"><div class="who" id="who"></div><div id="prog"></div><div id="timer" aria-live="off">--:--</div><button class="warn" id="submit" type="button">Nộp bài</button></div><div id="pal" aria-label="Danh sách câu hỏi"></div></div>
+<div class="wrap">
+  <div id="start" class="card hidden">
+    <h1>Bài kiểm tra 45 phút</h1>
+    <div class="muted">IGCSE Computer Science (0478) — Data Representation &amp; Data Transmission and Encryption</div>
+    <ul class="rules">
+      <li>Gồm <b id="total"></b> câu: <b id="nmcq"></b> câu trắc nghiệm (1 điểm/câu) và <b id="nwr"></b> câu tự luận / bài tính (do giáo viên chấm).</li>
+      <li>Thời gian <b id="mins"></b> phút, đồng hồ chạy ngay khi bấm Bắt đầu và không dừng lại kể cả khi tải lại trang. Hết giờ bài sẽ tự nộp.</li>
+      <li>Bài làm được lưu tự động trên trình duyệt này. Làm xong, tải file bài làm gửi cho giáo viên.</li>
+    </ul>
+    <label class="f" for="name">Họ và tên</label><input id="name" type="text" maxlength="60" autocomplete="off">
+    <label class="f" for="cls">Lớp</label><input id="cls" type="text" maxlength="30" autocomplete="off">
+    <div class="err" id="serr" role="alert"></div>
+    <button id="go" type="button">Bắt đầu làm bài</button>
+  </div>
+  <div id="exam" class="hidden"><div id="questions"></div><div class="card"><button class="warn" id="submit2" type="button">Nộp bài</button></div></div>
+  <div id="result" class="card hidden">
+    <h1>Đã nộp bài</h1><div class="muted" id="rname"></div>
+    <h3>Điểm trắc nghiệm</h3><div class="score" id="rscore"></div>
+    <div class="muted" id="rtime"></div><div class="err" id="rnote"></div>
+    <div class="res" id="res"></div>
+    <div class="muted" id="rwr"></div>
+    <div class="btns"><button id="dl" type="button">Tải file bài làm (.txt)</button><button class="sec" id="cp" type="button">Sao chép bài làm</button><button class="sec" id="again" type="button">Làm lại từ đầu</button></div>
+    <div id="toast" role="status"></div>
+  </div>
+</div>
+<script type="application/json" id="quiz-data">{"build":"843b46b9e8","salt":"aef6df6ed960cea6db5925a7","minutes":45,"parts":[{"id":"A","title":"Phần A: Data Representation (Biểu diễn dữ liệu)","questions":[{"id":"A-m-1.1a-13","type":"mcq","topic":"1.1","q":"Dùng 4 bit có thể lưu được bao nhiêu giá trị khác nhau?","opts":["15","8","16","32"],"h":"f5a7f241a628eaea20fb75253f842d04d91a46cd673678ff87942f2b5cc9c2e1"},{"id":"A-m-1.1b-1","type":"mcq","topic":"1.1","q":"Giá trị vị trí của bit ngoài cùng bên trái trong một số nhị phân 16 bit là bao nhiêu?","opts":["65536","16384","1024","32768"],"h":"38fb43ef595f8f1ba7e114737666cd9da4c9f786f44790201c4b07997b225ed7"},{"id":"A-m-1.2a-2","type":"mcq","topic":"1.2","q":"Chữ số hex F có giá trị thập phân là bao nhiêu?","opts":["6","14","16","15"],"h":"fda18f68aa1010c2744c9c91b6d1eff43482e45417601b0311acf30fde7b81ae"},{"id":"A-m-1.2b-13","type":"mcq","topic":"1.2","q":"Trong một URL, %20 là mã thập lục phân của ký tự nào?","opts":["Dấu chấm","Dấu cách","Dấu gạch chéo","Chữ T"],"h":"1b9b961c2727fecd275c0c633c6a0f765bb72e32fbd85282d78738017cb50457"},{"id":"A-m-1.3a-6","type":"mcq","topic":"1.3","q":"Phép dịch phải làm mất một bit 1 ở đầu có trọng số nhỏ nhất. Hậu quả là gì?","opts":["Kết quả không còn chính xác — phần dư bị mất","Luôn xảy ra lỗi tràn số","Số trở thành số âm","Số tăng gấp đôi"],"h":"b1b9279244a6a2a7a454229870947965da427fda98a220c0acebde8cb94775d7"},{"id":"A-m-1.3b-10","type":"mcq","topic":"1.3","q":"Vì sao không thể lưu +200 trong số bù hai 8 bit?","opts":["Nó cần một bit chẵn lẻ","Số bù hai chỉ dành cho số âm","200 là số chẵn","Giá trị dương lớn nhất là +127"],"h":"bc04fb74bdad6dd63d8bd49e98c573f92f614a4b4e2b12b97f06b06ff7afdc58"},{"id":"A-m-1.4a-14","type":"mcq","topic":"1.4","q":"Ký tự '5' có được lưu với cùng mã như số 5 không?","opts":["Chỉ trong Unicode","Chỉ trong ASCII mở rộng","Có, luôn luôn","Không — ký tự '5' có mã ký tự riêng (53 trong ASCII)"],"h":"ffc61a3c0d8235425c1a1bb0a5485c02a32ac6b24e12d36e812aca6289c2921a"},{"id":"A-m-1.4a-12","type":"mcq","topic":"1.4","q":"Mã ASCII của một chữ thường lớn hơn mã của chữ hoa tương ứng bao nhiêu?","opts":["1","26","32","64"],"h":"36277316eb470cfeafc2238b7e561ae02ce17647cd0f0917670d0ceda4436cc3"},{"id":"A-m-1.5a-2","type":"mcq","topic":"1.5","q":"Tần số lấy mẫu (sample rate) là gì?","opts":["Âm lượng của âm thanh","Số mẫu lấy mỗi giây","Số bit dùng cho mỗi mẫu","Thời lượng của bản ghi"],"h":"b514804a7d391fcf9b8273b4eb583c7ba0c855b94cc412d5897faeac5c55873e"},{"id":"A-m-1.5b-1","type":"mcq","topic":"1.5","q":"Để đổi dung lượng tệp từ bit sang byte, bạn…","opts":["nhân với 1024","chia cho 8","nhân với 8","chia cho 1024"],"h":"5cf709e5884e8dabd19c62e8d2ccd3b4188b5604c9bded457590b1beba98276b"},{"id":"A-m-1.6a-2","type":"mcq","topic":"1.6","q":"Độ sâu màu là gì?","opts":["Độ sáng của ảnh","Số màu trên màn hình cùng lúc","Số điểm ảnh trong ảnh","Số bit dùng để biểu diễn màu của mỗi điểm ảnh"],"h":"4cb14bc01b6eff0d9ec98a8f98debf67a8bc0cdaf598b995adb5680a01e449f6"},{"id":"A-m-1.6b-2","type":"mcq","topic":"1.6","q":"Chiều rộng và chiều cao của một ảnh đều tăng gấp đôi. Dung lượng tệp thay đổi thế nào?","opts":["Giữ nguyên","Gấp đôi","Nhân với 4","Nhân với 8"],"h":"26d83e6c8b1eec4edd95923e6744a313e6fbc4c7affd16e6a6ef2619061bb9e4"},{"id":"A-m-1.7a-7","type":"mcq","topic":"1.7","q":"Đơn vị nào bằng 4 bit?","opts":["Bit","Kibibyte","Byte","Nibble"],"h":"ad7111f1c4f219ff056101cbebb1330069cb3fe8b5edaf4a8fbabdb819bac51f"},{"id":"A-m-1.7b-7","type":"mcq","topic":"1.7","q":"Vì sao một công ty lưu tệp trên đám mây có thể nén chúng?","opts":["Để tệp khó mở hơn","Để kiểm tra virus","Để chúng tải chậm hơn","Để giảm chi phí lưu trữ, vì họ trả tiền theo dung lượng sử dụng"],"h":"1d93b0bb01bd196c5efc7d7da95ffbd45d50d88b5f435d4d58796fda61a9b8b1"},{"id":"A-w-1.1-e3","type":"calc","topic":"1.1","marks":3,"html":"\u003cp>Đổi số thập phân 203 sang số nhị phân 8 bit. Trình bày cách làm. [3]\u003c/p>","text":"Đổi số thập phân 203 sang số nhị phân 8 bit. Trình bày cách làm. [3]"},{"id":"A-w-1.1-e8","type":"calc","topic":"1.1","marks":3,"html":"\u003cp>Một trò chơi lưu điểm số của người chơi trong một thanh ghi 8 bit. Điểm hiện tại là 240 và người chơi được cộng thêm 25 điểm.\u003c/p>\u003cp>(a) Giải thích điều gì sai khi chương trình cộng điểm. [2]\u003c/p>\u003cp>(b) Đề xuất một thay đổi mà lập trình viên có thể thực hiện để tránh điều này. [1]\u003c/p>","text":"Một trò chơi lưu điểm số của người chơi trong một thanh ghi 8 bit. Điểm hiện tại là 240 và người chơi được cộng thêm 25 điểm.\n(a) Giải thích điều gì sai khi chương trình cộng điểm. [2]\n(b) Đề xuất một thay đổi mà lập trình viên có thể thực hiện để tránh điều này. [1]"},{"id":"A-w-1.2-e3","type":"calc","topic":"1.2","marks":2,"html":"\u003cp>Đổi số thập phân 218 sang thập lục phân. Trình bày cách làm. [2]\u003c/p>","text":"Đổi số thập phân 218 sang thập lục phân. Trình bày cách làm. [2]"},{"id":"A-w-1.2-e7","type":"open","topic":"1.2","marks":3,"html":"\u003cp>Lập trình viên thường hiển thị địa chỉ bộ nhớ bằng thập lục phân thay vì nhị phân.\u003c/p>\u003cp>Mô tả \u003cb>hai\u003c/b> lý do vì sao. Đồng thời nêu máy tính có tự xử lý dữ liệu bằng thập lục phân hay không. [3]\u003c/p>","text":"Lập trình viên thường hiển thị địa chỉ bộ nhớ bằng thập lục phân thay vì nhị phân.\nMô tả hai lý do vì sao. Đồng thời nêu máy tính có tự xử lý dữ liệu bằng thập lục phân hay không. [3]"},{"id":"A-w-1.3-e5","type":"calc","topic":"1.3","marks":3,"html":"\u003cp>Biểu diễn số thập phân −45 dưới dạng số bù hai 8 bit. Trình bày từng bước làm. [3]\u003c/p>","text":"Biểu diễn số thập phân −45 dưới dạng số bù hai 8 bit. Trình bày từng bước làm. [3]"},{"id":"A-w-1.3-e2","type":"calc","topic":"1.3","marks":2,"html":"\u003cp>Thanh ghi 8 bit dưới đây chứa \u003ccode>00001101\u003c/code> (thập phân 13). Cho biết nội dung thanh ghi sau khi dịch bit logic sang trái 2 vị trí, và giá trị thập phân của nó. [2]\u003c/p>","text":"Thanh ghi 8 bit dưới đây chứa 00001101 (thập phân 13). Cho biết nội dung thanh ghi sau khi dịch bit logic sang trái 2 vị trí, và giá trị thập phân của nó. [2]"},{"id":"A-w-1.4-e1","type":"open","topic":"1.4","marks":2,"html":"\u003cp>(a) Nêu \u003ci>bộ ký tự\u003c/i> (character set) có nghĩa là gì. [1]\u003c/p>\u003cp>(b) Nêu số ký tự khác nhau mà ASCII 7 bit có thể biểu diễn. [1]\u003c/p>","text":"(a) Nêu bộ ký tự (character set) có nghĩa là gì. [1]\n(b) Nêu số ký tự khác nhau mà ASCII 7 bit có thể biểu diễn. [1]"},{"id":"A-w-1.4-e3","type":"calc","topic":"1.4","marks":3,"html":"\u003cp>Các mã nhị phân \u003ccode>01000011 01000001 01010100\u003c/code> là mã ASCII 8 bit của ba chữ hoa. Dùng thông tin 'A' = 65 để giải mã. Cho biết giá trị thập phân của từng mã và viết ra từ đó. [3]\u003c/p>","text":"Các mã nhị phân 01000011 01000001 01010100 là mã ASCII 8 bit của ba chữ hoa. Dùng thông tin 'A' = 65 để giải mã. Cho biết giá trị thập phân của từng mã và viết ra từ đó. [3]"},{"id":"A-w-1.5-e2","type":"open","topic":"1.5","marks":2,"html":"\u003cp>(a) Nêu \u003ci>độ phân giải mẫu\u003c/i> (sample resolution) có nghĩa là gì. [1]\u003c/p>\u003cp>(b) Nêu ảnh hưởng lên dung lượng tệp khi tăng độ phân giải mẫu. [1]\u003c/p>","text":"(a) Nêu độ phân giải mẫu (sample resolution) có nghĩa là gì. [1]\n(b) Nêu ảnh hưởng lên dung lượng tệp khi tăng độ phân giải mẫu. [1]"},{"id":"A-w-1.5-e4","type":"calc","topic":"1.5","marks":3,"html":"\u003cp>Một đoạn âm thanh mono dài 5 giây. Nó được ghi với tần số lấy mẫu 8000 Hz và độ phân giải mẫu 8 bit.\u003c/p>\u003cp>Tính dung lượng tệp bằng KiB. Trình bày cách làm. [3]\u003c/p>","text":"Một đoạn âm thanh mono dài 5 giây. Nó được ghi với tần số lấy mẫu 8000 Hz và độ phân giải mẫu 8 bit.\nTính dung lượng tệp bằng KiB. Trình bày cách làm. [3]"},{"id":"A-w-1.6-e3","type":"calc","topic":"1.6","marks":3,"html":"\u003cp>Một ảnh bitmap rộng 640 điểm ảnh và cao 480 điểm ảnh. Độ sâu màu là 8 bit.\u003c/p>\u003cp>Tính dung lượng tệp bằng KiB. Trình bày cách làm. [3]\u003c/p>","text":"Một ảnh bitmap rộng 640 điểm ảnh và cao 480 điểm ảnh. Độ sâu màu là 8 bit.\nTính dung lượng tệp bằng KiB. Trình bày cách làm. [3]"},{"id":"A-w-1.6-e4","type":"open","topic":"1.6","marks":3,"html":"\u003cp>Một nhiếp ảnh gia tăng độ phân giải và độ sâu màu của những bức ảnh mà máy ảnh của cô ấy chụp.\u003c/p>\u003cp>Mô tả ảnh hưởng lên chất lượng ảnh và dung lượng tệp. [3]\u003c/p>","text":"Một nhiếp ảnh gia tăng độ phân giải và độ sâu màu của những bức ảnh mà máy ảnh của cô ấy chụp.\nMô tả ảnh hưởng lên chất lượng ảnh và dung lượng tệp. [3]"},{"id":"A-w-1.7-e5","type":"open","topic":"1.7","marks":2,"html":"\u003cp>Nêu \u003cb>một\u003c/b> điểm khác nhau giữa nén có mất dữ liệu và nén không mất dữ liệu. [2]\u003c/p>","text":"Nêu một điểm khác nhau giữa nén có mất dữ liệu và nén không mất dữ liệu. [2]"},{"id":"A-w-1.7-e6","type":"calc","topic":"1.7","marks":3,"html":"\u003cp>Một hàng điểm ảnh của một bức ảnh được cho dưới đây (W = trắng, B = đen).\u003c/p>\u003cpre>WWWWBBBWWWWWWBW\u003c/pre>\u003cp>(a) Cho biết mã hóa độ dài chạy (RLE) sẽ lưu hàng này như thế nào. [2]\u003c/p>\u003cp>(b) Nêu số ký tự của hàng gốc và số ký tự của hàng đã mã hóa. [1]\u003c/p>","text":"Một hàng điểm ảnh của một bức ảnh được cho dưới đây (W = trắng, B = đen).\nWWWWBBBWWWWWWBW\n(a) Cho biết mã hóa độ dài chạy (RLE) sẽ lưu hàng này như thế nào. [2]\n(b) Nêu số ký tự của hàng gốc và số ký tự của hàng đã mã hóa. [1]"}]},{"id":"B","title":"Phần B: Data Transmission & Encryption (Truyền dữ liệu và mã hóa)","questions":[{"id":"B-m-2.1a-7","type":"mcq","topic":"2.1","q":"Vì sao mỗi gói tin có một số thứ tự?","opts":["Để các gói tin có thể được sắp xếp lại đúng thứ tự khi đến nơi","Để gói tin có thể được mã hóa","Để payload có thể được nén","Để bộ định tuyến biết tốc độ"],"h":"5f2f8df419ed52848c4795f92fad580f1ff9c3dacc246e1a61f874760da33e68"},{"id":"B-m-2.1b-9","type":"mcq","topic":"2.1","q":"Sắp xếp theo thứ tự: (1) các gói tin được sắp xếp lại (2) dữ liệu được chia thành gói tin (3) các gói tin đi theo các tuyến khác nhau","opts":["2, 1, 3","1, 2, 3","2, 3, 1","3, 2, 1"],"h":"04d1ea5aa769dfaee7ec237428ab7e63bd6b02d5a221c103524d66b5cd68c81a"},{"id":"B-m-2.2a-1","type":"mcq","topic":"2.2","q":"Truyền song song (parallel) là gì?","opts":["Dữ liệu được gửi từng bit một qua một dây","Nhiều bit được gửi cùng lúc qua nhiều dây","Dữ liệu được gửi thành các gói tin qua internet","Dữ liệu chỉ đi theo một hướng"],"h":"0036732a657ce4560214a99ea84f9ce4a4d699ae3aef73d52b71a127a90e6bef"},{"id":"B-m-2.2b-3","type":"mcq","topic":"2.2","q":"Đâu là một nhược điểm của USB?","opts":["Nó không phải là chuẩn công nghiệp","Nó không thể cấp điện cho thiết bị","Thiết bị phải được cấu hình thủ công","Chiều dài cáp tiêu chuẩn bị giới hạn (khoảng 5 m)"],"h":"8d30880332adac81e0e769ff494c1ad7bc6cdc0da540dde66846fc2b763268d6"},{"id":"B-m-2.3a-5","type":"mcq","topic":"2.3","q":"Một số gói tin không bao giờ đến đích là ví dụ của…","opts":["thêm dữ liệu","skew","mất dữ liệu (data loss)","thay đổi dữ liệu"],"h":"e9165d1f3ec7550f0517beafc6a93fb8d1233f1bfb2a16d43fee5761758cd2ff"},{"id":"B-m-2.3b-3","type":"mcq","topic":"2.3","q":"Lỗi nào mà kiểm tra chẵn lẻ đơn giản KHÔNG phát hiện được?","opts":["Một bit bị đảo từ 0 thành 1","Một bit bị đổi","Một bit bị đảo từ 1 thành 0","Hai bit bị đổi trong cùng một byte"],"h":"9dde4037d40b77906a9b99a4dd25ccb29416b3f610fe62c2ae1fb55ded75cf87"},{"id":"B-m-2.4a-6","type":"mcq","topic":"2.4","q":"Dữ liệu nào sau đây cần được mã hóa nhất khi gửi đi?","opts":["Thông tin ngân hàng trực tuyến","Một trang tin tức công khai","Dự báo thời tiết","Giờ mở cửa của trường"],"h":"526fc9df52b63ce12690c509a958fc1795a5144ad0e1b32af07eb46fcdd9de9c"},{"id":"B-m-2.4b-0","type":"mcq","topic":"2.4","q":"Trong mã hóa đối xứng, dùng bao nhiêu khóa?","opts":["Ba","Một — cùng một khóa vừa mã hóa vừa giải mã","Hai — một khóa công khai và một khóa riêng","Không có"],"h":"f8acdbfec1beb967e51b9c9c6c0e4edf293b0fd320053325cb874ad6557536f6"},{"id":"B-w-2.1-e1","type":"open","topic":"2.1","marks":2,"html":"\u003cp>Nêu \u003cb>hai\u003c/b> mục dữ liệu được lưu trong header của một gói tin. [2]\u003c/p>","text":"Nêu hai mục dữ liệu được lưu trong header của một gói tin. [2]"},{"id":"B-w-2.1-e4","type":"calc","topic":"2.1","marks":3,"html":"\u003cp>Một tệp 1 000 000 byte được gửi qua mạng. Mỗi gói tin mang payload 1 500 byte (gói cuối có thể mang ít hơn). Header và trailer của mỗi gói cộng lại thêm 40 byte.\u003c/p>\u003col>\u003cli>Tính số gói tin cần dùng. [2]\u003c/li>\u003cli>Tính tổng số byte phụ (header và trailer) được gửi đi. [1]\u003c/li>\u003c/ol>","text":"Một tệp 1 000 000 byte được gửi qua mạng. Mỗi gói tin mang payload 1 500 byte (gói cuối có thể mang ít hơn). Header và trailer của mỗi gói cộng lại thêm 40 byte.\nTính số gói tin cần dùng. [2]\nTính tổng số byte phụ (header và trailer) được gửi đi. [1]"},{"id":"B-w-2.2-e1","type":"open","topic":"2.2","marks":2,"html":"\u003cp>Nêu sự khác nhau giữa truyền dữ liệu \u003cb>simplex\u003c/b> và \u003cb>full-duplex\u003c/b>. [2]\u003c/p>","text":"Nêu sự khác nhau giữa truyền dữ liệu simplex và full-duplex . [2]"},{"id":"B-w-2.2-e6","type":"open","topic":"2.2","marks":4,"html":"\u003cp>Một học sinh cắm một USB mới vào máy tính. Mô tả điều gì xảy ra để có thể dùng được USB đó. [4]\u003c/p>","text":"Một học sinh cắm một USB mới vào máy tính. Mô tả điều gì xảy ra để có thể dùng được USB đó. [4]"},{"id":"B-w-2.3-e1","type":"open","topic":"2.3","marks":2,"html":"\u003cp>Nêu \u003cb>hai\u003c/b> loại lỗi có thể xảy ra với dữ liệu trong khi truyền. [2]\u003c/p>","text":"Nêu hai loại lỗi có thể xảy ra với dữ liệu trong khi truyền. [2]"},{"id":"B-w-2.3-e2","type":"calc","topic":"2.3","marks":2,"html":"\u003cp>Một parity bit được thêm vào bên trái mỗi giá trị 7 bit. Hãy viết byte 8 bit hoàn chỉnh trong mỗi trường hợp.\u003c/p>\u003col>\u003cli>1100101 dùng parity \u003cb>chẵn\u003c/b> [1]\u003c/li>\u003cli>0101110 dùng parity \u003cb>lẻ\u003c/b> [1]\u003c/li>\u003c/ol>","text":"Một parity bit được thêm vào bên trái mỗi giá trị 7 bit. Hãy viết byte 8 bit hoàn chỉnh trong mỗi trường hợp.\n1100101 dùng parity chẵn [1]\n0101110 dùng parity lẻ [1]"},{"id":"B-w-2.3-e5","type":"calc","topic":"2.3","marks":3,"html":"\u003cp>12 chữ số đầu của một ISBN-13 là 978123456789. Hãy tính chữ số kiểm tra bằng cách tính ISBN-13 (nhân các chữ số lần lượt với 1 và 3, cộng lại, lấy số dư khi chia cho 10 rồi lấy 10 trừ đi số dư đó; kết quả bằng 10 thì thành 0). Trình bày các bước làm. [3]\u003c/p>","text":"12 chữ số đầu của một ISBN-13 là 978123456789. Hãy tính chữ số kiểm tra bằng cách tính ISBN-13 (nhân các chữ số lần lượt với 1 và 3, cộng lại, lấy số dư khi chia cho 10 rồi lấy 10 trừ đi số dư đó; kết quả bằng 10 thì thành 0). Trình bày các bước làm. [3]"},{"id":"B-w-2.4-e3","type":"calc","topic":"2.4","marks":3,"html":"\u003cp>Một mật mã Caesar dùng khóa là 4: khi mã hóa, mỗi chữ cái được dịch tới 4 vị trí trong bảng chữ cái.\u003c/p>\u003col>\u003cli>Mã hóa từ \u003ccode>CODE\u003c/code>. [1]\u003c/li>\u003cli>Giải mã bản mã \u003ccode>LIPPS\u003c/code>. [1]\u003c/li>\u003cli>Nêu đây là mã hóa đối xứng hay bất đối xứng và đưa ra lý do. [1]\u003c/li>\u003c/ol>","text":"Một mật mã Caesar dùng khóa là 4: khi mã hóa, mỗi chữ cái được dịch tới 4 vị trí trong bảng chữ cái.\nMã hóa từ CODE . [1]\nGiải mã bản mã LIPPS . [1]\nNêu đây là mã hóa đối xứng hay bất đối xứng và đưa ra lý do. [1]"},{"id":"B-w-2.4-e5","type":"open","topic":"2.4","marks":4,"html":"\u003cp>Mô tả cách mã hóa đối xứng hoạt động và nêu vấn đề chính của nó. [4]\u003c/p>","text":"Mô tả cách mã hóa đối xứng hoạt động và nêu vấn đề chính của nó. [4]"}]}]}</script>
+<script>(() => {
+  'use strict';
+  const D = JSON.parse(document.getElementById('quiz-data').textContent);
+  const KEY = 'igcse9_quiz_' + D.build;
+  const MAX_TEXT = 4000;
+  const $ = (s) => document.querySelector(s);
+  const hasCrypto = !!(window.crypto && crypto.subtle && crypto.getRandomValues);
+
+  function el(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v);
+    }
+    for (const c of kids) if (c != null) e.append(c);
+    return e;
+  }
+  function load() { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* storage may be blocked */ } }
+  function rng(seedStr) {
+    let h = 1779033703 ^ seedStr.length;
+    for (let i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+    let a = h >>> 0;
+    return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  async function sha256(s) {
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(b), (x) => x.toString(16).padStart(2, '0')).join('');
+  }
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+  const allQ = D.parts.flatMap((p) => p.questions);
+  const mcqs = allQ.filter((q) => q.type === 'mcq');
+
+  let S = load();
+  let tick = null;
+  let submitting = false;
+
+  function show(id) { for (const s of ['start', 'exam', 'result']) $('#' + s).classList.toggle('hidden', s !== id); $('#bar').classList.toggle('hidden', id !== 'exam'); window.scrollTo(0, 0); }
+
+  // ---------- start ----------
+  function initStart() {
+    $('#total').textContent = String(allQ.length);
+    $('#mins').textContent = String(D.minutes);
+    $('#nmcq').textContent = String(mcqs.length);
+    $('#nwr').textContent = String(allQ.length - mcqs.length);
+    $('#go').addEventListener('click', () => {
+      const name = $('#name').value.trim().replace(/\s+/g, ' ');
+      const cls = $('#cls').value.trim().replace(/\s+/g, ' ');
+      if (name.length < 2 || name.length > 60) { $('#serr').textContent = 'Nhập họ và tên (2–60 ký tự).'; return; }
+      if (cls.length > 30) { $('#serr').textContent = 'Lớp tối đa 30 ký tự.'; return; }
+      const now = Date.now();
+      const seed = hasCrypto ? Array.from(crypto.getRandomValues(new Uint32Array(2)), (x) => x.toString(16)).join('') : String(now);
+      S = { name, cls, seed, start: now, end: now + D.minutes * 60000, answers: {}, submitted: false };
+      save();
+      startExam();
+    });
+  }
+
+  // ---------- exam ----------
+  function buildExam() {
+    const root = $('#questions');
+    root.textContent = '';
+    const pal = $('#pal');
+    pal.textContent = '';
+    let no = 0;
+    for (const p of D.parts) {
+      root.append(el('h2', { text: p.title }));
+      for (const q of p.questions) {
+        no++;
+        const card = el('div', { class: 'q', id: 'q-' + q.id });
+        const head = el('div', { class: 'qh' }, el('span', { class: 'no', text: 'Câu ' + no + '. ' }));
+        card.append(el('span', { class: 'tag', text: q.topic + (q.type === 'mcq' ? ' · 1 điểm' : ' · ' + q.marks + ' điểm') }));
+        if (q.type === 'mcq') {
+          head.append(document.createTextNode(q.q));
+          card.append(head);
+          const order = q.opts.map((_, i) => i);
+          const r = rng(S.seed + '|' + q.id);
+          for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+          order.forEach((oi, k) => {
+            const inp = el('input', { type: 'radio', name: 'r-' + q.id, value: String(oi) });
+            if (S.answers[q.id] === oi) inp.checked = true;
+            inp.addEventListener('change', () => { S.answers[q.id] = oi; save(); refresh(); });
+            card.append(el('label', { class: 'opt' }, inp, el('span', { text: 'ABCD'[k] + '. ' + q.opts[oi] })));
+          });
+        } else {
+          card.append(head);
+          const body = el('div', { class: 'body' });
+          body.innerHTML = q.html; // project-owned trusted HTML from the course data; never user input
+          card.append(body);
+          const ta = el('textarea', { 'aria-label': 'Bài làm câu ' + no, maxlength: String(MAX_TEXT), placeholder: 'Viết bài làm của em tại đây…' });
+          ta.value = typeof S.answers[q.id] === 'string' ? S.answers[q.id] : '';
+          ta.addEventListener('input', () => { S.answers[q.id] = ta.value.slice(0, MAX_TEXT); save(); refresh(); });
+          card.append(ta);
+        }
+        root.append(card);
+        const b = el('button', { type: 'button', 'data-q': q.id, 'aria-label': 'Đến câu ' + no, text: String(no) });
+        b.addEventListener('click', () => document.getElementById('q-' + q.id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        pal.append(b);
+      }
+    }
+  }
+  function isDone(q) { const a = S.answers[q.id]; return q.type === 'mcq' ? typeof a === 'number' : typeof a === 'string' && a.trim().length > 0; }
+  function refresh() {
+    let n = 0;
+    for (const b of document.querySelectorAll('#pal button')) {
+      const q = allQ.find((x) => x.id === b.getAttribute('data-q'));
+      const d = isDone(q); b.classList.toggle('done', d); if (d) n++;
+    }
+    $('#prog').textContent = 'Đã làm ' + n + '/' + allQ.length;
+  }
+  function startExam() {
+    $('#who').textContent = S.name + (S.cls ? ' · ' + S.cls : '');
+    buildExam(); refresh(); show('exam');
+    const t = $('#timer');
+    const upd = () => {
+      const left = S.end - Date.now();
+      t.textContent = fmt(left);
+      t.classList.toggle('low', left <= 5 * 60000);
+      if (left <= 0) { clearInterval(tick); submit(true); }
+    };
+    upd(); tick = setInterval(upd, 1000);
+  }
+
+  // ---------- submit / result ----------
+  async function submit(auto) {
+    if (submitting || S.submitted) return;
+    if (!auto) {
+      const left = allQ.filter((q) => !isDone(q)).length;
+      if (!confirm(left ? 'Còn ' + left + ' câu chưa làm. Vẫn nộp bài?' : 'Nộp bài ngay?')) return;
+    }
+    submitting = true;
+    clearInterval(tick);
+    S.submitted = true;
+    S.submittedAt = Math.min(Date.now(), S.end);
+    let score = 0; let graded = hasCrypto; const marks = {};
+    if (hasCrypto) {
+      for (const q of mcqs) {
+        const a = S.answers[q.id];
+        if (typeof a !== 'number') { marks[q.id] = 'blank'; continue; }
+        const ok = Number.isInteger(a) && q.opts[a] !== undefined && (await sha256(D.salt + '|' + q.id + '|' + q.opts[a])) === q.h;
+        marks[q.id] = ok ? 'ok' : 'no'; if (ok) score++;
+      }
+    }
+    S.result = { score, total: mcqs.length, graded, marks };
+    save();
+    submitting = false;
+    showResult();
+  }
+  function exportText() {
+    const r = S.result; const L = [];
+    L.push('BÀI KIỂM TRA ' + D.minutes + ' PHÚT — Data Representation / Data Transmission & Encryption');
+    L.push('Họ tên: ' + S.name); L.push('Lớp: ' + (S.cls || '(không ghi)'));
+    L.push('Thời gian làm: ' + fmt(S.submittedAt - S.start) + ' / ' + D.minutes + ':00');
+    L.push('Trắc nghiệm: ' + (r.graded ? r.score + '/' + r.total : 'chưa chấm tự động (trình duyệt không hỗ trợ)'));
+    L.push('Tự luận / bài tính: giáo viên chấm'); L.push('');
+    let no = 0;
+    for (const q of allQ) {
+      no++;
+      if (q.type === 'mcq') {
+        const a = S.answers[q.id];
+        L.push('Câu ' + no + ' [' + q.topic + '] TN: ' + (typeof a === 'number' ? q.opts[a] : '(bỏ trống)') + (r.graded ? '  -> ' + ({ ok: 'đúng', no: 'sai', blank: 'trống' })[r.marks[q.id]] : ''));
+      } else {
+        L.push('Câu ' + no + ' [' + q.topic + '] (' + q.marks + ' điểm): ' + q.text);
+        L.push('Trả lời: ' + (S.answers[q.id] || '(bỏ trống)')); L.push('');
+      }
+    }
+    return L.join('\n');
+  }
+  function showResult() {
+    const r = S.result; const box = $('#res'); box.textContent = '';
+    $('#rname').textContent = S.name + (S.cls ? ' · ' + S.cls : '');
+    $('#rscore').textContent = r.graded ? r.score + '/' + r.total : '—';
+    $('#rtime').textContent = 'Thời gian làm bài: ' + fmt(S.submittedAt - S.start) + ' / ' + D.minutes + ':00';
+    $('#rnote').textContent = r.graded ? '' : 'Trình duyệt này không hỗ trợ chấm tự động. Hãy mở file bằng Chrome/Edge hoặc gửi file bài làm cho giáo viên.';
+    let no = 0;
+    for (const q of allQ) {
+      no++;
+      if (q.type !== 'mcq') continue;
+      const m = r.graded ? r.marks[q.id] : (typeof S.answers[q.id] === 'number' ? 'ok' : 'blank');
+      if (!r.graded) continue;
+      box.append(el('span', { class: m, text: no + (m === 'ok' ? ' ✓' : m === 'no' ? ' ✗' : ' –') }));
+    }
+    const wr = allQ.filter((q) => q.type !== 'mcq');
+    $('#rwr').textContent = 'Tự luận / bài tính: đã làm ' + wr.filter(isDone).length + '/' + wr.length + ' câu — giáo viên sẽ chấm.';
+    show('result');
+  }
+  function download() {
+    const safe = S.name.normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40) || 'bai_lam';
+    const blob = new Blob([exportText()], { type: 'text/plain;charset=utf-8' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: 'bai-kiem-tra_' + safe + '.txt' });
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  async function copy() {
+    try { await navigator.clipboard.writeText(exportText()); $('#toast').textContent = 'Đã sao chép bài làm.'; }
+    catch { $('#toast').textContent = 'Không sao chép được — hãy dùng nút Tải file.'; }
+  }
+
+  // ---------- wiring ----------
+  initStart();
+  for (const id of ['#submit', '#submit2']) $(id).addEventListener('click', () => submit(false));
+  $('#dl').addEventListener('click', download);
+  $('#cp').addEventListener('click', copy);
+  $('#again').addEventListener('click', () => {
+    if (!confirm('Xóa bài làm hiện tại và bắt đầu lại từ đầu?')) return;
+    try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+    S = null; location.reload();
+  });
+  window.addEventListener('beforeunload', (e) => { if (S && !S.submitted && !$('#exam').classList.contains('hidden')) { e.preventDefault(); e.returnValue = ''; } });
+
+  if (S && S.submitted && S.result) showResult();
+  else if (S && !S.submitted) startExam(); // if time already ran out, the first tick auto-submits
+  else show('start');
+})();
+</script>
+</body></html>
