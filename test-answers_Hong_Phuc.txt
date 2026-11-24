@@ -1,0 +1,140 @@
+45-MINUTE TEST — Data Representation / Data Transmission & Encryption
+Name: Hong Phuc
+Class: 10b1
+Time taken: 30:38 / 45:00
+Multiple choice: 19/22
+Short answer / calculations: marked by teacher
+
+Q1 [1.1] MCQ: 8  -> wrong
+Q2 [1.1] MCQ: 65536  -> wrong
+Q3 [1.2] MCQ: 15  -> correct
+Q4 [1.2] MCQ: A space  -> correct
+Q5 [1.3] MCQ: The result is no longer exact — the remainder is lost  -> correct
+Q6 [1.3] MCQ: Two's complement is only for negative numbers  -> wrong
+Q7 [1.4] MCQ: No — the character '5' has its own character code (53 in ASCII)  -> correct
+Q8 [1.4] MCQ: 32  -> correct
+Q9 [1.5] MCQ: The number of samples taken per second  -> correct
+Q10 [1.5] MCQ: divide by 8  -> correct
+Q11 [1.6] MCQ: The number of bits used to represent the colour of each pixel  -> correct
+Q12 [1.6] MCQ: It is multiplied by 4  -> correct
+Q13 [1.7] MCQ: Nibble  -> correct
+Q14 [1.7] MCQ: To reduce storage costs, as they pay for the space used  -> correct
+Q15 [1.1] (3 marks): Convert the denary number 203 to an 8-bit binary number. Show your working. [3]
+Answer: 128 64 32 16 8 4 2 1 
+1      1    0   0  1 0 1 1
+
+Q16 [1.1] (3 marks): A game stores the player's score in an 8-bit register. The score is currently 240 and the player earns 25 more points.
+(a) Explain what goes wrong when the program adds the points. [2]
+(b) Suggest one change the programmer could make to stop this from happening. [1]
+Answer: a) it will cause overflow
+b) changes in register size
+
+Q17 [1.2] (2 marks): Convert the denary number 218 to hexadecimal. Show your working. [2]
+Answer: 218/16 reminder = 10
+10/16 reminder = 13
+--> AD
+
+Q18 [1.2] (3 marks): Programmers often show memory addresses in hexadecimal rather than in binary.
+Describe two reasons why. Also state whether the computer itself processes data in hexadecimal. [3]
+Answer: is easier for programmer to read and understand because is very short
+
+Q19 [1.3] (3 marks): Represent the denary number −45 as an 8-bit two's complement binary number. Show each step of your working. [3]
+Answer: 128	64	32	16	8	4	2	1
+0	0	1	0	1	1	0	1
+-- >inverted 11010010
+ANSWEAR = 11010011
+
+Q20 [1.3] (2 marks): The 8-bit register below holds 00001101 (denary 13). Show the contents of the register after a logical left shift of 2 places, and give its denary value. [2]
+Answer: 00110100
+
+Q21 [1.4] (2 marks): (a) State what is meant by a character set . [1]
+(b) State the number of different characters that 7-bit ASCII can represent. [1]
+Answer: a) a list of character that computer can understand, where each are assign to an unique code
+b) 128
+
+Q22 [1.4] (3 marks): The binary codes 01000011 01000001 01010100 are 8-bit ASCII codes for three capital letters. Use the fact that 'A' = 65 to decode them. Show the denary value of each code and write the word. [3]
+Answer: 01000011 = 67
+01000001 = 65
+01010100 = 84 
+--> cat
+
+Q23 [1.5] (2 marks): (a) State what is meant by the sample resolution . [1]
+(b) State the effect on the file size of increasing the sample resolution. [1]
+Answer: a) number of bit used to store each individual sound sample
+b) increase the file size
+
+Q24 [1.5] (3 marks): A mono sound clip lasts 5 seconds. It is recorded with a sample rate of 8000 Hz and a sample resolution of 8 bits.
+Calculate the file size in KiB. Show your working. [3]
+Answer: 8000 * 8 * 5* 1 = 320 000/8  = 40000bytes
+--> 40000/1024 = 39.0625
+
+Q25 [1.6] (3 marks): A bitmap image is 640 pixels wide and 480 pixels high. It has a colour depth of 8 bits.
+Calculate the file size in KiB. Show your working. [3]
+Answer: 640 * 480 = 307200
+307200 * 8 = 2457600/8  = 307200 bytes
+307200 /1024 = 200kib
+
+Q26 [1.6] (3 marks): A photographer increases the resolution and the colour depth of the photographs her camera takes.
+Describe the effect on the image quality and on the file size. [3]
+Answer: Increasing both the resolution and the colour depth improves the overall image quality and significantly increases the file size.
+
+Q27 [1.7] (2 marks): State one difference between lossy and lossless compression. [2]
+Answer: lossy compress the file and some data will lost however lossless compression doesn't lost data
+
+Q28 [1.7] (3 marks): One row of pixels in an image is shown below (W = white, B = black).
+WWWWBBBWWWWWWBW
+(a) Show how run-length encoding (RLE) would store this row. [2]
+(b) State how many characters the original row has and how many the encoded row has. [1]
+Answer: a) 4W 3B 6W 1B 1W
+B) 15 and encode row has 10
+
+Q29 [2.1] MCQ: So the packets can be put back in the correct order when they arrive  -> correct
+Q30 [2.1] MCQ: 2, 3, 1  -> correct
+Q31 [2.2] MCQ: Several bits are sent at the same time down several wires  -> correct
+Q32 [2.2] MCQ: The standard cable length is limited (about 5 m)  -> correct
+Q33 [2.3] MCQ: data loss  -> correct
+Q34 [2.3] MCQ: Two bits being changed in the same byte  -> correct
+Q35 [2.4] MCQ: Online banking details  -> correct
+Q36 [2.4] MCQ: One — the same key encrypts and decrypts  -> correct
+Q37 [2.1] (2 marks): State two items of data that are stored in a packet header. [2]
+Answer: ip address
+packet number
+
+
+
+Q38 [2.1] (3 marks): A file of 1 000 000 bytes is sent across a network. Each packet carries a payload of 1 500 bytes (the last packet may carry less). The header and trailer of each packet together add 40 bytes.
+Calculate the number of packets needed. [2]
+Calculate the total number of extra bytes (header and trailer) sent. [1]
+Answer: 1) 666
+2) 26 680
+
+Q39 [2.2] (2 marks): State the difference between simplex and full-duplex data transmission. [2]
+Answer: simplex : data travel in  only one direction
+full -duplex : data travel in both direction
+
+Q40 [2.2] (4 marks): A student plugs a new USB memory stick into a computer. Describe what happens so that the memory stick can be used. [4]
+Answer: 1The computer detects that a new device has been connected due to a small change in voltage on the data pins of the USB port.  The computer queries the USB stick, and the device sends back its identification details. The operating system checks if the correct device driver is already installed; if it is, it loads it automatically. Once the driver is loaded, the operating system assigns the memory stick a drive letter/name so the user can read and write files to it.
+
+Q41 [2.3] (2 marks): State two types of error that can happen to data during transmission. [2]
+Answer: skew
+crosstalk
+
+Q42 [2.3] (2 marks): A parity bit is added to the left of each 7-bit value. Write down the complete 8-bit byte in each case.
+1100101 using even parity [1]
+0101110 using odd parity [1]
+Answer: 1100101: 0
+0101110: 1
+
+Q43 [2.3] (3 marks): The first 12 digits of an ISBN-13 are 978123456789. Calculate the check digit using the ISBN-13 method (multiply the digits alternately by 1 and 3, add them, find the remainder after dividing by 10 and subtract it from 10; a result of 10 becomes 0). Show your working. [3]
+Answer: (left blank)
+
+Q44 [2.4] (3 marks): A Caesar cipher uses a key of 4: each letter is moved 4 places forward in the alphabet when encrypting.
+Encrypt the word CODE . [1]
+Decrypt the ciphertext LIPPS . [1]
+State whether this is symmetric or asymmetric encryption and give a reason. [1]
+Answer: 1) GSHI
+2) HELL
+3) Symmetric encryption, because the exact same key is used to encrypt and decrypt 
+
+Q45 [2.4] (4 marks): Describe how symmetric encryption works and give its main problem. [4]
+Answer: symmetric encryption use only one key to encrypt and decrypt the data. for example when the sender want to encrypt the text he will use a key to do it after that he will send the plaintext and the key to the reciever then the reciever will use the key to decrypt the data. One problem of it is the hacker might see the key and encrypt the data

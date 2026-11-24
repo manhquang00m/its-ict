@@ -1,0 +1,215 @@
+/* CPU and assembly screen. */
+(function () {
+  'use strict';
+  var T = window.Toolkit, h = T.h;
+
+  var EXAMPLES = [
+    { name: 'Add two numbers (direct addressing)', code:
+`// Adds NUM1 and NUM2 and stores the answer in TOTAL
+        LDD NUM1
+        ADD NUM2
+        STO TOTAL
+        END
+NUM1:   12
+NUM2:   30
+TOTAL:  0` },
+    { name: 'Count down with a loop', code:
+`// Counts COUNT down to zero
+LOOP:   LDD COUNT
+        CMP #0
+        JPE DONE
+        DEC ACC
+        STO COUNT
+        JMP LOOP
+DONE:   END
+COUNT:  3` },
+    { name: 'Output a word (indexed addressing)', code:
+`// Outputs the characters stored from WORD onwards
+        LDR #0
+LOOP:   LDX WORD
+        CMP #0
+        JPE DONE
+        OUT
+        INC IX
+        JMP LOOP
+DONE:   END
+WORD:   72    // H
+        69    // E
+        76    // L
+        76    // L
+        79    // O
+        0` },
+    { name: 'Indirect addressing', code:
+`// POINTER holds the address of the data to load
+        LDI POINTER
+        ADD #1
+        STO RESULT
+        END
+POINTER: 6
+RESULT: 0
+DATA:   41` },
+    { name: 'Bit masking and shifts', code:
+`// Keeps the lower four bits, then multiplies by 4 with a shift
+        LDD VALUE
+        AND #B00001111
+        STO LOW
+        LSL #2
+        STO TIMES4
+        END
+VALUE:  B10110110
+LOW:    0
+TIMES4: 0` },
+    { name: 'Echo keys until X', code:
+`// Reads a key and outputs it, until X is pressed
+LOOP:   IN
+        CMP #88
+        JPE DONE
+        OUT
+        JMP LOOP
+DONE:   END` }
+  ];
+
+  T.register('cpu', function (view) {
+    var C = window.CPU, machine = null, program = null, timer = null, insAddr = null;
+    var ed = T.editor({ id: 'cpuCode', label: 'Assembly program', short: true, value: T.store('cpu-code') || EXAMPLES[0].code, onchange: function () { T.store('cpu-code', ed.get()); } });
+    var sel = h('select', { id: 'cpuExample', 'aria-label': 'Load an example' }, [h('option', { value: '', text: 'Load an example…' })]);
+    EXAMPLES.forEach(function (e, i) { sel.appendChild(h('option', { value: String(i), text: e.name })); });
+    sel.addEventListener('change', function () { if (sel.value === '') return; ed.set(EXAMPLES[+sel.value].code); T.store('cpu-code', ed.get()); sel.value = ''; load(); });
+
+    var msg = h('div', { class: 'msg', id: 'cpuMsg' });
+    var rtn = h('div', { class: 'mono', style: 'font-weight:600;min-height:1.5em' });
+    var pills = ['Fetch', 'Decode', 'Execute'].map(function (n) { return h('span', { class: 'pill', text: n }); });
+    var busPills = ['Address bus', 'Data bus', 'Control bus'].map(function (n) { return h('span', { class: 'pill blue', text: n }); });
+    var regEls = {};
+    var regsBox = h('div', { class: 'regs' });
+    [['PC', 'Program counter'], ['MAR', 'Memory address register'], ['MDR', 'Memory data register'], ['CIR', 'Current instruction register'], ['ACC', 'Accumulator'], ['IX', 'Index register'], ['FLAG', 'Compare flag']].forEach(function (r) {
+      var val = h('span'), sub = h('small');
+      var box = h('div', { class: 'reg', title: r[1] }, [h('b', { text: r[0] }), val, sub]);
+      regEls[r[0]] = { box: box, val: val, sub: sub };
+      regsBox.appendChild(box);
+    });
+    var memBox = h('div', { class: 'tablebox', style: 'max-height:460px' });
+    var screen = h('div', { class: 'console', style: 'min-height:48px', id: 'cpuScreen' });
+    var keyIn = h('input', { type: 'text', id: 'cpuKey', maxlength: '8', placeholder: 'Type key(s)', 'aria-label': 'Keyboard input for IN', style: 'max-width:150px' });
+    var keyRow = h('form', { class: 'inrow', style: 'display:none' }, [keyIn, h('button', { class: 'btn primary', type: 'submit', text: 'Send' })]);
+    keyRow.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!machine || !keyIn.value) return;
+      machine.inputQueue = machine.inputQueue.concat(keyIn.value.split(''));
+      keyIn.value = ''; keyRow.style.display = 'none'; microStep();
+    });
+
+    var bStep = h('button', { class: 'btn primary', text: 'Step', onclick: function () { stop(); microStep(); } });
+    var bIns = h('button', { class: 'btn', text: 'Run one instruction', onclick: function () { stop(); oneInstruction(); } });
+    var bPlay = h('button', { class: 'btn', text: 'Play', onclick: function () { if (timer) stop(); else play(); } });
+    var bReset = h('button', { class: 'btn', text: 'Assemble and reset', onclick: function () { load(); } });
+    var speed = h('select', { id: 'cpuSpeed', 'aria-label': 'Play speed' }, [h('option', { value: '900', text: 'Slow' }), h('option', { value: '350', text: 'Medium', selected: true }), h('option', { value: '60', text: 'Fast' })]);
+
+    view.appendChild(h('div', { class: 'view-head' }, [
+      h('span', { class: 'tag', text: 'Fetch–decode–execute · 9618 assembly language' }),
+      h('h1', { text: 'CPU and assembly' }),
+      h('p', { text: 'Each press of Step moves one register transfer forward, so you can see exactly what the PC, MAR, MDR and CIR do during the cycle.' })
+    ]));
+    view.appendChild(h('div', { class: 'grid2' }, [
+      h('div', { class: 'col' }, [
+        h('div', { class: 'panel' }, [h('div', { class: 'row' }, [sel]), ed.el, h('div', { class: 'row' }, [bStep, bIns, bPlay, speed, bReset]),
+          h('p', { class: 'note', text: 'One instruction or data value per line. Labels end with a colon. Use #12 for denary, #B1100 for binary and #&0C for hexadecimal.' })]),
+        h('div', { class: 'panel' }, [h('h3', { text: 'Processor' }), h('div', { class: 'row' }, pills), rtn, msg, regsBox, h('div', { class: 'buses' }, busPills)]),
+        h('div', { class: 'panel' }, [h('h3', { text: 'Screen (OUT)' }), screen, keyRow])
+      ]),
+      h('div', { class: 'col' }, [
+        h('div', { class: 'panel' }, [h('h3', { text: 'Main memory' }), memBox])
+      ])
+    ]));
+
+    function stop() { if (timer) { clearInterval(timer); timer = null; bPlay.textContent = 'Play'; } }
+
+    function load() {
+      stop(); keyRow.style.display = 'none';
+      try {
+        program = C.assemble(ed.get());
+        machine = new C.Machine(program); insAddr = null;
+        ed.mark(0);
+        say('Assembled ' + (program.end - program.start + 1) + ' memory locations. Press Step to begin the fetch stage.', '');
+        rtn.textContent = '';
+        paint({ changed: [], phase: '' });
+      } catch (e) {
+        machine = null; program = null;
+        say((e.line ? 'Line ' + e.line + ': ' : '') + e.message, 'bad');
+        if (e.line) ed.mark(e.line, true);
+        memBox.textContent = '';
+      }
+    }
+
+    function say(text, cls) { msg.className = 'msg' + (cls ? ' ' + cls : ''); msg.textContent = text; }
+
+    function microStep() {
+      if (!machine) { load(); if (!machine) return null; }
+      var res;
+      if (machine.phase === 0 && !machine.halted) insAddr = machine.reg.PC;
+      try { res = machine.step(); }
+      catch (e) { stop(); say(e.message, 'bad'); return null; }
+      if (res.needInput) { stop(); keyRow.style.display = 'flex'; keyIn.focus(); }
+      rtn.textContent = res.rtn || '';
+      say(res.text, res.halted ? 'good' : '');
+      paint(res);
+      if (res.halted) stop();
+      return res;
+    }
+
+    function oneInstruction() {
+      for (var i = 0; i < 6; i++) {
+        var res = microStep();
+        if (!res || res.needInput || res.halted || machine.phase === 0) return;
+      }
+    }
+
+    function play() {
+      if (!machine || machine.halted) load();
+      if (!machine) return;
+      bPlay.textContent = 'Pause';
+      timer = setInterval(function () { var r = microStep(); if (!r) stop(); }, +speed.value);
+    }
+
+    function show(v) { return v === null || v === undefined ? '—' : (typeof v === 'object' ? machine.cellText(v) : String(v)); }
+
+    function paint(res) {
+      var r = machine.reg, ch = res.changed || [];
+      ['PC', 'MAR', 'MDR', 'CIR', 'ACC', 'IX'].forEach(function (n) {
+        regEls[n].val.textContent = show(r[n]);
+        regEls[n].box.classList.toggle('chg', ch.indexOf(n) >= 0);
+        regEls[n].sub.textContent = (n === 'ACC' || n === 'IX') ? C.bin(r[n]) : '';
+      });
+      regEls.FLAG.val.textContent = machine.flag === null ? '—' : (machine.flag ? 'TRUE' : 'FALSE');
+      regEls.FLAG.box.classList.toggle('chg', ch.indexOf('FLAG') >= 0);
+      regEls.FLAG.sub.textContent = machine.flag === null ? '' : (machine.flag ? 'equal' : 'not equal');
+      pills[0].classList.toggle('on', res.phase === 'fetch');
+      pills[1].classList.toggle('on', res.phase === 'decode');
+      pills[2].classList.toggle('on', res.phase === 'execute');
+      var bus = res.read !== null && res.read !== undefined || res.write !== null && res.write !== undefined;
+      busPills[0].classList.toggle('on', !!bus); busPills[1].classList.toggle('on', !!bus); busPills[2].classList.toggle('on', !!bus);
+      busPills[2].textContent = 'Control bus' + (bus ? (res.write !== null && res.write !== undefined ? ': write' : ': read') : '');
+      screen.textContent = machine.output;
+
+      var labelAt = {};
+      Object.keys(program.labels).forEach(function (l) { labelAt[program.labels[l]] = l; });
+      var tb = h('tbody'), hotRow = null;
+      Object.keys(machine.mem).map(Number).sort(function (a, b) { return a - b; }).forEach(function (a) {
+        var c = machine.mem[a];
+        var cls = res.write === a ? 'write' : res.read === a ? 'read' : '';
+        var tr = h('tr', { class: a === r.PC ? 'hot' : '' }, [
+          h('td', { text: (a === r.PC ? '▶ ' : '') + a }), h('td', { text: labelAt[a] || '' }),
+          h('td', { class: cls, text: machine.cellText(c) }), h('td', { text: c.ins ? '' : C.bin(c.value) })
+        ]);
+        if (cls) hotRow = tr;
+        tb.appendChild(tr);
+      });
+      memBox.textContent = '';
+      memBox.appendChild(h('table', { class: 't' }, [h('thead', {}, [h('tr', {}, [h('th', { text: 'Address' }), h('th', { text: 'Label' }), h('th', { text: 'Contents' }), h('th', { text: 'Binary' })])]), tb]));
+      if (hotRow && hotRow.scrollIntoView) { var top = hotRow.offsetTop; if (top < memBox.scrollTop || top > memBox.scrollTop + memBox.clientHeight - 60) memBox.scrollTop = top - 80; }
+      ed.mark(res.phase && insAddr !== null ? (program.lineOf[insAddr] || 0) : 0);
+    }
+
+    load();
+  });
+})();

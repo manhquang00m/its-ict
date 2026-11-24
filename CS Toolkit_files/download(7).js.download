@@ -1,0 +1,401 @@
+/* Algorithm visualiser: sorting, searching, stack, queue, linked list, binary tree. */
+(function (root) {
+  'use strict';
+
+  var CODE = {
+    bubble: ['REPEAT', '    Swapped ← FALSE', '    FOR Index ← 1 TO Last', '        IF List[Index] > List[Index + 1] THEN', '            swap List[Index] and List[Index + 1]', '            Swapped ← TRUE', '        ENDIF', '    NEXT Index', '    Last ← Last - 1', 'UNTIL NOT Swapped OR Last = 0'],
+    insertion: ['FOR Pointer ← 2 TO N', '    ItemToInsert ← List[Pointer]', '    Current ← Pointer - 1', '    WHILE Current >= 1 AND List[Current] > ItemToInsert', '        List[Current + 1] ← List[Current]', '        Current ← Current - 1', '    ENDWHILE', '    List[Current + 1] ← ItemToInsert', 'NEXT Pointer'],
+    linear: ['Index ← 1', 'WHILE Index <= N AND NOT Found', '    IF List[Index] = Target THEN', '        Found ← TRUE', '    ELSE', '        Index ← Index + 1', '    ENDIF', 'ENDWHILE'],
+    binary: ['Low ← 1', 'High ← N', 'WHILE Low <= High AND NOT Found', '    Mid ← (Low + High) DIV 2', '    IF List[Mid] = Target THEN', '        Found ← TRUE', '    ELSE IF List[Mid] < Target THEN', '        Low ← Mid + 1', '    ELSE', '        High ← Mid - 1', '    ENDIF', 'ENDWHILE']
+  };
+
+  function bubbleFrames(input) {
+    var a = input.slice(), f = [], n = a.length, last = n - 1, swapped, comps = 0, swaps = 0;
+    function push(line, msg, cmp, extra) { f.push({ a: a.slice(), line: line, msg: msg, cmp: cmp || [], doneFrom: last + 1, comps: comps, swaps: swaps, done: extra }); }
+    push(-1, 'Unsorted list. Each pass pushes the largest remaining value to the end.');
+    if (n < 2) { last = -1; push(9, 'A list with one item is already sorted.', [], true); return f; }
+    do {
+      swapped = false; push(1, 'Start a new pass. Swapped is reset to FALSE.');
+      for (var i = 0; i < last; i++) {
+        comps++;
+        push(3, 'Compare ' + a[i] + ' and ' + a[i + 1] + '.', [i, i + 1]);
+        if (a[i] > a[i + 1]) {
+          var t = a[i]; a[i] = a[i + 1]; a[i + 1] = t; swapped = true; swaps++;
+          push(4, a[i + 1] + ' is larger, so the two values swap.', [i, i + 1]);
+        }
+      }
+      last--;
+      push(8, 'End of pass. The value at position ' + (last + 2) + ' is now in its final place.');
+    } while (swapped && last > 0);
+    last = -1;
+    push(9, swapped ? 'Only one value is left, so the list is sorted.' : 'No swaps happened in that pass, so the list is sorted.', [], true);
+    return f;
+  }
+
+  function insertionFrames(input) {
+    var a = input.slice(), f = [], n = a.length, comps = 0, moves = 0, sortedTo = 0;
+    function push(line, msg, cmp, key, extra) { f.push({ a: a.slice(), line: line, msg: msg, cmp: cmp || [], key: key, sortedTo: sortedTo, comps: comps, swaps: moves, done: extra }); }
+    push(-1, 'The first value counts as a sorted list of one. Each later value is inserted into place.');
+    for (var p = 1; p < n; p++) {
+      var item = a[p], c = p - 1;
+      sortedTo = p - 1;
+      push(1, 'Take ' + item + ' as the item to insert.', [], p);
+      while (c >= 0) {
+        comps++;
+        if (a[c] > item) {
+          push(3, a[c] + ' is larger than ' + item + ', so it moves one place right.', [c], c + 1);
+          a[c + 1] = a[c]; moves++; c--;
+        } else { push(3, a[c] + ' is not larger than ' + item + ', so the gap is in the right place.', [c], c + 1); break; }
+      }
+      a[c + 1] = item; sortedTo = p;
+      push(7, item + ' is inserted at position ' + (c + 2) + '.', [], c + 1);
+    }
+    sortedTo = n - 1;
+    push(8, 'Every value has been inserted. The list is sorted.', [], undefined, true);
+    return f;
+  }
+
+  function linearFrames(a, target) {
+    var f = [], comps = 0;
+    f.push({ a: a, line: 0, msg: 'Start at the first item.', cmp: [], comps: 0 });
+    for (var i = 0; i < a.length; i++) {
+      comps++;
+      if (a[i] === target) { f.push({ a: a, line: 3, msg: a[i] + ' equals the target. Found at position ' + (i + 1) + ' after ' + comps + ' comparison(s).', cmp: [], found: i, comps: comps, done: true }); return f; }
+      f.push({ a: a, line: 5, msg: a[i] + ' is not ' + target + '. Move to the next item.', cmp: [i], lo: i + 1, comps: comps });
+    }
+    f.push({ a: a, line: 7, msg: 'The end of the list was reached. ' + target + ' is not in the list (' + comps + ' comparisons).', cmp: [], lo: a.length, comps: comps, done: true });
+    return f;
+  }
+
+  function binaryFrames(a, target) {
+    var f = [], lo = 0, hi = a.length - 1, comps = 0;
+    f.push({ a: a, line: 1, msg: 'Low points to the first item and High to the last.', cmp: [], lo: lo, hi: hi, comps: 0 });
+    while (lo <= hi) {
+      var mid = Math.floor((lo + hi) / 2); comps++;
+      f.push({ a: a, line: 3, msg: 'Mid = (' + (lo + 1) + ' + ' + (hi + 1) + ') DIV 2 = ' + (mid + 1) + '. Look at ' + a[mid] + '.', cmp: [mid], lo: lo, hi: hi, comps: comps });
+      if (a[mid] === target) { f.push({ a: a, line: 5, msg: a[mid] + ' equals the target. Found at position ' + (mid + 1) + ' after ' + comps + ' comparison(s).', cmp: [], found: mid, lo: lo, hi: hi, comps: comps, done: true }); return f; }
+      if (a[mid] < target) { lo = mid + 1; f.push({ a: a, line: 7, msg: a[mid] + ' is smaller than ' + target + ', so discard the lower half. Low becomes ' + (lo + 1) + '.', cmp: [], lo: lo, hi: hi, comps: comps }); }
+      else { hi = mid - 1; f.push({ a: a, line: 9, msg: a[mid] + ' is larger than ' + target + ', so discard the upper half. High becomes ' + (hi + 1) + '.', cmp: [], lo: lo, hi: hi, comps: comps }); }
+    }
+    f.push({ a: a, line: 11, msg: 'Low has passed High, so ' + target + ' is not in the list (' + comps + ' comparisons).', cmp: [], lo: lo, hi: hi, comps: comps, done: true });
+    return f;
+  }
+
+  /* Linked list held in arrays, with a free list. Null pointer is 0. Items kept in order. */
+  function LinkedList(size) {
+    this.size = size; this.data = []; this.ptr = [];
+    for (var i = 1; i <= size; i++) { this.data[i] = null; this.ptr[i] = i < size ? i + 1 : 0; }
+    this.start = 0; this.free = 1;
+  }
+  LinkedList.prototype.insert = function (v) {
+    if (this.free === 0) return ['The free list is empty, so the linked list is full.'];
+    var log = [], node = this.free;
+    this.free = this.ptr[node]; this.data[node] = v;
+    log.push('Take node ' + node + ' from the free list and store ' + v + ' in it.');
+    var prev = 0, cur = this.start;
+    while (cur !== 0 && this.data[cur] < v) { prev = cur; cur = this.ptr[cur]; }
+    this.ptr[node] = cur;
+    if (prev === 0) { this.start = node; log.push('It belongs at the front, so StartPointer becomes ' + node + '.'); }
+    else { this.ptr[prev] = node; log.push('Node ' + prev + ' (' + this.data[prev] + ') now points to node ' + node + '.'); }
+    log.push('Node ' + node + ' points to ' + (cur === 0 ? 'the null pointer (0).' : 'node ' + cur + ' (' + this.data[cur] + ').'));
+    return log;
+  };
+  LinkedList.prototype.remove = function (v) {
+    var prev = 0, cur = this.start, log = [];
+    while (cur !== 0 && this.data[cur] !== v) { prev = cur; cur = this.ptr[cur]; }
+    if (cur === 0) return [v + ' is not in the list.'];
+    if (prev === 0) { this.start = this.ptr[cur]; log.push('It is the first node, so StartPointer becomes ' + this.start + '.'); }
+    else { this.ptr[prev] = this.ptr[cur]; log.push('Node ' + prev + ' now points past it to ' + (this.ptr[cur] || 'the null pointer (0)') + '.'); }
+    this.data[cur] = null; this.ptr[cur] = this.free; this.free = cur;
+    log.push('Node ' + cur + ' is returned to the front of the free list.');
+    return log;
+  };
+  LinkedList.prototype.find = function (v) {
+    var cur = this.start, path = [];
+    while (cur !== 0) { path.push(cur); if (this.data[cur] === v) return { found: cur, path: path }; cur = this.ptr[cur]; }
+    return { found: 0, path: path };
+  };
+  LinkedList.prototype.toArray = function () { var out = [], c = this.start; while (c) { out.push(this.data[c]); c = this.ptr[c]; } return out; };
+
+  /* Binary search tree held in arrays. Null pointer is 0. */
+  function BST(size) {
+    this.size = size; this.data = []; this.left = []; this.right = [];
+    for (var i = 1; i <= size; i++) { this.data[i] = null; this.left[i] = i < size ? i + 1 : 0; this.right[i] = 0; }
+    this.rootPtr = 0; this.free = 1;
+  }
+  BST.prototype.insert = function (v) {
+    if (this.free === 0) return ['The tree is full.'];
+    var node = this.free, log = [];
+    var cur = this.rootPtr, prev = 0, goLeft = false;
+    while (cur !== 0) {
+      if (this.data[cur] === v) return [v + ' is already in the tree.'];
+      prev = cur; goLeft = v < this.data[cur];
+      log.push(v + (goLeft ? ' < ' : ' > ') + this.data[cur] + ', so go ' + (goLeft ? 'left' : 'right') + ' from node ' + cur + '.');
+      cur = goLeft ? this.left[cur] : this.right[cur];
+    }
+    this.free = this.left[node]; this.data[node] = v; this.left[node] = 0; this.right[node] = 0;
+    if (prev === 0) { this.rootPtr = node; log.push('The tree was empty, so ' + v + ' becomes the root in node ' + node + '.'); }
+    else { if (goLeft) this.left[prev] = node; else this.right[prev] = node; log.push('A null pointer was reached. ' + v + ' is stored in node ' + node + ' as the ' + (goLeft ? 'left' : 'right') + ' child of ' + this.data[prev] + '.'); }
+    return log;
+  };
+  BST.prototype.find = function (v) {
+    var cur = this.rootPtr, path = [];
+    while (cur !== 0) { path.push(cur); if (this.data[cur] === v) return { found: cur, path: path }; cur = v < this.data[cur] ? this.left[cur] : this.right[cur]; }
+    return { found: 0, path: path };
+  };
+  BST.prototype.traverse = function (order) {
+    var out = [], self = this;
+    (function go(n) {
+      if (!n) return;
+      if (order === 'pre') out.push(self.data[n]);
+      go(self.left[n]);
+      if (order === 'in') out.push(self.data[n]);
+      go(self.right[n]);
+      if (order === 'post') out.push(self.data[n]);
+    })(this.rootPtr);
+    return out;
+  };
+
+  var api = { bubbleFrames: bubbleFrames, insertionFrames: insertionFrames, linearFrames: linearFrames, binaryFrames: binaryFrames, LinkedList: LinkedList, BST: BST };
+  if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
+
+  /* ---------- Screen ---------- */
+  var T = root.Toolkit, h = T.h, s = T.svg;
+
+  function parseList(text) {
+    var nums = text.split(/[\s,]+/).filter(Boolean).map(Number);
+    if (!nums.length || nums.some(isNaN)) throw new Error('Enter whole numbers separated by commas, for example 34, 12, 57, 8.');
+    if (nums.length > 14) throw new Error('Use 14 numbers or fewer so the bars stay readable.');
+    return nums;
+  }
+
+  function codeBlock(lines) {
+    var pre = h('pre', { class: 'code' });
+    lines.forEach(function (l) { pre.appendChild(h('span', { text: l || ' ' })); });
+    return pre;
+  }
+  function setLine(pre, n) { Array.prototype.forEach.call(pre.children, function (c, i) { c.className = i === n ? 'cur' : ''; }); }
+
+  /* Shared frame player */
+  function player(draw) {
+    var frames = [], i = 0, timer = null;
+    var back = h('button', { class: 'btn', text: 'Back', onclick: function () { stop(); go(i - 1); } });
+    var next = h('button', { class: 'btn primary', text: 'Next step', onclick: function () { stop(); go(i + 1); } });
+    var play = h('button', { class: 'btn', text: 'Play', onclick: function () { if (timer) stop(); else { if (i >= frames.length - 1) go(0); play.textContent = 'Pause'; timer = setInterval(function () { if (i >= frames.length - 1) stop(); else go(i + 1); }, 650); } } });
+    var count = h('span', { class: 'note' });
+    function stop() { if (timer) { clearInterval(timer); timer = null; } play.textContent = 'Play'; }
+    function go(n) {
+      i = Math.max(0, Math.min(frames.length - 1, n));
+      back.disabled = i === 0; next.disabled = i === frames.length - 1;
+      count.textContent = 'Step ' + (i + 1) + ' of ' + frames.length;
+      draw(frames[i]);
+    }
+    return { el: h('div', { class: 'row' }, [back, next, play, count]), load: function (f) { stop(); frames = f; go(0); }, stop: stop };
+  }
+
+  function sortPanel() {
+    var listIn = h('input', { type: 'text', id: 'algoSortList', value: '34, 12, 57, 8, 41, 19, 26', 'aria-label': 'Numbers to sort', style: 'flex:1 1 200px;min-width:0' });
+    var algo = h('select', { id: 'algoSortKind', 'aria-label': 'Sorting algorithm' }, [h('option', { value: 'bubble', text: 'Bubble sort' }), h('option', { value: 'insertion', text: 'Insertion sort' })]);
+    var bars = h('div', { class: 'bars' }), msg = h('div', { class: 'msg' }), stats = h('p', { class: 'note' }), err = h('div', { class: 'msg bad', style: 'display:none' });
+    var codeBox = h('div');
+    var pre = null;
+    var pl = player(function (f) {
+      var max = Math.max.apply(null, f.a.map(Math.abs)) || 1;
+      bars.textContent = '';
+      f.a.forEach(function (v, i) {
+        var cls = 'bar';
+        if (f.cmp.indexOf(i) >= 0) cls += ' cmp';
+        else if (f.key === i) cls += ' key';
+        else if (f.done || (f.doneFrom !== undefined && i >= f.doneFrom) || (f.sortedTo !== undefined && i <= f.sortedTo && f.key === undefined)) cls += ' done';
+        bars.appendChild(h('div', { class: cls, style: 'height:' + Math.max(6, Math.abs(v) / max * 100) + '%' }, [h('i', { text: String(v) })]));
+      });
+      msg.textContent = f.msg; msg.className = 'msg' + (f.done ? ' good' : '');
+      stats.textContent = 'Comparisons: ' + f.comps + '   ' + (algo.value === 'bubble' ? 'Swaps: ' : 'Moves: ') + f.swaps;
+      setLine(pre, f.line);
+    });
+    function load() {
+      try {
+        var a = parseList(listIn.value); err.style.display = 'none';
+        pre = codeBlock(CODE[algo.value]); codeBox.textContent = ''; codeBox.appendChild(pre);
+        pl.load(algo.value === 'bubble' ? bubbleFrames(a) : insertionFrames(a));
+      } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+    }
+    algo.addEventListener('change', load);
+    var form = h('form', { class: 'row' }, [algo, listIn, h('button', { class: 'btn', type: 'submit', text: 'Load' }), h('button', { class: 'btn', type: 'button', text: 'Random', onclick: function () {
+      var a = []; for (var i = 0; i < 8; i++) a.push(1 + Math.floor(Math.random() * 60)); listIn.value = a.join(', '); load();
+    } })]);
+    form.addEventListener('submit', function (e) { e.preventDefault(); load(); });
+    var el = h('div', { class: 'grid2 wide-left' }, [
+      h('div', { class: 'panel' }, [form, err, bars, msg, pl.el, stats, h('p', { class: 'note', text: 'Amber bars are being compared. Green bars are in their final place. In insertion sort the blue bar marks the gap for the item being inserted.' })]),
+      h('div', { class: 'panel' }, [h('h3', { text: 'Pseudocode' }), codeBox])
+    ]);
+    load();
+    return { el: el, stop: pl.stop };
+  }
+
+  function searchPanel() {
+    var listIn = h('input', { type: 'text', id: 'algoSearchList', value: '3, 8, 12, 19, 27, 34, 41, 57, 63', 'aria-label': 'List to search', style: 'flex:1 1 200px;min-width:0' });
+    var target = h('input', { type: 'number', id: 'algoTarget', value: '41', 'aria-label': 'Target value', style: 'width:90px' });
+    var algo = h('select', { id: 'algoSearchKind', 'aria-label': 'Search algorithm' }, [h('option', { value: 'binary', text: 'Binary search' }), h('option', { value: 'linear', text: 'Linear search' })]);
+    var cells = h('div', { class: 'cells' }), msg = h('div', { class: 'msg' }), stats = h('p', { class: 'note' }), err = h('div', { class: 'msg bad', style: 'display:none' }), codeBox = h('div'), pre = null;
+    var pl = player(function (f) {
+      cells.textContent = '';
+      f.a.forEach(function (v, i) {
+        var cls = 'cell', tag = String(i + 1);
+        if (f.found === i) cls += ' done';
+        else if (f.cmp.indexOf(i) >= 0) cls += ' cmp';
+        else if ((f.lo !== undefined && i < f.lo) || (f.hi !== undefined && i > f.hi)) cls += ' dim';
+        if (algo.value === 'binary') { if (i === f.lo) tag += ' Low'; if (i === f.hi) tag += ' High'; }
+        cells.appendChild(h('div', { class: cls }, [h('small', { text: tag }), String(v)]));
+      });
+      msg.textContent = f.msg; msg.className = 'msg' + (f.done ? (f.found !== undefined ? ' good' : ' bad') : '');
+      stats.textContent = 'Comparisons: ' + f.comps;
+      setLine(pre, f.line);
+    });
+    function load() {
+      try {
+        var a = parseList(listIn.value), t = Number(target.value); err.style.display = 'none';
+        if (algo.value === 'binary') {
+          var sorted = a.slice().sort(function (x, y) { return x - y; });
+          if (sorted.join() !== a.join()) { a = sorted; listIn.value = a.join(', '); err.textContent = 'Binary search only works on a sorted list, so the list has been sorted for you.'; err.style.display = 'block'; }
+        }
+        pre = codeBlock(CODE[algo.value]); codeBox.textContent = ''; codeBox.appendChild(pre);
+        pl.load(algo.value === 'binary' ? binaryFrames(a, t) : linearFrames(a, t));
+      } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+    }
+    algo.addEventListener('change', load);
+    var form = h('form', { class: 'row' }, [algo, listIn, h('label', { class: 'chk', for: 'algoTarget' }, ['Find', target]), h('button', { class: 'btn', type: 'submit', text: 'Load' })]);
+    form.addEventListener('submit', function (e) { e.preventDefault(); load(); });
+    var el = h('div', { class: 'grid2 wide-left' }, [
+      h('div', { class: 'panel' }, [form, err, cells, msg, pl.el, stats, h('p', { class: 'note', text: 'Faded cells have been ruled out. Try the same target with both algorithms and compare the number of comparisons.' })]),
+      h('div', { class: 'panel' }, [h('h3', { text: 'Pseudocode' }), codeBox])
+    ]);
+    load();
+    return { el: el, stop: pl.stop };
+  }
+
+  function valueForm(id, buttons) {
+    var inp = h('input', { type: 'number', id: id, value: '7', 'aria-label': 'Value', style: 'width:90px' });
+    var row = h('div', { class: 'row' }, [inp]);
+    buttons.forEach(function (b) { row.appendChild(h('button', { class: 'btn' + (b.primary ? ' primary' : ''), text: b.text, onclick: function () { b.run(Number(inp.value)); if (b.bump) inp.value = String(1 + Math.floor(Math.random() * 98)); } })); });
+    return row;
+  }
+
+  function stackPanel() {
+    var MAX = 6, st = [12, 45, 7], msg = h('div', { class: 'msg', text: 'A stack is last in, first out (LIFO). Items are added and removed at the top.' }), cells = h('div', { class: 'cells', style: 'flex-direction:column-reverse;align-items:flex-start' }), ptr = h('p', { class: 'mono' });
+    function draw(hot) {
+      cells.textContent = '';
+      for (var i = 0; i < MAX; i++) cells.appendChild(h('div', { class: 'cell' + (i === hot ? ' cmp' : ''), style: 'width:150px;display:flex;justify-content:space-between;gap:8px' }, [h('small', { text: '[' + (i + 1) + ']' }), h('span', { text: i < st.length ? String(st[i]) : '' }), h('small', { text: i === st.length - 1 ? '← Top' : '' })]));
+      ptr.textContent = 'TopOfStack = ' + st.length;
+    }
+    var row = valueForm('algoStackVal', [
+      { text: 'Push', primary: true, bump: true, run: function (v) { if (st.length === MAX) { msg.className = 'msg bad'; msg.textContent = 'Stack overflow: TopOfStack already equals the maximum size, so nothing is added.'; draw(); return; } st.push(v); msg.className = 'msg'; msg.textContent = 'TopOfStack is incremented to ' + st.length + ', then ' + v + ' is stored there.'; draw(st.length - 1); } },
+      { text: 'Pop', run: function () { if (!st.length) { msg.className = 'msg bad'; msg.textContent = 'Stack underflow: the stack is empty, so there is nothing to pop.'; draw(); return; } var v = st.pop(); msg.className = 'msg'; msg.textContent = v + ' is read from the top, then TopOfStack is decremented to ' + st.length + '.'; draw(); } }
+    ]);
+    draw();
+    return { el: h('div', { class: 'grid2' }, [h('div', { class: 'panel' }, [row, msg, ptr, cells]), h('div', { class: 'panel' }, [h('h3', { text: 'Pseudocode' }), codeBlock(['PROCEDURE Push(Item)', '    IF TopOfStack = MaxSize THEN', '        OUTPUT "Stack full"', '    ELSE', '        TopOfStack ← TopOfStack + 1', '        Stack[TopOfStack] ← Item', '    ENDIF', 'ENDPROCEDURE', '', 'FUNCTION Pop() RETURNS INTEGER', '    IF TopOfStack = 0 THEN', '        OUTPUT "Stack empty"', '    ELSE', '        Item ← Stack[TopOfStack]', '        TopOfStack ← TopOfStack - 1', '    ENDIF', '    RETURN Item', 'ENDFUNCTION'])])]) };
+  }
+
+  function queuePanel() {
+    var MAX = 6, q = [null, null, null, null, null, null], head = 1, tail = 0, n = 0;
+    var msg = h('div', { class: 'msg', text: 'A queue is first in, first out (FIFO). This one is circular: the pointers wrap round to position 1 after the last position.' }), cells = h('div', { class: 'cells' }), ptr = h('p', { class: 'mono' });
+    function draw(hot) {
+      cells.textContent = '';
+      for (var i = 1; i <= MAX; i++) {
+        var tags = []; if (n && i === head) tags.push('Head'); if (n && i === tail) tags.push('Tail');
+        cells.appendChild(h('div', { class: 'cell' + (i === hot ? ' cmp' : ''), style: 'min-width:64px' }, [h('small', { text: '[' + i + ']' }), q[i - 1] === null ? ' ' : String(q[i - 1]), h('small', { text: tags.join(' / ') || ' ' })]));
+      }
+      ptr.textContent = 'HeadPointer = ' + head + '   TailPointer = ' + tail + '   NumberInQueue = ' + n;
+    }
+    function enq(v, quiet) {
+      if (n === MAX) { msg.className = 'msg bad'; msg.textContent = 'The queue is full (NumberInQueue = ' + MAX + '), so nothing is added.'; draw(); return; }
+      tail = tail === MAX ? 1 : tail + 1; q[tail - 1] = v; n++;
+      if (!quiet) { msg.className = 'msg'; msg.textContent = 'TailPointer moves to ' + tail + (tail === 1 && n > 1 ? ' (wrapping round)' : '') + ' and ' + v + ' is stored there.'; }
+      draw(tail);
+    }
+    var row = valueForm('algoQueueVal', [
+      { text: 'Enqueue', primary: true, bump: true, run: function (v) { enq(v); } },
+      { text: 'Dequeue', run: function () { if (!n) { msg.className = 'msg bad'; msg.textContent = 'The queue is empty, so there is nothing to remove.'; draw(); return; } var v = q[head - 1]; q[head - 1] = null; head = head === MAX ? 1 : head + 1; n--; msg.className = 'msg'; msg.textContent = v + ' leaves from the front. HeadPointer moves to ' + head + '.'; draw(); } }
+    ]);
+    enq(21, true); enq(8, true); enq(15, true); draw();
+    return { el: h('div', { class: 'grid2' }, [h('div', { class: 'panel' }, [row, msg, ptr, cells]), h('div', { class: 'panel' }, [h('h3', { text: 'Pseudocode' }), codeBlock(['PROCEDURE Enqueue(Item)', '    IF NumberInQueue = MaxSize THEN', '        OUTPUT "Queue full"', '    ELSE', '        IF TailPointer = MaxSize THEN', '            TailPointer ← 1', '        ELSE', '            TailPointer ← TailPointer + 1', '        ENDIF', '        Queue[TailPointer] ← Item', '        NumberInQueue ← NumberInQueue + 1', '    ENDIF', 'ENDPROCEDURE'])])]) };
+  }
+
+  function listPanel() {
+    var ll = new LinkedList(7); [27, 8, 41].forEach(function (v) { ll.insert(v); });
+    var msg = h('div', { class: 'msg', text: 'The list is stored in two arrays. Each node holds a data item and a pointer to the next node. Unused nodes are linked together in the free list.' });
+    var chain = h('div', { class: 'cells' }), box = h('div', { class: 'tablebox' }), ptr = h('p', { class: 'mono' });
+    function draw(hot) {
+      hot = hot || [];
+      chain.textContent = ''; chain.appendChild(h('div', { class: 'cell key' }, [h('small', { text: 'Start' }), String(ll.start)]));
+      var c = ll.start;
+      while (c) { chain.appendChild(h('span', { text: '→', style: 'align-self:center' })); chain.appendChild(h('div', { class: 'cell' + (hot.indexOf(c) >= 0 ? ' cmp' : '') }, [h('small', { text: 'node ' + c }), String(ll.data[c])])); c = ll.ptr[c]; }
+      chain.appendChild(h('span', { text: '→ ∅', style: 'align-self:center' }));
+      var tb = h('tbody');
+      for (var i = 1; i <= ll.size; i++) tb.appendChild(h('tr', { class: hot.indexOf(i) >= 0 ? 'hot' : '' }, [h('td', { text: String(i) }), h('td', { text: ll.data[i] === null ? '' : String(ll.data[i]) }), h('td', { text: String(ll.ptr[i]) })]));
+      box.textContent = ''; box.appendChild(h('table', { class: 't' }, [h('thead', {}, [h('tr', {}, [h('th', { text: 'Index' }), h('th', { text: 'Data' }), h('th', { text: 'Pointer' })])]), tb]));
+      ptr.textContent = 'StartPointer = ' + ll.start + '   FreeListPointer = ' + ll.free + '   NullPointer = 0';
+    }
+    var row = valueForm('algoListVal', [
+      { text: 'Insert in order', primary: true, bump: true, run: function (v) { var log = ll.insert(v); msg.className = 'msg'; msg.textContent = log.join(' '); draw(ll.find(v).found ? [ll.find(v).found] : []); } },
+      { text: 'Delete', run: function (v) { var log = ll.remove(v); msg.className = 'msg'; msg.textContent = log.join(' '); draw(); } },
+      { text: 'Find', run: function (v) { var r = ll.find(v); msg.className = 'msg ' + (r.found ? 'good' : 'bad'); msg.textContent = r.found ? v + ' found in node ' + r.found + ' after following ' + r.path.length + ' node(s) from the start.' : v + ' is not in the list. The search stopped at the null pointer.'; draw(r.path); } }
+    ]);
+    draw();
+    return { el: h('div', { class: 'grid2' }, [h('div', { class: 'panel' }, [row, msg, chain, ptr]), h('div', { class: 'panel' }, [h('h3', { text: 'How it is stored' }), box])]) };
+  }
+
+  function treePanel() {
+    var t = new BST(10); [40, 22, 61, 9, 31, 55].forEach(function (v) { t.insert(v); });
+    var msg = h('div', { class: 'msg', text: 'In a binary search tree, smaller values go to the left of a node and larger values go to the right.' });
+    var pic = h('div', { class: 'svgbox' }), box = h('div', { class: 'tablebox' }), ptr = h('p', { class: 'mono' });
+    function draw(hot) {
+      hot = hot || [];
+      var pos = {}, order = 0, depthMax = 0;
+      (function place(n, d) { if (!n) return; place(t.left[n], d + 1); pos[n] = { x: order++, y: d }; depthMax = Math.max(depthMax, d); place(t.right[n], d + 1); })(t.rootPtr, 0);
+      var w = Math.max(300, order * 52 + 40), hgt = (depthMax + 1) * 62 + 30;
+      var g = s('svg', { viewBox: '0 0 ' + w + ' ' + hgt, width: w, height: hgt, role: 'img', 'aria-label': 'Binary search tree diagram' });
+      Object.keys(pos).forEach(function (k) {
+        k = +k; var p = pos[k];
+        [t.left[k], t.right[k]].forEach(function (c) { if (c) g.appendChild(s('line', { x1: 40 + p.x * 52, y1: 30 + p.y * 62, x2: 40 + pos[c].x * 52, y2: 30 + pos[c].y * 62, stroke: 'var(--muted)', 'stroke-width': 1.6 })); });
+      });
+      Object.keys(pos).forEach(function (k) {
+        k = +k; var p = pos[k], on = hot.indexOf(k) >= 0;
+        g.appendChild(s('circle', { cx: 40 + p.x * 52, cy: 30 + p.y * 62, r: 19, fill: on ? 'var(--hot)' : 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }));
+        g.appendChild(s('text', { x: 40 + p.x * 52, y: 35 + p.y * 62, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 600, text: String(t.data[k]), style: on ? 'fill:#14202b' : '' }));
+      });
+      g.appendChild(s('text', { x: w - 6, y: hgt - 6, 'font-size': 9, 'text-anchor': 'end', opacity: 0.45, text: 'learn with asset @learnwithasset' }));
+      pic.textContent = ''; pic.appendChild(g);
+      var tb = h('tbody');
+      for (var i = 1; i <= t.size; i++) tb.appendChild(h('tr', { class: hot.indexOf(i) >= 0 ? 'hot' : '' }, [h('td', { text: String(i) }), h('td', { text: String(t.left[i]) }), h('td', { text: t.data[i] === null ? '' : String(t.data[i]) }), h('td', { text: String(t.right[i]) })]));
+      box.textContent = ''; box.appendChild(h('table', { class: 't' }, [h('thead', {}, [h('tr', {}, [h('th', { text: 'Index' }), h('th', { text: 'LeftPointer' }), h('th', { text: 'Data' }), h('th', { text: 'RightPointer' })])]), tb]));
+      ptr.textContent = 'RootPointer = ' + t.rootPtr + '   FreePointer = ' + t.free;
+    }
+    var row = valueForm('algoTreeVal', [
+      { text: 'Insert', primary: true, bump: true, run: function (v) { var log = t.insert(v); msg.className = 'msg'; msg.textContent = log.join(' '); draw(t.find(v).path); } },
+      { text: 'Find', run: function (v) { var r = t.find(v); msg.className = 'msg ' + (r.found ? 'good' : 'bad'); msg.textContent = (r.found ? v + ' found' : v + ' not found') + ' after visiting ' + r.path.length + ' node(s): ' + r.path.map(function (n) { return t.data[n]; }).join(' → ') + '.'; draw(r.path); } }
+    ]);
+    var trav = h('div', { class: 'row' }, [['in', 'In-order'], ['pre', 'Pre-order'], ['post', 'Post-order']].map(function (o) {
+      return h('button', { class: 'btn', text: o[1] + ' traversal', onclick: function () { msg.className = 'msg'; msg.textContent = o[1] + ': ' + t.traverse(o[0]).join(', ') + (o[0] === 'in' ? '. In-order visits a search tree in ascending order.' : '.'); draw(); } });
+    }));
+    draw();
+    return { el: h('div', { class: 'grid2' }, [h('div', { class: 'panel' }, [row, trav, msg, pic, ptr]), h('div', { class: 'panel' }, [h('h3', { text: 'How it is stored' }), box, h('p', { class: 'note', text: 'Free nodes are linked through their LeftPointer. The null pointer is 0.' })])]) };
+  }
+
+  T.register('algorithms', function (view) {
+    var makers = [sortPanel, searchPanel, stackPanel, queuePanel, listPanel, treePanel], built = [], holder = h('div');
+    function pick(i) {
+      built.forEach(function (b) { if (b && b.stop) b.stop(); });
+      if (!built[i]) built[i] = makers[i]();
+      holder.textContent = ''; holder.appendChild(built[i].el);
+    }
+    view.appendChild(h('div', { class: 'view-head' }, [
+      h('span', { class: 'tag', text: 'Algorithms and abstract data types' }),
+      h('h1', { text: 'Algorithm visualiser' }),
+      h('p', { text: 'Step through each algorithm with the matching pseudocode line highlighted. Sorting and searching are in IGCSE and A Level. Stacks, queues, linked lists and trees are A Level.' })
+    ]));
+    view.appendChild(T.subtabs(['Sorting', 'Searching', 'Stack', 'Queue', 'Linked list', 'Binary tree'], pick));
+    view.appendChild(holder);
+    pick(0);
+  });
+})(typeof window !== 'undefined' ? window : this);

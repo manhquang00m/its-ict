@@ -1,0 +1,276 @@
+/* Networks: packet switching, TCP/IP layers, parity checking, encryption. */
+(function (root) {
+  'use strict';
+
+  function caesar(text, key) {
+    return text.replace(/[a-z]/gi, function (c) {
+      var base = c <= 'Z' ? 65 : 97;
+      return String.fromCharCode((((c.charCodeAt(0) - base + key) % 26) + 26) % 26 + base);
+    });
+  }
+  function modpow(b, e, m) { var r = 1; b = b % m; while (e > 0) { if (e & 1) r = (r * b) % m; b = (b * b) % m; e = e >> 1; } return r; }
+  function gcd(a, b) { while (b) { var t = a % b; a = b; b = t; } return a; }
+  function rsaKeys(p, q) {
+    var n = p * q, phi = (p - 1) * (q - 1), e = 3;
+    while (gcd(e, phi) !== 1) e += 2;
+    var d = 1; while ((d * e) % phi !== 1) d++;
+    return { n: n, phi: phi, e: e, d: d };
+  }
+  // rows: array of 7-bit arrays. Returns full grid with parity column and parity row.
+  function parityGrid(rows, odd) {
+    var g = rows.map(function (r) { var ones = r.reduce(function (a, b) { return a + b; }, 0); return r.concat([(ones + (odd ? 1 : 0)) % 2]); });
+    var last = [];
+    for (var c = 0; c < 8; c++) { var s = 0; g.forEach(function (r) { s += r[c]; }); last.push((s + (odd ? 1 : 0)) % 2); }
+    g.push(last); return g;
+  }
+  function parityCheck(g, odd) {
+    var want = odd ? 1 : 0, badRows = [], badCols = [];
+    g.forEach(function (r, i) { if (i < g.length - 1 && r.reduce(function (a, b) { return a + b; }, 0) % 2 !== want) badRows.push(i); });  // the parity byte is checked by columns only
+    for (var c = 0; c < 8; c++) { var s = 0; g.forEach(function (r) { s += r[c]; }); if (s % 2 !== want) badCols.push(c); }
+    return { rows: badRows, cols: badCols };
+  }
+
+  var api = { caesar: caesar, modpow: modpow, rsaKeys: rsaKeys, parityGrid: parityGrid, parityCheck: parityCheck };
+  if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
+
+  var T = root.Toolkit, h = T.h, s = T.svg;
+
+  /* ---------- Packet switching ---------- */
+  function packetPanel() {
+    var NODES = { A: [44, 125, 'Sender'], R1: [160, 50], R2: [160, 200], R3: [290, 125], R4: [420, 50], R5: [420, 200], B: [536, 125, 'Receiver'] };
+    var LINKS = [['A', 'R1'], ['A', 'R2'], ['R1', 'R3'], ['R2', 'R3'], ['R1', 'R4'], ['R2', 'R5'], ['R3', 'R4'], ['R3', 'R5'], ['R4', 'B'], ['R5', 'B']];
+    var ROUTES = [['A', 'R1', 'R4', 'B'], ['A', 'R2', 'R5', 'B'], ['A', 'R1', 'R3', 'R4', 'B'], ['A', 'R1', 'R3', 'R5', 'B'], ['A', 'R2', 'R3', 'R4', 'B'], ['A', 'R2', 'R3', 'R5', 'B'], ['A', 'R1', 'R3', 'R2', 'R5', 'B'], ['A', 'R2', 'R3', 'R1', 'R4', 'B']];
+    var msgIn = h('input', { type: 'text', id: 'netMessage', value: 'PACKETS TAKE DIFFERENT ROUTES', maxlength: '40', 'aria-label': 'Message to send', style: 'flex:1 1 220px;min-width:0' });
+    var lose = h('input', { type: 'checkbox', id: 'netLose' });
+    var box = h('div', { class: 'svgbox' }), info = h('div', { class: 'msg' }), sentBox = h('div', { class: 'tablebox' }), recvBox = h('div', { class: 'tablebox' });
+    var packets = [], tick = 0, received = [], timer = null, layer = null, resent = false;
+
+    var svgEl = s('svg', { viewBox: '0 0 580 250', style: 'width:100%;height:auto;min-width:420px;display:block', role: 'img', 'aria-label': 'Network of five routers between a sender and a receiver' });
+    LINKS.forEach(function (l) { svgEl.appendChild(s('line', { x1: NODES[l[0]][0], y1: NODES[l[0]][1], x2: NODES[l[1]][0], y2: NODES[l[1]][1], stroke: 'var(--line)', 'stroke-width': 3 })); });
+    Object.keys(NODES).forEach(function (k) {
+      var n = NODES[k], end = k === 'A' || k === 'B';
+      svgEl.appendChild(end ? s('rect', { x: n[0] - 26, y: n[1] - 18, width: 52, height: 36, rx: 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }) : s('circle', { cx: n[0], cy: n[1], r: 20, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }));
+      svgEl.appendChild(s('text', { x: n[0], y: n[1] + 4, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 600, text: k }));
+      if (n[2]) svgEl.appendChild(s('text', { x: n[0], y: n[1] + 36, 'text-anchor': 'middle', 'font-size': 10, text: n[2] }));
+    });
+    svgEl.appendChild(s('text', { x: 574, y: 244, 'font-size': 9, 'text-anchor': 'end', opacity: 0.45, text: 'learn with asset @learnwithasset' }));
+    layer = s('g'); svgEl.appendChild(layer); box.appendChild(svgEl);
+
+    function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = 'Play'; } }
+
+    function makePacket(seq, total, data, start) {
+      var g = s('g', { style: 'transition: transform .55s linear; transform: translate(' + NODES.A[0] + 'px,' + NODES.A[1] + 'px)' });
+      g.appendChild(s('circle', { r: 11, fill: 'var(--accent)' }));
+      g.appendChild(s('text', { y: 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, text: String(seq), style: 'fill:var(--accent-ink)' }));
+      g.style.display = 'none'; layer.appendChild(g);
+      return { seq: seq, total: total, data: data, route: ROUTES[Math.floor(Math.random() * ROUTES.length)], hop: 0, start: start, el: g, state: 'waiting' };
+    }
+
+    function setup() {
+      stop();
+      var text = msgIn.value || 'HELLO', size = 5, chunks = [];
+      for (var i = 0; i < text.length; i += size) chunks.push(text.slice(i, i + size));
+      layer.textContent = ''; packets = []; received = []; tick = 0; resent = false;
+      chunks.forEach(function (c, i) { packets.push(makePacket(i + 1, chunks.length, c, i)); });
+      if (lose.checked && packets.length > 1) packets[Math.floor(packets.length / 2)].lost = true;
+      info.className = 'msg';
+      info.textContent = 'The message is split into ' + packets.length + ' packets. Each packet gets a header with the sender address, receiver address and a sequence number.';
+      draw();
+    }
+
+    function step() {
+      var active = false;
+      tick++;
+      packets.slice().reverse().forEach(function (p) {
+        if (p.state === 'arrived' || p.state === 'lost' || p.state === 'replaced') return;
+        if (tick <= p.start) { active = true; return; }
+        p.state = 'moving'; p.hop++;
+        var node = NODES[p.route[p.hop]];
+        p.el.style.display = ''; p.el.style.transform = 'translate(' + node[0] + 'px,' + node[1] + 'px)';
+        if (p.lost && p.hop === 2) { p.state = 'lost'; p.el.style.opacity = '0.15'; return; }
+        if (p.hop === p.route.length - 1) { p.state = 'arrived'; received.push(p); } else active = true;
+      });
+      if (!active) {
+        var missing = packets.filter(function (p) { return p.state === 'lost'; });
+        if (missing.length && !resent) {
+          resent = true;
+          var m = missing[0], np = makePacket(m.seq, m.total, m.data, tick);
+          m.state = 'replaced'; packets.push(np);
+          info.className = 'msg bad';
+          info.textContent = 'Packet ' + m.seq + ' never arrived. The receiver spots the gap in the sequence numbers and asks the sender to send it again.';
+        } else {
+          stop();
+          info.className = 'msg good';
+          var order = received.map(function (p) { return p.seq; }).join(', ');
+          info.textContent = 'All packets have arrived, in the order ' + order + '. The receiver uses the sequence numbers to reassemble the message: "' + received.slice().sort(function (a, b) { return a.seq - b.seq; }).map(function (p) { return p.data; }).join('') + '"';
+        }
+      } else if (info.className !== 'msg bad') { info.className = 'msg'; info.textContent = 'Each router reads the destination address and forwards the packet along whichever link it judges best at that moment.'; }
+      draw();
+    }
+
+    function draw() {
+      var tb = h('tbody');
+      packets.forEach(function (p) {
+        if (p.state === 'replaced') return;
+        tb.appendChild(h('tr', {}, [h('td', { text: p.seq + ' of ' + p.total }), h('td', { text: 'A' }), h('td', { text: 'B' }), h('td', { text: '"' + p.data + '"' }), h('td', { text: p.route.join(' → ') }), h('td', { text: p.state })]));
+      });
+      sentBox.textContent = ''; sentBox.appendChild(h('table', { class: 't' }, [h('thead', {}, [h('tr', {}, [h('th', { text: 'Sequence' }), h('th', { text: 'From' }), h('th', { text: 'To' }), h('th', { text: 'Payload' }), h('th', { text: 'Route taken' }), h('th', { text: 'Status' })])]), tb]));
+      var rb = h('tbody');
+      received.forEach(function (p, i) { rb.appendChild(h('tr', {}, [h('td', { text: String(i + 1) }), h('td', { text: String(p.seq) }), h('td', { text: '"' + p.data + '"' })])); });
+      recvBox.textContent = ''; recvBox.appendChild(h('table', { class: 't' }, [h('thead', {}, [h('tr', {}, [h('th', { text: 'Arrival order' }), h('th', { text: 'Sequence number' }), h('th', { text: 'Payload' })])]), rb]));
+    }
+
+    var playBtn = h('button', { class: 'btn', text: 'Play', onclick: function () { if (timer) return stop(); playBtn.textContent = 'Pause'; timer = setInterval(step, 700); } });
+    var form = h('form', { class: 'row' }, [msgIn, h('button', { class: 'btn', type: 'submit', text: 'Split into packets' }), h('label', { class: 'chk', for: 'netLose' }, [lose, 'Lose one packet on the way'])]);
+    form.addEventListener('submit', function (e) { e.preventDefault(); setup(); });
+    lose.addEventListener('change', setup);
+    var el = h('div', { class: 'col' }, [
+      h('div', { class: 'panel' }, [form, box, h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: 'Next hop', onclick: function () { stop(); step(); } }), playBtn]), info]),
+      h('div', { class: 'grid2' }, [h('div', { class: 'panel' }, [h('h3', { text: 'Packets sent' }), sentBox]), h('div', { class: 'panel' }, [h('h3', { text: 'Packets received at B' }), recvBox])])
+    ]);
+    setup();
+    return { el: el, stop: stop };
+  }
+
+  /* ---------- TCP/IP layers ---------- */
+  function layersPanel() {
+    var STEPS = [
+      { side: 'Sender', layer: 0, parts: ['data'], text: 'Application layer: the browser creates an HTTP request. Protocols at this layer include HTTP, HTTPS, FTP, SMTP, POP3 and IMAP.' },
+      { side: 'Sender', layer: 1, parts: ['tcp', 'data'], text: 'Transport layer: TCP splits the data into segments and adds a header with the source port, destination port and a sequence number.' },
+      { side: 'Sender', layer: 2, parts: ['ip', 'tcp', 'data'], text: 'Internet layer: IP adds a header with the source and destination IP addresses. The segment is now a packet that routers can forward.' },
+      { side: 'Sender', layer: 3, parts: ['mac', 'ip', 'tcp', 'data', 'crc'], text: 'Link layer: a frame header with the source and destination MAC addresses is added, plus a trailer for error checking. The frame is sent as bits over the cable or radio link.' },
+      { side: 'Receiver', layer: 3, parts: ['mac', 'ip', 'tcp', 'data', 'crc'], text: 'Link layer: the receiver checks the frame for errors and confirms the destination MAC address is its own.' },
+      { side: 'Receiver', layer: 2, parts: ['ip', 'tcp', 'data'], text: 'Internet layer: the frame header and trailer are removed. The destination IP address is checked.' },
+      { side: 'Receiver', layer: 1, parts: ['tcp', 'data'], text: 'Transport layer: TCP uses the sequence numbers to put segments in order, sends acknowledgements, and uses the port number to choose the right application.' },
+      { side: 'Receiver', layer: 0, parts: ['data'], text: 'Application layer: the web server receives the original HTTP request, exactly as it was sent.' }
+    ];
+    var PART = { data: ['HTTP data', 'GET /index.html', 'var(--good-soft)'], tcp: ['TCP header', 'ports 51000 → 80, seq 1', 'var(--read-soft)'], ip: ['IP header', '192.168.1.5 → 203.0.113.9', 'var(--hot-soft)'], mac: ['Frame header', 'MAC 3C:22:FB.. → A4:91:B1..', 'var(--bad-soft)'], crc: ['Trailer', 'error check', 'var(--bad-soft)'] };
+    var NAMES = ['Application', 'Transport', 'Internet', 'Link'];
+    var i = 0, stack = h('div', { class: 'grid2' }), unit = h('div', { class: 'cells' }), msg = h('div', { class: 'msg' }), count = h('span', { class: 'note' });
+    function col(side) {
+      var c = h('div', { class: 'col', style: 'gap:6px' }, [h('b', { text: side })]);
+      NAMES.forEach(function (n, k) { c.appendChild(h('div', { class: 'cell' + (STEPS[i].side === side && STEPS[i].layer === k ? ' cmp' : ''), style: 'text-align:left', text: n + ' layer' })); });
+      return c;
+    }
+    function draw() {
+      var st = STEPS[i];
+      stack.textContent = ''; stack.appendChild(col('Sender')); stack.appendChild(col('Receiver'));
+      unit.textContent = '';
+      st.parts.forEach(function (p) { unit.appendChild(h('div', { class: 'cell', style: 'background:' + PART[p][2] + ';text-align:left' }, [h('small', { text: PART[p][0] }), PART[p][1]])); });
+      msg.textContent = st.text; count.textContent = 'Step ' + (i + 1) + ' of ' + STEPS.length + ' · ' + ['data', 'segment', 'packet', 'frame'][st.layer];
+      back.disabled = i === 0; next.disabled = i === STEPS.length - 1;
+    }
+    var back = h('button', { class: 'btn', text: 'Back', onclick: function () { i--; draw(); } });
+    var next = h('button', { class: 'btn primary', text: 'Next step', onclick: function () { i++; draw(); } });
+    draw();
+    return { el: h('div', { class: 'col' }, [h('div', { class: 'panel' }, [h('p', { class: 'note', text: 'Follow one web request down the four layers of the TCP/IP stack on the sender, across the network, and back up on the receiver. Each layer wraps the data in its own header. This is called encapsulation.' }), stack, h('h3', { text: 'What is being sent at this point' }), unit, msg, h('div', { class: 'row' }, [back, next, count])])]) };
+  }
+
+  /* ---------- Parity ---------- */
+  function parityPanel() {
+    var word = h('input', { type: 'text', id: 'netWord', value: 'CODE', maxlength: '6', 'aria-label': 'Word to transmit', style: 'width:110px' });
+    var kind = h('select', { id: 'netParity', 'aria-label': 'Parity type' }, [h('option', { value: 'even', text: 'Even parity' }), h('option', { value: 'odd', text: 'Odd parity' })]);
+    var box = h('div', { class: 'tablebox', style: 'max-height:none' }), msg = h('div', { class: 'msg' }), sent = [], flips = {};
+    function build() {
+      var text = (word.value || 'CODE').slice(0, 6);
+      sent = parityGrid(text.split('').map(function (c) { var v = c.charCodeAt(0) & 127, bits = []; for (var b = 6; b >= 0; b--) bits.push((v >> b) & 1); return bits; }), kind.value === 'odd');
+      flips = {}; draw();
+    }
+    function draw() {
+      var odd = kind.value === 'odd', text = (word.value || 'CODE').slice(0, 6);
+      var got = sent.map(function (r, i) { return r.map(function (b, j) { return flips[i + ',' + j] ? 1 - b : b; }); });
+      var res = parityCheck(got, odd), nFlips = Object.keys(flips).length;
+      var head = h('tr', {}, [h('th', { text: '' })]);
+      for (var c = 0; c < 7; c++) head.appendChild(h('th', { text: 'bit ' + (7 - c) }));
+      head.appendChild(h('th', { text: 'parity bit' })); head.appendChild(h('th', { text: '1s' })); head.appendChild(h('th', { text: 'check' }));
+      var tb = h('tbody');
+      got.forEach(function (r, i) {
+        var isLast = i === got.length - 1, bad = res.rows.indexOf(i) >= 0;
+        var tr = h('tr', {}, [h('th', { text: isLast ? 'parity byte' : '"' + text[i] + '"' })]);
+        r.forEach(function (b, j) {
+          var cls = flips[i + ',' + j] ? 'write' : (bad || res.cols.indexOf(j) >= 0) ? 'read' : '';
+          tr.appendChild(h('td', { class: cls }, [h('button', { class: 'btn sm', text: String(b), 'aria-label': 'Flip row ' + (i + 1) + ' bit ' + (j + 1), onclick: function () { if (flips[i + ',' + j]) delete flips[i + ',' + j]; else flips[i + ',' + j] = 1; draw(); } })]));
+        });
+        tr.appendChild(h('td', { text: String(r.reduce(function (a, b) { return a + b; }, 0)) }));
+        tr.appendChild(h('td', { text: bad ? '✗' : '✓' }));
+        tb.appendChild(tr);
+      });
+      var foot = h('tr', {}, [h('th', { text: 'column check' })]);
+      for (var k = 0; k < 8; k++) foot.appendChild(h('td', { text: res.cols.indexOf(k) >= 0 ? '✗' : '✓' }));
+      foot.appendChild(h('td', { text: '' })); foot.appendChild(h('td', { text: '' })); tb.appendChild(foot);
+      box.textContent = ''; box.appendChild(h('table', { class: 't' }, [h('thead', {}, [head]), tb]));
+      if (!nFlips) { msg.className = 'msg'; msg.textContent = 'This is the data as sent. Every character row and every column has an ' + (odd ? 'odd' : 'even') + ' number of 1s. Tap any bit to corrupt it during transmission.'; }
+      else if (!res.rows.length && !res.cols.length) { msg.className = 'msg bad'; msg.textContent = nFlips + ' bits were changed, but every row and column still has ' + (odd ? 'odd' : 'even') + ' parity. The receiver detects nothing. This is the weakness of parity checks.'; }
+      else if (res.rows.length === 1 && res.cols.length === 1) { msg.className = 'msg good'; msg.textContent = 'Row ' + (res.rows[0] + 1) + ' and column ' + (res.cols[0] + 1) + ' both fail the parity check. The error is where they cross, so the receiver can correct that bit' + (nFlips > 1 ? ' (although ' + nFlips + ' bits were actually changed, so its correction would be wrong).' : '.'); }
+      else { msg.className = 'msg bad'; msg.textContent = 'An error is detected (' + res.rows.length + ' row(s) and ' + res.cols.length + ' column(s) fail), but its position cannot be found. The receiver asks for the data to be sent again.'; }
+    }
+    var form = h('form', { class: 'row' }, [h('label', { class: 'chk', for: 'netWord' }, ['Word', word]), kind, h('button', { class: 'btn', type: 'submit', text: 'Send' }), h('button', { class: 'btn', type: 'button', text: 'Clear errors', onclick: function () { flips = {}; draw(); } })]);
+    form.addEventListener('submit', function (e) { e.preventDefault(); build(); });
+    kind.addEventListener('change', build);
+    build();
+    return { el: h('div', { class: 'panel' }, [h('p', { class: 'note', text: 'Each character is sent as 7 bits plus a parity bit. A parity byte is added at the end, making a parity block. Blue cells are in a failing row or column. Amber cells are the bits you changed.' }), form, box, msg]) };
+  }
+
+  /* ---------- Encryption ---------- */
+  function cryptoPanel() {
+    var plain = h('input', { type: 'text', id: 'netPlain', value: 'MEET AT NOON', 'aria-label': 'Plaintext', style: 'flex:1 1 180px;min-width:0' });
+    var key = h('input', { type: 'range', id: 'netKey', min: '1', max: '25', value: '3', 'aria-label': 'Key', style: 'flex:1 1 140px' });
+    var symOut = h('div', { class: 'col', style: 'gap:6px' });
+    function sym() {
+      var k = +key.value, c = caesar(plain.value, k);
+      symOut.textContent = '';
+      symOut.appendChild(h('div', { class: 'cells' }, [h('div', { class: 'cell', style: 'text-align:left' }, [h('small', { text: 'Plaintext' }), plain.value]), h('div', { class: 'cell cmp', style: 'text-align:left' }, [h('small', { text: 'Ciphertext (key ' + k + ')' }), c]), h('div', { class: 'cell done', style: 'text-align:left' }, [h('small', { text: 'Decrypted with the same key' }), caesar(c, -k)])]));
+      symOut.appendChild(h('p', { class: 'note', text: 'Symmetric encryption uses one key to encrypt and decrypt. Both people must already share it, and anyone who intercepts the key can read every message. This shift cipher is only a model: real symmetric ciphers such as AES use keys of 128 bits or more.' }));
+    }
+    plain.addEventListener('input', sym); key.addEventListener('input', sym);
+
+    var primes = [11, 13, 17, 19, 23, 29, 31, 37];
+    function pick(id, def) { var sEl = h('select', { id: id, 'aria-label': id === 'netP' ? 'Prime p' : 'Prime q' }); primes.forEach(function (p) { sEl.appendChild(h('option', { value: String(p), text: String(p), selected: p === def })); }); return sEl; }
+    var pSel = pick('netP', 17), qSel = pick('netQ', 23), mIn = h('input', { type: 'number', id: 'netM', value: '72', min: '2', 'aria-label': 'Message number', style: 'width:90px' });
+    var asymOut = h('div', { class: 'col', style: 'gap:6px' });
+    function asym() {
+      asymOut.textContent = '';
+      var p = +pSel.value, q = +qSel.value, m = Math.floor(+mIn.value);
+      if (p === q) { asymOut.appendChild(h('div', { class: 'msg bad', text: 'Choose two different primes.' })); return; }
+      var k = rsaKeys(p, q);
+      if (!(m >= 2 && m < k.n)) { asymOut.appendChild(h('div', { class: 'msg bad', text: 'The message must be a whole number from 2 to ' + (k.n - 1) + '.' })); return; }
+      var c = modpow(m, k.e, k.n), back = modpow(c, k.d, k.n);
+      asymOut.appendChild(h('div', { class: 'cells' }, [
+        h('div', { class: 'cell key', style: 'text-align:left' }, [h('small', { text: 'Public key (shared with everyone)' }), '(' + k.e + ', ' + k.n + ')']),
+        h('div', { class: 'cell cmp', style: 'text-align:left' }, [h('small', { text: 'Private key (kept secret by the receiver)' }), '(' + k.d + ', ' + k.n + ')'])
+      ]));
+      asymOut.appendChild(codeBlockPlain([
+        'n = p × q = ' + p + ' × ' + q + ' = ' + k.n,
+        'Sender encrypts with the PUBLIC key:',
+        '    ' + m + '^' + k.e + ' MOD ' + k.n + ' = ' + c + '      (ciphertext)',
+        'Receiver decrypts with the PRIVATE key:',
+        '    ' + c + '^' + k.d + ' MOD ' + k.n + ' = ' + back + '      (plaintext again)'
+      ]));
+      asymOut.appendChild(h('p', { class: 'note', text: 'Asymmetric encryption uses a matching pair of keys. Anything encrypted with the public key can only be decrypted with the private key, so no secret has to be sent in advance. These primes are tiny so you can follow the arithmetic. Real keys are thousands of bits long.' }));
+    }
+    [pSel, qSel].forEach(function (e) { e.addEventListener('change', asym); }); mIn.addEventListener('input', asym);
+    function codeBlockPlain(lines) { var pre = h('pre', { class: 'code' }); lines.forEach(function (l) { pre.appendChild(h('span', { text: l })); }); return pre; }
+    sym(); asym();
+    return { el: h('div', { class: 'grid2' }, [
+      h('div', { class: 'panel' }, [h('h3', { text: 'Symmetric: one shared key' }), h('div', { class: 'row' }, [plain]), h('div', { class: 'row' }, [h('label', { class: 'chk', for: 'netKey' }, ['Key (shift)']), key]), symOut]),
+      h('div', { class: 'panel' }, [h('h3', { text: 'Asymmetric: public and private keys' }), h('div', { class: 'row' }, [h('label', { class: 'chk', for: 'netP' }, ['p', pSel]), h('label', { class: 'chk', for: 'netQ' }, ['q', qSel]), h('label', { class: 'chk', for: 'netM' }, ['Message', mIn])]), asymOut])
+    ]) };
+  }
+
+  T.register('networks', function (view) {
+    var makers = [packetPanel, layersPanel, parityPanel, cryptoPanel], built = [], holder = h('div');
+    function pick(i) {
+      built.forEach(function (b) { if (b && b.stop) b.stop(); });
+      if (!built[i]) built[i] = makers[i]();
+      holder.textContent = ''; holder.appendChild(built[i].el);
+    }
+    view.appendChild(h('div', { class: 'view-head' }, [
+      h('span', { class: 'tag', text: 'Data transmission and the internet' }),
+      h('h1', { text: 'Networks' }),
+      h('p', { text: 'Packet switching, parity and encryption are in IGCSE topic 2. The TCP/IP stack is in A Level topic 14.' })
+    ]));
+    view.appendChild(T.subtabs(['Packet switching', 'TCP/IP layers', 'Parity check', 'Encryption'], pick));
+    view.appendChild(holder);
+    pick(0);
+  });
+})(typeof window !== 'undefined' ? window : this);

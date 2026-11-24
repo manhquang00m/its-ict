@@ -1,0 +1,296 @@
+/* Lessons: curriculum browser, slide presenter, worksheets with answer keys, downloads.
+   Unit data files call Toolkit.unit({...}). Pure builders are exported for Node tests. */
+(function (root) {
+  'use strict';
+
+  var WM = 'learn with asset @learnwithasset';
+  var UNITS = [];
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  // Inline formatting: `code`, new lines.
+  function fmt(s) { return esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\n( *)/g, function (m, sp) { return '<br>' + new Array(sp.length + 1).join('&nbsp;'); }); }
+
+  function lessonId(u, i) { return 'lesson-' + u.id.replace('.', '-') + '-' + (i < 9 ? '0' : '') + (i + 1); }
+  function unitHash(u) { return 'unit-' + u.id.replace('.', '-'); }
+
+  /* A lesson becomes eight or nine slides. */
+  function buildSlides(u, i) {
+    var L = u.lessons[i], out = [];
+    var tag = 'Year ' + u.id.split('.')[0] + ' · Unit ' + u.id + ' · Lesson ' + (i + 1) + ' of ' + u.lessons.length;
+    out.push({ kind: 'title', tag: tag, title: L.t, sub: u.title });
+    out.push({ kind: 'qa', tag: 'Do now', title: 'Do now', q: L.d[0], a: L.d[1], note: 'Answer on your mini-whiteboard. 3 minutes.' });
+    out.push({ kind: 'goal', tag: 'Today', title: 'Today', outcome: L.o, words: L.k });
+    if (L.r) out.push({ kind: 'data', tag: 'Data', title: 'Data for today', text: L.r });
+    L.s.forEach(function (s) {
+      var p = s.split('|');
+      out.push({ kind: 'teach', tag: 'Learn', title: p[0], bullets: p.slice(1) });
+    });
+    out.push({ kind: 'task', tag: 'Your task', title: 'Your task', text: L.a });
+    out.push({ kind: 'qa', tag: 'Exit ticket', title: 'Exit ticket', q: L.x[0], a: L.x[1], note: 'Write your answer before you pack away.' });
+    return out;
+  }
+
+  function bulletHtml(b) {
+    if (b.indexOf('>> ') === 0) return '<li class="codeline"><pre>' + esc(b.slice(3)) + '</pre></li>';
+    return '<li>' + fmt(b) + '</li>';
+  }
+
+  function slideHtml(s, showAnswer) {
+    var len = (s.q || '').length + (s.a && s.kind === 'qa' ? s.a.length : 0) + (s.text || '').length + (s.outcome || '').length + (s.words || []).join('').length + (s.bullets || []).join('').length;
+    var h = '<div class="sl-body' + (len > 360 ? ' dense' : '') + '"><div class="sl-tag">' + esc(s.tag) + '</div>';
+    if (s.kind === 'title') {
+      h += '<div class="sl-center"><h2 class="sl-big">' + fmt(s.title) + '</h2><p class="sl-sub">' + esc(s.sub) + '</p></div>';
+    } else if (s.kind === 'qa') {
+      h += '<h2>' + esc(s.title) + '</h2><p class="sl-q">' + fmt(s.q) + '</p><p class="sl-note">' + esc(s.note) + '</p>';
+      h += '<div class="sl-answer' + (showAnswer ? ' on' : '') + '"><b>Answer</b> ' + fmt(s.a) + '</div>';
+    } else if (s.kind === 'goal') {
+      h += '<h2>' + esc(s.title) + '</h2><p class="sl-q">' + fmt(s.outcome) + '</p><h3>Key words</h3><dl class="sl-words">';
+      s.words.forEach(function (w) { var k = w.split(': '); h += '<dt>' + esc(k[0]) + '</dt><dd>' + fmt(k.slice(1).join(': ')) + '</dd>'; });
+      h += '</dl>';
+    } else if (s.kind === 'teach') {
+      h += '<h2>' + fmt(s.title) + '</h2><ul class="sl-list">' + s.bullets.map(bulletHtml).join('') + '</ul>';
+    } else if (s.kind === 'data') {
+      h += '<h2>' + esc(s.title) + '</h2><pre class="sl-data">' + esc(s.text) + '</pre>';
+    } else if (s.kind === 'task') {
+      var parts = s.text.split(/\s*(?=Support:|Stretch:)/);
+      h += '<h2>' + esc(s.title) + '</h2><p class="sl-q">' + fmt(parts[0]) + '</p>';
+      parts.slice(1).forEach(function (p) { var m = /^(Support|Stretch):\s*(.*)$/.exec(p); if (m) h += '<p class="sl-level"><b>' + m[1] + '</b> ' + fmt(m[2]) + '</p>'; });
+    }
+    return h + '</div><div class="sl-wm">' + WM + '</div>';
+  }
+
+  function worksheetHtml(u, i, withAnswers) {
+    var L = u.lessons[i];
+    var h = '<div class="ws">';
+    h += '<div class="ws-head"><span>Name: ____________________</span><span>Class: ________</span><span>Date: ____________</span></div>';
+    h += '<p class="ws-tag">Unit ' + u.id + ' ' + esc(u.title) + ' · Lesson ' + (i + 1) + '</p>';
+    h += '<h2>' + fmt(L.t) + (withAnswers ? ' <span class="ws-key">Answer key</span>' : '') + '</h2>';
+    h += '<p class="ws-goal"><b>Outcome:</b> ' + fmt(L.o) + '</p>';
+    h += '<table class="ws-words"><tr><th>Key word</th><th>Meaning</th></tr>';
+    L.k.forEach(function (w) { var k = w.split(': '); h += '<tr><td>' + esc(k[0]) + '</td><td>' + fmt(k.slice(1).join(': ')) + '</td></tr>'; });
+    h += '</table>';
+    if (L.r) h += '<p class="ws-goal"><b>Data for this worksheet</b></p><pre class="ws-data">' + esc(L.r) + '</pre>';
+    h += '<ol class="ws-q">';
+    L.w.forEach(function (q, n) {
+      h += '<li>' + (n === L.w.length - 1 ? '<span class="ws-stretch">Stretch</span> ' : '') + fmt(q[0]);
+      h += withAnswers ? '<div class="ws-ans">' + fmt(q[1]) + '</div>' : '<div class="ws-lines"></div>';
+      h += '</li>';
+    });
+    h += '</ol><p class="ws-exit"><b>Exit ticket:</b> ' + fmt(L.x[0]) + (withAnswers ? '<span class="ws-ans">' + fmt(L.x[1]) + '</span>' : '') + '</p>';
+    if (!withAnswers) h += '<div class="ws-lines short"></div>';
+    return h + '<p class="ws-wm">' + WM + '</p></div>';
+  }
+
+  var PRINT_CSS = 'body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;padding:24px;line-height:1.45}' +
+    '.ws{max-width:760px;margin:0 auto 40px;page-break-after:always}.ws-head{display:flex;gap:24px;justify-content:space-between;font-size:13px;margin-bottom:14px;flex-wrap:wrap}' +
+    '.ws-tag{font-size:12px;color:#555;margin:0}h2{margin:4px 0 10px;font-size:22px}.ws-key{font-size:12px;background:#111;color:#fff;padding:2px 8px;border-radius:10px;vertical-align:middle}' +
+    '.ws-goal{margin:0 0 10px}table{border-collapse:collapse;width:100%;margin:0 0 14px}th,td{border:1px solid #999;padding:5px 8px;text-align:left;font-size:14px;vertical-align:top}th{background:#eee}' +
+    '.ws-q{padding-left:22px}.ws-q li{margin-bottom:12px}.ws-lines{height:66px;background:repeating-linear-gradient(transparent,transparent 21px,#999 21px,#999 22px);margin-top:4px}.ws-lines.short{height:44px}' +
+    '.ws-ans{display:block;margin-top:4px;padding:4px 8px;border-left:3px solid #1b7a4f;background:#eaf6ef;font-size:14px}.ws-stretch{font-size:11px;border:1px solid #111;padding:0 6px;border-radius:9px}' +
+    '.ws-exit{border-top:1px solid #999;padding-top:8px}.ws-data{font-size:12px;overflow-x:auto;white-space:pre}.ws-wm{font-size:11px;color:#666;text-align:right;margin-top:18px}code,pre{font-family:Consolas,Menlo,monospace;background:#f1f1f1;padding:0 3px}pre{padding:6px;margin:2px 0;white-space:pre-wrap}' +
+    '.deck .sl{width:100%;max-width:960px;aspect-ratio:16/9;margin:0 auto 18px;border:1px solid #999;padding:4% 5%;box-sizing:border-box;position:relative;page-break-after:always}' +
+    '.sl-tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#1f4fd8;font-weight:bold}.sl h2{font-size:30px;margin:8px 0 14px}.sl-big{font-size:40px!important}.sl-center{display:flex;flex-direction:column;justify-content:center;height:80%}' +
+    '.sl-sub,.sl-note{color:#555}.sl-q{font-size:22px}.sl-list{font-size:20px;padding-left:24px}.sl-list li{margin-bottom:8px}.sl-list .codeline{list-style:none;margin-left:-24px}.sl-words{font-size:18px}.sl-words dt{font-weight:bold;margin-top:6px}.sl-words dd{margin:0}' +
+    '.sl-answer{margin-top:10px;padding:8px 12px;border-left:4px solid #1b7a4f;background:#eaf6ef;font-size:18px}.sl-level{font-size:18px;margin:6px 0}.sl-data{font-size:13px;white-space:pre;background:#f1f1f1;padding:8px}.sl-wm{position:absolute;right:3%;bottom:3%;font-size:11px;color:#666}' +
+    '@media print{body{padding:0}.deck .sl{border:0;margin:0;max-width:none;height:100vh}@page{margin:12mm}}';
+
+  function fileDoc(title, body) {
+    return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' + esc(title) + '</title><style>' + PRINT_CSS + '</style></head><body>' + body + '</body></html>';
+  }
+  function worksheetFile(u, i, withAnswers) {
+    return fileDoc(u.lessons[i].t + (withAnswers ? ' answer key' : ' worksheet'), worksheetHtml(u, i, withAnswers));
+  }
+  function unitPackFile(u, withAnswers) {
+    var body = '';
+    for (var i = 0; i < u.lessons.length; i++) body += worksheetHtml(u, i, withAnswers);
+    return fileDoc('Unit ' + u.id + (withAnswers ? ' answer keys' : ' worksheets'), body);
+  }
+  function slidesFile(u, i) {
+    var body = '<div class="deck">' + buildSlides(u, i).map(function (s) { return '<section class="sl">' + slideHtml(s, true) + '</section>'; }).join('') + '</div>';
+    return fileDoc(u.lessons[i].t + ' slides', body);
+  }
+
+  function validate(u) {
+    var errs = [];
+    if (!/^\d\.\d$/.test(u.id)) errs.push('bad id');
+    if (u.lessons.length !== 18) errs.push('has ' + u.lessons.length + ' lessons, expected 18');
+    u.lessons.forEach(function (L, i) {
+      var at = u.id + ' L' + (i + 1) + ': ';
+      if (!L.t || !L.o) errs.push(at + 'missing title or outcome');
+      if (!L.k || L.k.length !== 3 || L.k.some(function (k) { return k.indexOf(': ') < 1; })) errs.push(at + 'needs 3 key words as "term: meaning"');
+      if (!L.d || L.d.length !== 2 || !L.x || L.x.length !== 2) errs.push(at + 'do-now or exit ticket malformed');
+      if (!L.s || L.s.length !== 3 || L.s.some(function (s) { return s.split('|').length < 3; })) errs.push(at + 'needs 3 teach slides with at least 2 bullets');
+      if (!L.a) errs.push(at + 'missing task');
+      if (!L.w || L.w.length !== 5 || L.w.some(function (q) { return q.length !== 2 || !q[0] || !q[1]; })) errs.push(at + 'needs 5 worksheet questions with answers');
+    });
+    return errs;
+  }
+
+  var api = { units: UNITS, buildSlides: buildSlides, slideHtml: slideHtml, worksheetHtml: worksheetHtml, worksheetFile: worksheetFile, unitPackFile: unitPackFile, slidesFile: slidesFile, validate: validate, lessonId: lessonId };
+  if (typeof module !== 'undefined' && module.exports) {
+    api.unit = function (u) { UNITS.push(u); };
+    module.exports = api; return;
+  }
+
+  /* ---------- Screen ---------- */
+  var T = root.Toolkit, h = T.h;
+  T.unit = function (u) { UNITS.push(u); };
+  T.lessons = api;
+
+  var downloads = null;
+  if (root.claude && typeof root.claude.use === 'function') {
+    try { root.claude.use('downloads').then(function (d) { downloads = d; if (T._lessonsRefresh) T._lessonsRefresh(); }, function () {}); } catch (e) { /* not available */ }
+  }
+
+  function save(filename, data, statusEl) {
+    if (!downloads) return;
+    downloads.save({ filename: filename, data: data }).then(function () {
+      statusEl.textContent = 'Saved ' + filename + '. Open it in a browser and print, or save as PDF.';
+    }, function (e) {
+      statusEl.textContent = e && e.code === 'declined' ? 'Download cancelled.' : 'The file could not be saved here. Use Copy text instead.';
+    });
+  }
+
+  T.register('lessons', function (view) {
+    var body = h('div', { class: 'col' });
+    view.appendChild(body);
+    var current = '';
+
+    function sorted() { return UNITS.slice().sort(function (a, b) { return a.id < b.id ? -1 : 1; }); }
+    function find(id) { for (var i = 0; i < UNITS.length; i++) if (UNITS[i].id === id) return UNITS[i]; return null; }
+    function crumbs(items) {
+      var row = h('div', { class: 'crumbs' });
+      items.forEach(function (it, i) {
+        if (i) row.appendChild(h('span', { text: '/' }));
+        row.appendChild(it[1] ? h('a', { href: '#' + it[1], text: it[0] }) : h('span', { text: it[0] }));
+      });
+      return row;
+    }
+
+    function showIndex() {
+      body.textContent = '';
+      body.appendChild(h('div', { class: 'view-head' }, [
+        h('span', { class: 'tag', text: 'KS3 Computing · Years 7 to 9 · 3 lessons a week' }),
+        h('h1', { text: 'Lessons' }),
+        h('p', { text: 'Every lesson has a slide deck to present and a worksheet with an answer key. Pick a unit to see its 18 lessons.' })
+      ]));
+      var all = sorted();
+      [7, 8, 9].forEach(function (y) {
+        var us = all.filter(function (u) { return +u.id.split('.')[0] === y; });
+        if (!us.length) return;
+        body.appendChild(h('h2', { text: 'Year ' + y }));
+        body.appendChild(h('div', { class: 'cards' }, us.map(function (u) {
+          return h('a', { class: 'card', href: '#' + unitHash(u) }, [h('span', { class: 'tag', text: 'Unit ' + u.id + ' · ' + u.lessons.length + ' lessons' }), h('h3', { text: u.title }), h('p', { text: u.q })]);
+        })));
+      });
+      if (!all.length) body.appendChild(h('p', { class: 'msg', text: 'No lesson data has loaded.' }));
+    }
+
+    function showUnit(u) {
+      body.textContent = '';
+      var status = h('p', { class: 'note', 'aria-live': 'polite' });
+      body.appendChild(crumbs([['Lessons', 'lessons'], ['Unit ' + u.id]]));
+      body.appendChild(h('div', { class: 'view-head' }, [h('span', { class: 'tag', text: 'Year ' + u.id.split('.')[0] + ' · 6 weeks · 18 lessons' }), h('h1', { text: 'Unit ' + u.id + ' ' + u.title }), h('p', { text: u.q })]));
+      if (downloads) {
+        body.appendChild(h('div', { class: 'row' }, [
+          h('button', { class: 'btn', text: 'Download all 18 worksheets', onclick: function () { save('unit-' + u.id.replace('.', '-') + '-worksheets.html', unitPackFile(u, false), status); } }),
+          h('button', { class: 'btn', text: 'Download all answer keys', onclick: function () { save('unit-' + u.id.replace('.', '-') + '-answer-keys.html', unitPackFile(u, true), status); } })
+        ]));
+        body.appendChild(status);
+      }
+      var list = h('div', { class: 'lesson-list' });
+      u.lessons.forEach(function (L, i) {
+        var week = Math.floor(i / 3) + 1;
+        if (i % 3 === 0) list.appendChild(h('h3', { text: 'Week ' + week }));
+        list.appendChild(h('a', { class: 'lesson-row', href: '#' + lessonId(u, i) }, [h('span', { class: 'num', text: String(i + 1) }), h('span', { class: 'grow' }, [h('b', { text: L.t }), h('small', { text: L.o })]), h('span', { class: 'pill', text: i % 3 === 2 ? 'Lab' : 'Lesson' })]));
+      });
+      body.appendChild(list);
+    }
+
+    function showLesson(u, i) {
+      var L = u.lessons[i];
+      body.textContent = '';
+      var status = h('p', { class: 'note', 'aria-live': 'polite' });
+      body.appendChild(crumbs([['Lessons', 'lessons'], ['Unit ' + u.id, unitHash(u)], ['Lesson ' + (i + 1)]]));
+      body.appendChild(h('div', { class: 'view-head' }, [h('span', { class: 'tag', text: 'Unit ' + u.id + ' · Week ' + (Math.floor(i / 3) + 1) + ' · Lesson ' + (i + 1) + ' of 18' }), h('h1', { text: L.t }), h('p', { text: L.o })]));
+      var slides = buildSlides(u, i);
+      var base = lessonId(u, i);
+      var actions = h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: 'Present slides', onclick: function () { present(slides, 0); } })]);
+      if (downloads) {
+        actions.appendChild(h('button', { class: 'btn', text: 'Download slides', onclick: function () { save(base + '-slides.html', slidesFile(u, i), status); } }));
+        actions.appendChild(h('button', { class: 'btn', text: 'Download worksheet', onclick: function () { save(base + '-worksheet.html', worksheetFile(u, i, false), status); } }));
+        actions.appendChild(h('button', { class: 'btn', text: 'Download answer key', onclick: function () { save(base + '-answers.html', worksheetFile(u, i, true), status); } }));
+      }
+      var nav = h('div', { class: 'row' }, [
+        i > 0 ? h('a', { class: 'btn', href: '#' + lessonId(u, i - 1), text: '← Lesson ' + i }) : null,
+        i < u.lessons.length - 1 ? h('a', { class: 'btn', href: '#' + lessonId(u, i + 1), text: 'Lesson ' + (i + 2) + ' →' }) : null
+      ]);
+      var thumbs = h('div', { class: 'thumbs' });
+      slides.forEach(function (s, n) {
+        thumbs.appendChild(h('button', { class: 'thumb', 'aria-label': 'Open slide ' + (n + 1) + ': ' + s.title, onclick: function () { present(slides, n); } }, [h('div', { class: 'sl', html: slideHtml(s, false) })]));
+      });
+      var showAns = false, sheet = h('div', { class: 'sheet' });
+      var ansBtn = h('button', { class: 'btn', text: 'Show answer key', onclick: function () { showAns = !showAns; draw(); } });
+      var copyBtn = h('button', { class: 'btn', text: 'Copy text', onclick: function () {
+        var text = sheet.innerText;
+        try { navigator.clipboard.writeText(text).then(function () { status.textContent = 'Worksheet text copied.'; }, function () { status.textContent = 'Copying is blocked here. Select the text and copy it.'; }); }
+        catch (e) { status.textContent = 'Copying is blocked here. Select the text and copy it.'; }
+      } });
+      function draw() { sheet.innerHTML = worksheetHtml(u, i, showAns); ansBtn.textContent = showAns ? 'Hide answer key' : 'Show answer key'; }
+      draw();
+      body.appendChild(actions); body.appendChild(status);
+      body.appendChild(h('div', { class: 'panel' }, [h('h3', { text: 'Slides (' + slides.length + ')' }), thumbs]));
+      body.appendChild(h('div', { class: 'panel' }, [h('div', { class: 'row' }, [h('h3', { class: 'grow', text: 'Worksheet' }), ansBtn, copyBtn]), sheet]));
+      body.appendChild(nav);
+    }
+
+    /* Full-window presenter */
+    var stage = null;
+    function present(slides, start) {
+      var n = start, shown = false;
+      var slide = h('div', { class: 'sl' }), count = h('span', { class: 'pr-count' });
+      var ansBtn = h('button', { class: 'btn', text: 'Show answer', onclick: function () { shown = !shown; draw(); } });
+      function close() { document.removeEventListener('keydown', key); if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) { /* ignore */ } } if (stage) { stage.remove(); stage = null; } }
+      function go(d) { var m = Math.max(0, Math.min(slides.length - 1, n + d)); if (m !== n) { n = m; shown = false; draw(); } }
+      function key(e) {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1); }
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+        else if (e.key === 'Escape') close();
+        else if (e.key === 'a' || e.key === 'A') { shown = !shown; draw(); }
+      }
+      function draw() {
+        slide.innerHTML = slideHtml(slides[n], shown);
+        count.textContent = (n + 1) + ' / ' + slides.length;
+        ansBtn.style.display = slides[n].kind === 'qa' ? '' : 'none';
+        ansBtn.textContent = shown ? 'Hide answer' : 'Show answer';
+      }
+      if (stage) stage.remove();
+      stage = h('div', { class: 'presenter', role: 'dialog', 'aria-label': 'Slide presentation' }, [
+        h('div', { class: 'pr-stage', onclick: function (e) { if (e.target.closest('button')) return; var r = this.getBoundingClientRect(); go(e.clientX - r.left > r.width / 3 ? 1 : -1); } }, [slide]),
+        h('div', { class: 'pr-bar' }, [
+          h('button', { class: 'btn', text: '← Back', onclick: function () { go(-1); } }),
+          h('button', { class: 'btn primary', text: 'Next →', onclick: function () { go(1); } }),
+          ansBtn, count,
+          h('button', { class: 'btn', text: 'Full screen', onclick: function () { try { var p = stage.requestFullscreen(); if (p && p.catch) p.catch(function () {}); } catch (e) { /* not allowed here */ } } }),
+          h('button', { class: 'btn', text: 'Close', onclick: close })
+        ])
+      ]);
+      document.body.appendChild(stage);
+      document.addEventListener('keydown', key);
+      draw();
+    }
+
+    function route(hash) {
+      current = hash;
+      var m;
+      if ((m = /^lesson-(\d)-(\d)-(\d\d)$/.exec(hash))) {
+        var u = find(m[1] + '.' + m[2]), i = +m[3] - 1;
+        if (u && u.lessons[i]) return showLesson(u, i);
+      }
+      if ((m = /^unit-(\d)-(\d)$/.exec(hash))) { var u2 = find(m[1] + '.' + m[2]); if (u2) return showUnit(u2); }
+      showIndex();
+    }
+    T._lessonsRefresh = function () { route(current); };
+    return { route: route };
+  });
+})(typeof window !== 'undefined' ? window : this);

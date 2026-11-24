@@ -1,0 +1,110 @@
+/* Data representation: conversions, binary addition, shifts, two's complement, text codes. */
+(function (root) {
+  'use strict';
+  function pad(s, n) { while (s.length < n) s = '0' + s; return s; }
+  function toBin(v, bits) { return pad((v >>> 0).toString(2), bits).slice(-bits); }
+  function group(b) { return b.replace(/(\d{4})(?=\d)/g, '$1 '); }
+  function add8(a, b) {
+    var carries = [], bits = [], c = 0;
+    for (var i = 0; i < 8; i++) { var s = ((a >> i) & 1) + ((b >> i) & 1) + c; bits.unshift(s & 1); c = s >> 1; carries.unshift(c); }
+    return { sum: a + b, stored: (a + b) & 255, bits: bits.join(''), carries: carries, overflow: a + b > 255 };
+  }
+  function twos(v) { return toBin(v < 0 ? v + 256 : v, 8); }
+  function fromTwos(b) { var v = parseInt(b, 2); return v > 127 ? v - 256 : v; }
+  function shift(v, dir, n) { return dir === 'left' ? (v << n) & 255 : (v & 255) >>> n; }
+  var api = { toBin: toBin, add8: add8, twos: twos, fromTwos: fromTwos, shift: shift };
+  if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
+
+  var T = root.Toolkit, h = T.h;
+  T.register('data', function (view) {
+    function numIn(id, val, label, w) { return h('input', { type: 'text', id: id, value: val, 'aria-label': label, class: 'mono', style: 'width:' + (w || 120) + 'px' }); }
+    function field(label, el) { return h('label', { class: 'chk', for: el.id }, [label, el]); }
+    function bitsRow(bin, cls) { return h('div', { class: 'cells' }, bin.split('').map(function (b, i) { return h('div', { class: 'cell ' + (b === '1' ? (cls || 'key') : '') }, [h('small', { text: String(Math.pow(2, bin.length - 1 - i)) }), b]); })); }
+
+    /* Converter */
+    var den = numIn('drDen', '157', 'Denary'), bin = numIn('drBin', '10011101', 'Binary', 150), hex = numIn('drHex', '9D', 'Hexadecimal', 90);
+    var convOut = h('div', { class: 'col', style: 'gap:8px' });
+    function conv(v, from) {
+      convOut.textContent = '';
+      if (isNaN(v) || v < 0 || v > 255) { convOut.appendChild(h('div', { class: 'msg bad', text: 'Enter a value from 0 to 255 (binary up to 8 bits, hexadecimal up to FF).' })); return; }
+      var b = toBin(v, 8);
+      if (from !== 'den') den.value = String(v);
+      if (from !== 'bin') bin.value = b;
+      if (from !== 'hex') hex.value = pad(v.toString(16).toUpperCase(), 2);
+      convOut.appendChild(bitsRow(b));
+      var parts = []; b.split('').forEach(function (c, i) { if (c === '1') parts.push(Math.pow(2, 7 - i)); });
+      convOut.appendChild(h('div', { class: 'msg mono', text: (parts.length ? parts.join(' + ') : '0') + ' = ' + v }));
+      convOut.appendChild(h('div', { class: 'msg mono', text: 'Hexadecimal: ' + b.slice(0, 4) + ' = ' + parseInt(b.slice(0, 4), 2).toString(16).toUpperCase() + '   ' + b.slice(4) + ' = ' + parseInt(b.slice(4), 2).toString(16).toUpperCase() + '   so ' + pad(v.toString(16).toUpperCase(), 2) }));
+    }
+    den.addEventListener('input', function () { conv(/^\d+$/.test(den.value) ? +den.value : NaN, 'den'); });
+    bin.addEventListener('input', function () { conv(/^[01]{1,8}$/.test(bin.value) ? parseInt(bin.value, 2) : NaN, 'bin'); });
+    hex.addEventListener('input', function () { conv(/^[0-9a-fA-F]{1,2}$/.test(hex.value) ? parseInt(hex.value, 16) : NaN, 'hex'); });
+
+    /* Addition */
+    var a1 = numIn('drA', '01101101', 'First binary number', 150), a2 = numIn('drB', '00111010', 'Second binary number', 150), addOut = h('div', { class: 'col', style: 'gap:8px' });
+    function doAdd() {
+      addOut.textContent = '';
+      if (!/^[01]{1,8}$/.test(a1.value) || !/^[01]{1,8}$/.test(a2.value)) { addOut.appendChild(h('div', { class: 'msg bad', text: 'Enter two binary numbers of up to 8 bits.' })); return; }
+      var x = parseInt(a1.value, 2), y = parseInt(a2.value, 2), r = add8(x, y);
+      var tb = h('tbody');
+      [['Carry', r.carries.slice(1).join('') + ' ', ''], ['', toBin(x, 8), String(x)], ['+', toBin(y, 8), String(y)], ['=', r.bits, String(r.stored)]].forEach(function (row, i) {
+        var tr = h('tr', { class: i === 3 ? 'hot' : '' }, [h('td', { text: row[0] })]);
+        row[1].split('').forEach(function (c) { tr.appendChild(h('td', { text: c === ' ' ? '' : (i === 0 && c === '0' ? '' : c) })); });
+        tr.appendChild(h('td', { text: row[2] })); tb.appendChild(tr);
+      });
+      addOut.appendChild(h('div', { class: 'tablebox' }, [h('table', { class: 't', style: 'width:auto' }, [tb])]));
+      addOut.appendChild(h('div', { class: 'msg ' + (r.overflow ? 'bad' : 'good'), text: r.overflow ? 'Overflow: the true answer is ' + r.sum + ', which needs a ninth bit. An 8-bit register keeps only ' + r.bits + ' (' + r.stored + ').' : x + ' + ' + y + ' = ' + r.sum + '. The answer fits in 8 bits, so there is no overflow.' }));
+    }
+    a1.addEventListener('input', doAdd); a2.addEventListener('input', doAdd);
+
+    /* Shifts */
+    var sv = numIn('drS', '00101100', 'Binary value to shift', 150), sd = h('select', { id: 'drDir', 'aria-label': 'Direction' }, [h('option', { value: 'left', text: 'Left' }), h('option', { value: 'right', text: 'Right' })]);
+    var sn = h('select', { id: 'drN', 'aria-label': 'Places' }, [1, 2, 3, 4].map(function (n) { return h('option', { value: String(n), text: n + (n === 1 ? ' place' : ' places'), selected: n === 2 }); })), shOut = h('div', { class: 'col', style: 'gap:8px' });
+    function doShift() {
+      shOut.textContent = '';
+      if (!/^[01]{1,8}$/.test(sv.value)) { shOut.appendChild(h('div', { class: 'msg bad', text: 'Enter a binary number of up to 8 bits.' })); return; }
+      var v = parseInt(sv.value, 2), n = +sn.value, r = shift(v, sd.value, n), f = Math.pow(2, n);
+      shOut.appendChild(bitsRow(toBin(v, 8))); shOut.appendChild(bitsRow(toBin(r, 8), 'cmp'));
+      var exact = sd.value === 'left' ? v * f === r : v / f === r;
+      shOut.appendChild(h('div', { class: 'msg ' + (exact ? '' : 'bad'), text: v + ' becomes ' + r + '. A ' + sd.value + ' shift of ' + n + (sd.value === 'left' ? ' multiplies by ' : ' divides by ') + f + '.' + (exact ? '' : ' Bits were lost off the ' + (sd.value === 'left' ? 'left' : 'right') + '-hand end, so the result is not exact.') }));
+    }
+    [sv, sd, sn].forEach(function (e) { e.addEventListener('input', doShift); });
+
+    /* Two's complement */
+    var td = numIn('drT', '-45', 'Denary value from -128 to 127', 90), tOut = h('div', { class: 'col', style: 'gap:8px' });
+    function doTwos() {
+      tOut.textContent = '';
+      if (!/^-?\d+$/.test(td.value) || +td.value < -128 || +td.value > 127) { tOut.appendChild(h('div', { class: 'msg bad', text: 'Enter a whole number from -128 to 127.' })); return; }
+      var v = +td.value, b = twos(v);
+      tOut.appendChild(h('div', { class: 'cells' }, b.split('').map(function (c, i) { return h('div', { class: 'cell ' + (c === '1' ? 'key' : '') }, [h('small', { text: i === 0 ? '-128' : String(Math.pow(2, 7 - i)) }), c]); })));
+      if (v < 0) {
+        var pos = toBin(-v, 8), inv = pos.replace(/[01]/g, function (c) { return c === '1' ? '0' : '1'; });
+        tOut.appendChild(h('pre', { class: 'code' }, [h('span', { text: 'Write +' + (-v) + ' in binary:  ' + pos }), h('span', { text: 'Invert every bit:        ' + inv }), h('span', { text: 'Add 1:                   ' + b })]));
+      } else tOut.appendChild(h('div', { class: 'msg', text: 'Positive numbers look the same as ordinary binary. The left-hand bit is 0.' }));
+    }
+    td.addEventListener('input', doTwos);
+
+    /* Text */
+    var tx = numIn('drTx', 'Code', 'Text', 150), txOut = h('div', { class: 'tablebox' });
+    function doText() {
+      var tb = h('tbody');
+      tx.value.slice(0, 12).split('').forEach(function (c) { var v = c.charCodeAt(0); tb.appendChild(h('tr', {}, [h('td', { text: c === ' ' ? 'space' : c }), h('td', { text: String(v) }), h('td', { text: v < 256 ? group(toBin(v, 8)) : group(toBin(v, 16)) }), h('td', { text: v.toString(16).toUpperCase() })])); });
+      txOut.textContent = ''; txOut.appendChild(h('table', { class: 't' }, [h('thead', {}, [h('tr', {}, [h('th', { text: 'Character' }), h('th', { text: 'Code (denary)' }), h('th', { text: 'Binary' }), h('th', { text: 'Hex' })])]), tb]));
+    }
+    tx.addEventListener('input', doText);
+
+    view.appendChild(h('div', { class: 'view-head' }, [h('span', { class: 'tag', text: 'Data representation · 0478 topic 1 · 9618 topic 1' }), h('h1', { text: 'Binary and hexadecimal' }), h('p', { text: 'Type in any box to see the conversion and the working. All values are 8-bit.' })]));
+    view.appendChild(h('div', { class: 'grid2' }, [
+      h('div', { class: 'col' }, [
+        h('div', { class: 'panel' }, [h('h3', { text: 'Convert' }), h('div', { class: 'row' }, [field('Denary', den), field('Binary', bin), field('Hex', hex)]), convOut]),
+        h('div', { class: 'panel' }, [h('h3', { text: 'Add two binary numbers' }), h('div', { class: 'row' }, [a1, h('span', { text: '+' }), a2]), addOut])
+      ]),
+      h('div', { class: 'col' }, [
+        h('div', { class: 'panel' }, [h('h3', { text: 'Logical shift' }), h('div', { class: 'row' }, [sv, sd, sn]), shOut]),
+        h('div', { class: 'panel' }, [h('h3', { text: "Two's complement" }), h('div', { class: 'row' }, [field('Denary', td)]), tOut]),
+        h('div', { class: 'panel' }, [h('h3', { text: 'Character codes' }), h('div', { class: 'row' }, [field('Text', tx)]), txOut])
+      ])
+    ]));
+    conv(157, ''); doAdd(); doShift(); doTwos(); doText();
+  });
+})(typeof window !== 'undefined' ? window : this);

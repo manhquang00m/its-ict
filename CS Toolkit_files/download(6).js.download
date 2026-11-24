@@ -1,0 +1,279 @@
+/* Logic gates: expression -> circuit + truth table, and truth table -> expression. */
+(function (root) {
+  'use strict';
+
+  var GATES = { AND: 1, OR: 1, NOT: 1, NAND: 1, NOR: 1, XOR: 1 };
+
+  function parse(text) {
+    var src = text.trim(), outName = 'X';
+    var m = /^([A-Za-z][A-Za-z0-9]*)\s*=\s*(.*)$/.exec(src);
+    if (m && !GATES[m[1].toUpperCase()]) { outName = m[1]; src = m[2]; }
+    var toks = src.match(/[A-Za-z][A-Za-z0-9]*|\(|\)|\S/g) || [], p = 0;
+    if (!toks.length) throw new Error('Type a logic expression, for example (A AND B) OR NOT C.');
+    function peek() { return toks[p]; }
+    function isOp(names) { var t = toks[p]; return t !== undefined && names.indexOf(t.toUpperCase()) >= 0; }
+    function level(next, names) {
+      return function () {
+        var l = next();
+        while (isOp(names)) { var op = toks[p++].toUpperCase(); l = { op: op, a: l, b: next() }; }
+        return l;
+      };
+    }
+    function unary() {
+      if (isOp(['NOT'])) { p++; return { op: 'NOT', a: unary() }; }
+      var t = toks[p];
+      if (t === undefined) throw new Error('The expression ends too early. Something is missing after "' + toks[p - 1] + '".');
+      if (t === '(') {
+        p++; var e = orL();
+        if (toks[p] !== ')') throw new Error('A closing bracket ) is missing.');
+        p++; return e;
+      }
+      if (/^[A-Za-z]/.test(t)) {
+        if (GATES[t.toUpperCase()]) throw new Error(t.toUpperCase() + ' needs an input on its left-hand side.');
+        p++; return { v: t.toUpperCase() };
+      }
+      throw new Error('"' + t + '" is not allowed here. Use input letters, brackets and the words AND, OR, NOT, NAND, NOR, XOR.');
+    }
+    var andL = level(unary, ['AND', 'NAND']), xorL = level(andL, ['XOR']), orL = level(xorL, ['OR', 'NOR']);
+    var ast = orL();
+    if (p < toks.length) throw new Error(peek() === ')' ? 'There is a closing bracket ) with no opening bracket.' : 'Expected AND, OR, NAND, NOR or XOR before "' + peek() + '".');
+    var vars = [];
+    (function walk(n) { if (n.v) { if (vars.indexOf(n.v) < 0) vars.push(n.v); } else { walk(n.a); if (n.b) walk(n.b); } })(ast);
+    vars.sort();
+    if (vars.length > 5) throw new Error('This tool handles up to 5 different inputs.');
+    return { ast: ast, vars: vars, out: outName };
+  }
+
+  function evalNode(n, env) {
+    if (n.v) return env[n.v];
+    var a = evalNode(n.a, env);
+    if (n.op === 'NOT') return a ? 0 : 1;
+    var b = evalNode(n.b, env);
+    switch (n.op) {
+      case 'AND': return a & b;
+      case 'OR': return a | b;
+      case 'NAND': return (a & b) ? 0 : 1;
+      case 'NOR': return (a | b) ? 0 : 1;
+      case 'XOR': return a ^ b;
+    }
+  }
+
+  function table(parsed) {
+    var rows = [], n = parsed.vars.length;
+    for (var i = 0; i < (1 << n); i++) {
+      var env = {}, ins = [];
+      for (var j = 0; j < n; j++) { var bit = (i >> (n - 1 - j)) & 1; env[parsed.vars[j]] = bit; ins.push(bit); }
+      rows.push({ ins: ins, out: evalNode(parsed.ast, env), env: env });
+    }
+    return rows;
+  }
+
+  // Sum of products from output column (array of 0/1, row order as table()).
+  function sumOfProducts(vars, outs) {
+    var terms = [], n = vars.length;
+    outs.forEach(function (o, i) {
+      if (!o) return;
+      var parts = [];
+      for (var j = 0; j < n; j++) parts.push(((i >> (n - 1 - j)) & 1) ? vars[j] : 'NOT ' + vars[j]);
+      terms.push(parts.length > 1 ? '(' + parts.join(' AND ') + ')' : parts[0]);
+    });
+    return terms.join(' OR ');
+  }
+
+  var api = { parse: parse, evalNode: evalNode, table: table, sumOfProducts: sumOfProducts };
+  if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
+  root.Logic = api;
+
+  /* ---------- Screen ---------- */
+  var T = root.Toolkit, h = T.h, s = T.svg;
+
+  var SHAPES = {
+    AND: 'M0,-20 H40 A20,20 0 0 1 40,20 H0 Z',
+    OR: 'M0,-20 Q22,-20 36,-14 Q52,-7 60,0 Q52,7 36,14 Q22,20 0,20 Q12,0 0,-20 Z',
+    NOT: 'M0,-18 L44,0 L0,18 Z'
+  };
+
+  function drawCircuit(parsed, env) {
+    var rowH = 46, top = 40, busGap = 24, busX0 = 26, colW = 112, leafRow = 0, gates = [], maxDepth = 0;
+    var busEnd = busX0 + (parsed.vars.length - 1) * busGap;
+    var busMaxY = {};
+    (function place(n) {
+      if (n.v) { n.y = top + leafRow * rowH; leafRow++; n.depth = 0; return; }
+      place(n.a); if (n.b) place(n.b);
+      n.depth = 1 + Math.max(n.a.depth, n.b ? n.b.depth : 0);
+      n.y = n.b ? (n.a.y + n.b.y) / 2 : n.a.y;
+      maxDepth = Math.max(maxDepth, n.depth);
+      gates.push(n);
+    })(parsed.ast);
+    var gx = function (d) { return busEnd + 50 + (d - 1) * colW; };
+    var width = Math.max(320, gx(Math.max(1, maxDepth)) + 150), height = top + Math.max(1, leafRow) * rowH + 6;
+    var root = s('svg', { viewBox: '0 0 ' + width + ' ' + height, width: width, height: height, role: 'img', 'aria-label': 'Logic circuit for the expression' });
+    var wires = s('g', { fill: 'none' }), shapes = s('g'), labels = s('g');
+    function colour(v) { return v ? 'var(--good)' : 'var(--muted)'; }
+    function wire(d, v) { wires.appendChild(s('path', { d: d, stroke: colour(v), 'stroke-width': v ? 3 : 1.6 })); }
+
+    function connect(child, px, py, lane) {
+      var v = evalNode(child, env);
+      if (child.v) {
+        var bx = busX0 + parsed.vars.indexOf(child.v) * busGap;
+        wire('M' + bx + ',' + py + ' H' + px, v);
+        wires.appendChild(s('circle', { cx: bx, cy: py, r: 3.5, fill: colour(v) }));
+        busMaxY[child.v] = Math.max(busMaxY[child.v] || 0, py);
+      } else {
+        var ox = gx(child.depth) + 60 + (child.op === 'NAND' || child.op === 'NOR' || child.op === 'NOT' ? 10 : 0);
+        var mid = px - 16 - lane * 10;
+        wire('M' + ox + ',' + child.y + ' H' + mid + ' V' + py + ' H' + px, v);
+      }
+    }
+
+    gates.forEach(function (g) {
+      var x = gx(g.depth), base = g.op === 'NAND' ? 'AND' : g.op === 'NOR' || g.op === 'XOR' ? 'OR' : g.op;
+      var grp = s('g', { transform: 'translate(' + x + ',' + g.y + ')' });
+      grp.appendChild(s('path', { d: SHAPES[base], fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }));
+      if (g.op === 'XOR') grp.appendChild(s('path', { d: 'M-7,-20 Q5,0 -7,20', fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }));
+      if (g.op === 'NOT') grp.appendChild(s('circle', { cx: 49, cy: 0, r: 5, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }));
+      if (g.op === 'NAND' || g.op === 'NOR') grp.appendChild(s('circle', { cx: 65, cy: 0, r: 5, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }));
+      if (g.op === 'NOT') grp.appendChild(s('path', { d: 'M54,0 H70', stroke: colour(evalNode(g, env)), 'stroke-width': evalNode(g, env) ? 3 : 1.6 }));
+      grp.appendChild(s('text', { x: g.op === 'NOT' ? 6 : 14, y: 4, 'font-size': 10, text: g.op }));
+      shapes.appendChild(grp);
+      var inX = (base === 'OR') ? x + 5 : x;
+      if (g.op === 'XOR') inX = x - 2;
+      if (g.b) { connect(g.a, inX, g.y - 10, 0); connect(g.b, inX, g.y + 10, 1); }
+      else connect(g.a, x, g.y, 0);
+    });
+
+    // Output lead
+    var r = parsed.ast, outV = evalNode(r, env);
+    if (r.v) {
+      var bx = busX0 + parsed.vars.indexOf(r.v) * busGap;
+      wire('M' + bx + ',' + r.y + ' H' + (busEnd + 90), outV); busMaxY[r.v] = r.y;
+      labels.appendChild(s('text', { x: busEnd + 98, y: r.y + 5, 'font-size': 14, 'font-weight': 600, text: parsed.out + ' = ' + outV }));
+    } else {
+      var ox = gx(r.depth) + 60 + (r.op === 'NAND' || r.op === 'NOR' || r.op === 'NOT' ? 10 : 0);
+      wire('M' + ox + ',' + r.y + ' H' + (ox + 30), outV);
+      labels.appendChild(s('text', { x: ox + 36, y: r.y + 5, 'font-size': 14, 'font-weight': 600, text: parsed.out + ' = ' + outV }));
+    }
+    // Input rails
+    parsed.vars.forEach(function (v, i) {
+      var bx = busX0 + i * busGap;
+      wires.appendChild(s('path', { d: 'M' + bx + ',22 V' + (busMaxY[v] || 22), stroke: colour(env[v]), 'stroke-width': env[v] ? 3 : 1.6 }));
+      labels.appendChild(s('text', { x: bx, y: 15, 'font-size': 13, 'font-weight': 600, 'text-anchor': 'middle', text: v }));
+    });
+    labels.appendChild(s('text', { x: width - 8, y: height - 6, 'font-size': 9, 'text-anchor': 'end', opacity: 0.45, text: 'learn with asset @learnwithasset' }));
+    root.appendChild(wires); root.appendChild(shapes); root.appendChild(labels);
+    return root;
+  }
+
+  T.register('logic', function (view) {
+    var parsed = null, env = {}, practice = null;
+    var input = h('input', { type: 'text', id: 'logicExpr', class: 'mono grow', value: T.store('logic-expr') || 'X = (A AND B) OR (NOT C)', 'aria-label': 'Logic expression', style: 'min-width:0;flex:1 1 220px' });
+    var exSel = h('select', { id: 'logicExample', 'aria-label': 'Load an example' }, [h('option', { value: '', text: 'Examples…' })]);
+    ['X = A AND B', 'X = A OR B', 'X = NOT A', 'X = A NAND B', 'X = A NOR B', 'X = A XOR B', 'X = (A AND B) OR (NOT C)', 'X = (A NOR B) AND (B XOR C)',
+      'S = A XOR B', 'C = A AND B', 'X = (A AND NOT B) OR (NOT A AND B)', 'X = NOT (A AND B) OR (C AND D)'].forEach(function (e) { exSel.appendChild(h('option', { value: e, text: e })); });
+    exSel.addEventListener('change', function () { if (!exSel.value) return; input.value = exSel.value; exSel.value = ''; build(); });
+    var err = h('div', { class: 'msg bad', style: 'display:none' });
+    var toggles = h('div', { class: 'row' });
+    var circuit = h('div', { class: 'svgbox' });
+    var tableBox = h('div', { class: 'tablebox' });
+    var practiceMsg = h('p', { class: 'note' });
+    var practiceBtn = h('button', { class: 'btn', text: 'Practice: hide the output column', onclick: function () {
+      if (!parsed) return;
+      practice = practice ? null : table(parsed).map(function () { return null; });
+      practiceMsg.textContent = practice ? 'Tap each output cell to set 0 or 1, then check.' : '';
+      render();
+    } });
+    var checkBtn = h('button', { class: 'btn primary', text: 'Check my answers', onclick: function () {
+      if (!practice) return;
+      var rows = table(parsed), right = 0;
+      rows.forEach(function (r, i) { if (practice[i] === r.out) right++; });
+      practice.checked = true;
+      practiceMsg.textContent = right + ' of ' + rows.length + ' rows correct.' + (right === rows.length ? ' Well done.' : ' Rows marked ✗ need another look.');
+      render();
+    } });
+
+    function build() {
+      try {
+        parsed = parse(input.value);
+        err.style.display = 'none';
+        T.store('logic-expr', input.value);
+        var old = env; env = {};
+        parsed.vars.forEach(function (v) { env[v] = old[v] || 0; });
+        practice = null; practiceMsg.textContent = '';
+        render();
+      } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+    }
+
+    function render() {
+      toggles.textContent = '';
+      parsed.vars.forEach(function (v) {
+        toggles.appendChild(h('button', { class: 'btn' + (env[v] ? ' primary' : ''), text: v + ' = ' + env[v], 'aria-pressed': env[v] ? 'true' : 'false', onclick: function () { env[v] = env[v] ? 0 : 1; render(); } }));
+      });
+      circuit.textContent = '';
+      if (practice && !practice.checked) circuit.appendChild(drawCircuit(parsed, zeroEnv()));
+      else circuit.appendChild(drawCircuit(parsed, env));
+      var rows = table(parsed), head = h('tr');
+      parsed.vars.forEach(function (v) { head.appendChild(h('th', { text: v })); });
+      head.appendChild(h('th', { text: parsed.out }));
+      var tb = h('tbody');
+      rows.forEach(function (r, i) {
+        var cur = parsed.vars.every(function (v) { return env[v] === r.env[v]; });
+        var tr = h('tr', { class: cur && !practice ? 'hot' : '', style: 'cursor:pointer', onclick: function () { if (practice) return; parsed.vars.forEach(function (v) { env[v] = r.env[v]; }); render(); } });
+        r.ins.forEach(function (b) { tr.appendChild(h('td', { text: String(b) })); });
+        if (practice) {
+          var mark = practice.checked ? (practice[i] === r.out ? ' ✓' : ' ✗') : '';
+          var b = h('button', { class: 'btn sm', text: (practice[i] === null ? '?' : String(practice[i])) + mark, 'aria-label': 'Output for row ' + (i + 1), onclick: function (e) {
+            e.stopPropagation(); practice[i] = practice[i] === null ? 0 : practice[i] === 0 ? 1 : 0; practice.checked = false; render();
+          } });
+          tr.appendChild(h('td', {}, [b]));
+        } else tr.appendChild(h('td', { text: String(r.out), style: 'font-weight:600' }));
+        tb.appendChild(tr);
+      });
+      tableBox.textContent = '';
+      tableBox.appendChild(h('table', { class: 't' }, [h('thead', {}, [head]), tb]));
+      checkBtn.style.display = practice ? '' : 'none';
+      toggles.style.display = practice ? 'none' : '';
+      practiceBtn.textContent = practice ? 'Show the output column' : 'Practice: hide the output column';
+    }
+    function zeroEnv() { var z = {}; parsed.vars.forEach(function (v) { z[v] = 0; }); return z; }
+
+    /* Truth table -> expression */
+    var nSel = h('select', { id: 'logicInputs', 'aria-label': 'Number of inputs' }, [h('option', { value: '2', text: '2 inputs' }), h('option', { value: '3', text: '3 inputs', selected: true }), h('option', { value: '4', text: '4 inputs' })]);
+    var revBox = h('div', { class: 'tablebox' }), revOut = h('div', { class: 'msg mono' }), outs = [];
+    function revRender() {
+      var n = +nSel.value, vars = ['A', 'B', 'C', 'D'].slice(0, n);
+      if (outs.length !== (1 << n)) { outs = []; for (var i = 0; i < (1 << n); i++) outs.push(0); }
+      var head = h('tr'); vars.forEach(function (v) { head.appendChild(h('th', { text: v })); }); head.appendChild(h('th', { text: 'X' }));
+      var tb = h('tbody');
+      outs.forEach(function (o, i) {
+        var tr = h('tr');
+        for (var j = 0; j < n; j++) tr.appendChild(h('td', { text: String((i >> (n - 1 - j)) & 1) }));
+        tr.appendChild(h('td', {}, [h('button', { class: 'btn sm' + (o ? ' primary' : ''), text: String(o), 'aria-label': 'Output for row ' + (i + 1), onclick: function () { outs[i] = outs[i] ? 0 : 1; revRender(); } })]));
+        tb.appendChild(tr);
+      });
+      revBox.textContent = ''; revBox.appendChild(h('table', { class: 't' }, [h('thead', {}, [head]), tb]));
+      var ones = outs.filter(Boolean).length;
+      revOut.textContent = ones === 0 ? 'X is always 0. Set at least one output to 1.' : ones === outs.length ? 'X is always 1, so no gates are needed.' : 'X = ' + sumOfProducts(vars, outs);
+      drawBtn.disabled = ones === 0 || ones === outs.length;
+    }
+    var drawBtn = h('button', { class: 'btn primary', text: 'Draw this circuit', onclick: function () {
+      input.value = 'X = ' + sumOfProducts(['A', 'B', 'C', 'D'].slice(0, +nSel.value), outs); build();
+      circuit.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } });
+    nSel.addEventListener('change', revRender);
+
+    var form = h('form', { class: 'row' }, [input, h('button', { class: 'btn primary', type: 'submit', text: 'Build' }), exSel]);
+    form.addEventListener('submit', function (e) { e.preventDefault(); build(); });
+
+    view.appendChild(h('div', { class: 'view-head' }, [
+      h('span', { class: 'tag', text: 'Boolean logic · 0478 topic 10 · 9618 topic 3.2' }),
+      h('h1', { text: 'Logic gates' }),
+      h('p', { text: 'Type a logic expression using AND, OR, NOT, NAND, NOR and XOR. Switch the inputs to watch signals travel through the circuit. Green wires carry 1.' })
+    ]));
+    view.appendChild(h('div', { class: 'panel' }, [form, err, toggles, circuit]));
+    view.appendChild(h('div', { class: 'grid2' }, [
+      h('div', { class: 'panel' }, [h('h3', { text: 'Truth table' }), tableBox, h('div', { class: 'row' }, [practiceBtn, checkBtn]), practiceMsg]),
+      h('div', { class: 'panel' }, [h('h3', { text: 'From truth table to expression' }), h('p', { class: 'note', text: 'Set the outputs you want. The expression is built as a sum of products: one AND term for every row where X is 1.' }), h('div', { class: 'row' }, [nSel, drawBtn]), revBox, revOut])
+    ]));
+    build(); revRender();
+  });
+})(typeof window !== 'undefined' ? window : this);

@@ -1,0 +1,355 @@
+/* Example programs for the pseudocode runner. inputs are used only by the automated tests. */
+(function (root) {
+  var EX = [
+    { group: 'IGCSE 0478', name: 'Totalling and counting', inputs: ['4', '12', '7', '20', '9'], code:
+`// Find the total and average of a set of marks
+DECLARE Total : INTEGER
+DECLARE Mark : INTEGER
+DECLARE HowMany : INTEGER
+DECLARE Average : REAL
+
+Total ← 0
+OUTPUT "How many marks?"
+INPUT HowMany
+
+FOR Count ← 1 TO HowMany
+    OUTPUT "Enter mark ", Count
+    INPUT Mark
+    Total ← Total + Mark
+NEXT Count
+
+Average ← Total / HowMany
+OUTPUT "Total: ", Total
+OUTPUT "Average: ", ROUND(Average, 1)` },
+    { group: 'IGCSE 0478', name: 'Maximum and minimum', inputs: ['5', '18', '3', '11', '-1'], code:
+`// Read numbers until -1 is entered, then report the largest and smallest
+DECLARE Number : INTEGER
+DECLARE Largest : INTEGER
+DECLARE Smallest : INTEGER
+
+OUTPUT "Enter a number (-1 to stop)"
+INPUT Number
+Largest ← Number
+Smallest ← Number
+
+WHILE Number <> -1 DO
+    IF Number > Largest
+      THEN
+        Largest ← Number
+    ENDIF
+    IF Number < Smallest
+      THEN
+        Smallest ← Number
+    ENDIF
+    OUTPUT "Enter a number (-1 to stop)"
+    INPUT Number
+ENDWHILE
+
+OUTPUT "Largest: ", Largest
+OUTPUT "Smallest: ", Smallest` },
+    { group: 'IGCSE 0478', name: 'Validation with REPEAT', inputs: ['150', '-3', '64'], code:
+`// Range check: keep asking until the mark is between 0 and 100
+DECLARE Mark : INTEGER
+
+REPEAT
+    OUTPUT "Enter a mark from 0 to 100"
+    INPUT Mark
+    IF Mark < 0 OR Mark > 100
+      THEN
+        OUTPUT "Out of range, try again"
+    ENDIF
+UNTIL Mark >= 0 AND Mark <= 100
+
+CASE OF Mark
+    80 TO 100 : OUTPUT "Grade A"
+    60 TO 79  : OUTPUT "Grade B"
+    40 TO 59  : OUTPUT "Grade C"
+    OTHERWISE OUTPUT "Ungraded"
+ENDCASE` },
+    { group: 'IGCSE 0478', name: 'Linear search', inputs: ['Mina'], code:
+`// Linear search through a 1D array
+DECLARE Names : ARRAY[1:6] OF STRING
+DECLARE Target : STRING
+DECLARE Found : BOOLEAN
+DECLARE Index : INTEGER
+
+Names[1] ← "Arjun"
+Names[2] ← "Bao"
+Names[3] ← "Chloe"
+Names[4] ← "Mina"
+Names[5] ← "Omar"
+Names[6] ← "Zara"
+
+OUTPUT "Who are you looking for?"
+INPUT Target
+
+Found ← FALSE
+Index ← 1
+WHILE Index <= 6 AND NOT Found DO
+    IF Names[Index] = Target
+      THEN
+        Found ← TRUE
+      ELSE
+        Index ← Index + 1
+    ENDIF
+ENDWHILE
+
+IF Found
+  THEN
+    OUTPUT Target, " is at position ", Index
+  ELSE
+    OUTPUT Target, " is not in the list"
+ENDIF` },
+    { group: 'IGCSE 0478', name: 'Bubble sort', inputs: [], code:
+`// Bubble sort with an early exit when no swaps happen
+DECLARE List : ARRAY[1:6] OF INTEGER
+DECLARE Temp : INTEGER
+DECLARE Swapped : BOOLEAN
+DECLARE Last : INTEGER
+
+List[1] ← 34
+List[2] ← 12
+List[3] ← 57
+List[4] ← 8
+List[5] ← 41
+List[6] ← 19
+
+Last ← 5
+REPEAT
+    Swapped ← FALSE
+    FOR Index ← 1 TO Last
+        IF List[Index] > List[Index + 1]
+          THEN
+            Temp ← List[Index]
+            List[Index] ← List[Index + 1]
+            List[Index + 1] ← Temp
+            Swapped ← TRUE
+        ENDIF
+    NEXT Index
+    Last ← Last - 1
+UNTIL NOT Swapped OR Last = 0
+
+FOR Index ← 1 TO 6
+    OUTPUT List[Index]
+NEXT Index` },
+    { group: 'IGCSE 0478', name: 'String handling', inputs: ['computer science'], code:
+`// Library routines: LENGTH, SUBSTRING, UCASE, LCASE
+DECLARE Phrase : STRING
+DECLARE Vowels : INTEGER
+DECLARE Letter : CHAR
+
+OUTPUT "Type a phrase"
+INPUT Phrase
+
+OUTPUT "Length: ", LENGTH(Phrase)
+OUTPUT "In capitals: ", UCASE(Phrase)
+OUTPUT "First three letters: ", SUBSTRING(Phrase, 1, 3)
+
+Vowels ← 0
+FOR Position ← 1 TO LENGTH(Phrase)
+    Letter ← LCASE(SUBSTRING(Phrase, Position, 1))
+    IF Letter = "a" OR Letter = "e" OR Letter = "i" OR Letter = "o" OR Letter = "u"
+      THEN
+        Vowels ← Vowels + 1
+    ENDIF
+NEXT Position
+OUTPUT "Vowels: ", Vowels` },
+    { group: 'IGCSE 0478', name: 'Procedures and functions', inputs: ['7', '4'], code:
+`// A procedure with parameters and a function that returns a value
+PROCEDURE Line(Size : INTEGER)
+    DECLARE Row : STRING
+    Row ← ""
+    FOR Count ← 1 TO Size
+        Row ← Row & "*"
+    NEXT Count
+    OUTPUT Row
+ENDPROCEDURE
+
+FUNCTION Area(Width : INTEGER, Height : INTEGER) RETURNS INTEGER
+    RETURN Width * Height
+ENDFUNCTION
+
+DECLARE W : INTEGER
+DECLARE H : INTEGER
+OUTPUT "Width?"
+INPUT W
+OUTPUT "Height?"
+INPUT H
+
+CALL Line(W)
+OUTPUT "Area is ", Area(W, H)
+CALL Line(W)` },
+    { group: 'IGCSE 0478', name: '2D array', inputs: [], code:
+`// Store a times-table grid in a 2D array, then total one row
+DECLARE Grid : ARRAY[1:3, 1:4] OF INTEGER
+DECLARE RowTotal : INTEGER
+DECLARE Text : STRING
+
+FOR Row ← 1 TO 3
+    FOR Column ← 1 TO 4
+        Grid[Row, Column] ← Row * Column
+    NEXT Column
+NEXT Row
+
+FOR Row ← 1 TO 3
+    Text ← ""
+    RowTotal ← 0
+    FOR Column ← 1 TO 4
+        Text ← Text & NUM_TO_STR(Grid[Row, Column]) & " "
+        RowTotal ← RowTotal + Grid[Row, Column]
+    NEXT Column
+    OUTPUT Text, "= ", RowTotal
+NEXT Row` },
+    { group: 'IGCSE 0478', name: 'File handling', inputs: ['Hello file'], code:
+`// Write a line to a text file, then read it back
+DECLARE Message : STRING
+DECLARE LineOfText : STRING
+
+OUTPUT "Type a message to save"
+INPUT Message
+
+OPENFILE "Notes.txt" FOR WRITE
+WRITEFILE "Notes.txt", Message
+CLOSEFILE "Notes.txt"
+
+OPENFILE "Notes.txt" FOR READ
+READFILE "Notes.txt", LineOfText
+CLOSEFILE "Notes.txt"
+
+OUTPUT "Read from file: ", LineOfText` },
+    { group: 'A Level 9618', name: 'Binary search', inputs: ['41'], code:
+`// Binary search on a sorted array
+DECLARE Data : ARRAY[1:8] OF INTEGER
+DECLARE Low, High, Mid, Target : INTEGER
+DECLARE Found : BOOLEAN
+
+Data[1] ← 3
+Data[2] ← 8
+Data[3] ← 12
+Data[4] ← 19
+Data[5] ← 27
+Data[6] ← 34
+Data[7] ← 41
+Data[8] ← 57
+
+OUTPUT "Search for?"
+INPUT Target
+
+Low ← 1
+High ← 8
+Found ← FALSE
+WHILE Low <= High AND NOT Found
+    Mid ← (Low + High) DIV 2
+    IF Data[Mid] = Target THEN
+        Found ← TRUE
+    ELSE
+        IF Data[Mid] < Target THEN
+            Low ← Mid + 1
+        ELSE
+            High ← Mid - 1
+        ENDIF
+    ENDIF
+ENDWHILE
+
+IF Found THEN
+    OUTPUT "Found at index ", Mid
+ELSE
+    OUTPUT "Not found"
+ENDIF` },
+    { group: 'A Level 9618', name: 'Records', inputs: [], code:
+`// A user-defined record type and an array of records
+TYPE StudentRecord
+    DECLARE Name : STRING
+    DECLARE Mark : INTEGER
+ENDTYPE
+
+DECLARE Class : ARRAY[1:3] OF StudentRecord
+DECLARE Best : INTEGER
+
+Class[1].Name ← "Linh"
+Class[1].Mark ← 72
+Class[2].Name ← "Tomas"
+Class[2].Mark ← 88
+Class[3].Name ← "Aiko"
+Class[3].Mark ← 81
+
+Best ← 1
+FOR Index ← 2 TO 3
+    IF Class[Index].Mark > Class[Best].Mark THEN
+        Best ← Index
+    ENDIF
+NEXT Index
+
+OUTPUT "Top mark: ", Class[Best].Name, " with ", Class[Best].Mark` },
+    { group: 'A Level 9618', name: 'Recursion', inputs: ['5'], code:
+`// Recursive factorial. Step through it to watch the calls unwind.
+FUNCTION Factorial(N : INTEGER) RETURNS INTEGER
+    IF N <= 1 THEN
+        RETURN 1
+    ELSE
+        RETURN N * Factorial(N - 1)
+    ENDIF
+ENDFUNCTION
+
+DECLARE Number : INTEGER
+OUTPUT "Enter a whole number"
+INPUT Number
+OUTPUT Number, "! = ", Factorial(Number)` },
+    { group: 'A Level 9618', name: 'BYREF and BYVAL', inputs: [], code:
+`// BYREF changes the original variable. BYVAL works on a copy.
+PROCEDURE Swap(BYREF First : INTEGER, BYREF Second : INTEGER)
+    DECLARE Temp : INTEGER
+    Temp ← First
+    First ← Second
+    Second ← Temp
+ENDPROCEDURE
+
+PROCEDURE TryToDouble(BYVAL Value : INTEGER)
+    Value ← Value * 2
+ENDPROCEDURE
+
+DECLARE A, B : INTEGER
+A ← 3
+B ← 9
+CALL Swap(A, B)
+OUTPUT "After Swap: A = ", A, ", B = ", B
+CALL TryToDouble(A)
+OUTPUT "After TryToDouble: A = ", A` },
+    { group: 'A Level 9618', name: 'Stack using an array', inputs: [], code:
+`// A stack as an abstract data type
+CONSTANT MaxSize = 5
+DECLARE Stack : ARRAY[1:5] OF INTEGER
+DECLARE TopOfStack : INTEGER
+TopOfStack ← 0
+
+PROCEDURE Push(Item : INTEGER)
+    IF TopOfStack = MaxSize THEN
+        OUTPUT "Stack full"
+    ELSE
+        TopOfStack ← TopOfStack + 1
+        Stack[TopOfStack] ← Item
+    ENDIF
+ENDPROCEDURE
+
+FUNCTION Pop() RETURNS INTEGER
+    DECLARE Item : INTEGER
+    Item ← -1
+    IF TopOfStack = 0 THEN
+        OUTPUT "Stack empty"
+    ELSE
+        Item ← Stack[TopOfStack]
+        TopOfStack ← TopOfStack - 1
+    ENDIF
+    RETURN Item
+ENDFUNCTION
+
+CALL Push(10)
+CALL Push(20)
+CALL Push(30)
+OUTPUT "Popped ", Pop()
+OUTPUT "Popped ", Pop()
+CALL Push(40)
+OUTPUT "Top is now ", Stack[TopOfStack]` }
+  ];
+  if (typeof module !== 'undefined' && module.exports) module.exports = EX; else root.PseudoExamples = EX;
+})(typeof window !== 'undefined' ? window : this);

@@ -1,0 +1,264 @@
+/* Von Neumann CPU simulator using the Cambridge 9618 assembly instruction set.
+   Each instruction runs as fetch, decode, execute micro-steps so the registers can be watched.
+   Pure logic: window.CPU in the browser, module.exports in Node. */
+(function (root) {
+  'use strict';
+
+  var OPS = {
+    LDM: 'imm', LDD: 'addr', LDI: 'addr', LDX: 'addr', LDR: 'imm|reg', MOV: 'reg', STO: 'addr',
+    ADD: 'imm|addr', SUB: 'imm|addr', INC: 'reg', DEC: 'reg', JMP: 'addr', CMP: 'imm|addr', CMI: 'addr',
+    JPE: 'addr', JPN: 'addr', IN: 'none', OUT: 'none', END: 'none',
+    AND: 'imm|addr', OR: 'imm|addr', XOR: 'imm|addr', LSL: 'imm', LSR: 'imm'
+  };
+
+  function AsmError(message, line) { this.name = 'AsmError'; this.message = message; this.line = line || 0; }
+  AsmError.prototype = Object.create(Error.prototype);
+
+  function parseNumber(s) {
+    if (/^-?\d+$/.test(s)) return parseInt(s, 10);
+    if (/^B[01]+$/i.test(s)) return parseInt(s.slice(1), 2);
+    if (/^&[0-9A-F]+$/i.test(s)) return parseInt(s.slice(1), 16);
+    return null;
+  }
+
+  function wrap(v) { v = ((v + 32768) % 65536 + 65536) % 65536 - 32768; return v; }
+
+  /* Returns { mem: {addr: cell}, labels, start, lineOf: {addr: sourceLine} }.
+     cell = { ins: true, op, mode, operand, text } or { ins: false, value } */
+  function assemble(src, base) {
+    base = base || 0;
+    var lines = src.replace(/\r\n?/g, '\n').split('\n'), rows = [], labels = {}, addr = base;
+    for (var i = 0; i < lines.length; i++) {
+      var s = lines[i].replace(/(\/\/|;).*$/, '').trim();
+      if (!s) continue;
+      var label = null, m = /^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/.exec(s);
+      if (m) { label = m[1]; s = m[2].trim(); }
+      if (label) {
+        if (OPS[label.toUpperCase()]) throw new AsmError('"' + label + '" is an instruction name, so it cannot be used as a label.', i + 1);
+        if (labels[label] !== undefined) throw new AsmError('The label "' + label + '" is used twice.', i + 1);
+        labels[label] = addr;
+      }
+      rows.push({ text: s, line: i + 1, addr: addr });
+      addr++;
+    }
+    if (!rows.length) throw new AsmError('There is no program to assemble.', 1);
+    var mem = {}, lineOf = {};
+    rows.forEach(function (r) {
+      lineOf[r.addr] = r.line;
+      if (r.text === '') { mem[r.addr] = { ins: false, value: 0 }; return; }
+      var dv = parseNumber(r.text.replace(/^#/, ''));
+      if (dv !== null) { mem[r.addr] = { ins: false, value: wrap(dv) }; return; }
+      var parts = r.text.split(/\s+/), op = parts[0].toUpperCase(), arg = parts.slice(1).join(' ').trim();
+      var kind = OPS[op];
+      if (!kind) throw new AsmError('"' + parts[0] + '" is not an instruction in the Cambridge set.', r.line);
+      var cell = { ins: true, op: op, mode: 'none', operand: null, text: op + (arg ? ' ' + arg : '') };
+      if (kind === 'none') {
+        if (arg) throw new AsmError(op + ' does not take an operand.', r.line);
+      } else if (!arg) {
+        throw new AsmError(op + ' needs an operand.', r.line);
+      } else if (arg[0] === '#') {
+        if (kind.indexOf('imm') < 0) throw new AsmError(op + ' needs an address, not an immediate value (#).', r.line);
+        var n = parseNumber(arg.slice(1));
+        if (n === null) throw new AsmError('"' + arg + '" is not a valid number. Use #12, #B1100 or #&0C.', r.line);
+        cell.mode = 'imm'; cell.operand = n;
+      } else if (/^(ACC|IX)$/i.test(arg)) {
+        if (kind.indexOf('reg') < 0) throw new AsmError(op + ' cannot be used with a register name.', r.line);
+        cell.mode = 'reg'; cell.operand = arg.toUpperCase();
+        if (op === 'MOV' && cell.operand !== 'IX') throw new AsmError('MOV copies ACC into IX, so write MOV IX.', r.line);
+      } else {
+        if (kind.indexOf('addr') < 0) {
+          throw new AsmError(kind.indexOf('imm') >= 0 ? op + ' needs an immediate value, like ' + op + ' #5.' : op + ' needs ACC or IX.', r.line);
+        }
+        var a = labels[arg] !== undefined ? labels[arg] : parseNumber(arg);
+        if (a === null) throw new AsmError('The label "' + arg + '" is not defined anywhere.', r.line);
+        cell.mode = 'addr'; cell.operand = a; cell.label = labels[arg] !== undefined ? arg : null;
+      }
+      mem[r.addr] = cell;
+    });
+    return { mem: mem, labels: labels, start: base, end: addr - 1, lineOf: lineOf };
+  }
+
+  function Machine(program) {
+    this.program = program;
+    this.reset();
+  }
+  var M = Machine.prototype;
+
+  M.reset = function () {
+    var self = this;
+    this.mem = {};
+    Object.keys(this.program.mem).forEach(function (a) {
+      var c = self.program.mem[a];
+      self.mem[a] = c.ins ? c : { ins: false, value: c.value };
+    });
+    this.reg = { PC: this.program.start, MAR: 0, MDR: null, CIR: null, ACC: 0, IX: 0 };
+    this.flag = null;       // result of the last compare: true = equal
+    this.phase = 0;         // 0..5 micro-step within the current instruction
+    this.halted = false;
+    this.output = '';
+    this.inputQueue = [];
+    this.cycles = 0;
+  };
+
+  M.cellText = function (c) { return c === undefined ? '0' : (c.ins ? c.text : String(c.value)); };
+
+  M.readData = function (addr, why) {
+    if (addr < 0 || addr > 9999) throw new AsmError('Address ' + addr + ' is outside memory.', 0);
+    var c = this.mem[addr];
+    if (c === undefined) return 0;
+    if (c.ins) throw new AsmError('Address ' + addr + ' holds the instruction "' + c.text + '", not data' + (why ? ' (' + why + ')' : '') + '.', 0);
+    return c.value;
+  };
+
+  var PHASES = ['fetch', 'fetch', 'fetch', 'fetch', 'decode', 'execute'];
+
+  /* Performs one micro-step. Returns
+     { phase, rtn, text, changed: [register names], read: addr|null, write: addr|null, needInput, halted } */
+  M.step = function () {
+    if (this.halted) return { phase: 'halted', rtn: '', text: 'The program has ended.', changed: [], halted: true };
+    var r = this.reg, res = { phase: PHASES[this.phase], changed: [], read: null, write: null };
+    switch (this.phase) {
+      case 0:
+        r.MAR = r.PC; res.changed = ['MAR'];
+        res.rtn = 'MAR ← [PC]';
+        res.text = 'The address of the next instruction (' + r.PC + ') is copied from the PC to the MAR.';
+        break;
+      case 1: {
+        var c = this.mem[r.MAR];
+        if (c === undefined) throw new AsmError('The PC reached address ' + r.MAR + ', which is empty. Did the program miss an END?', 0);
+        r.MDR = c; res.changed = ['MDR']; res.read = r.MAR;
+        res.rtn = 'MDR ← [[MAR]]';
+        res.text = 'The contents of address ' + r.MAR + ' travel along the data bus into the MDR.';
+        break;
+      }
+      case 2:
+        r.PC = r.PC + 1; res.changed = ['PC'];
+        res.rtn = 'PC ← [PC] + 1';
+        res.text = 'The PC is incremented so it points to the next instruction.';
+        break;
+      case 3:
+        r.CIR = r.MDR; res.changed = ['CIR'];
+        res.rtn = 'CIR ← [MDR]';
+        res.text = 'The instruction is copied from the MDR to the CIR.';
+        break;
+      case 4: {
+        var ins = r.CIR;
+        if (!ins || !ins.ins) throw new AsmError('Address ' + r.MAR + ' holds data (' + this.cellText(ins) + '), not an instruction. Did the program miss an END?', 0);
+        res.rtn = 'decode ' + ins.text;
+        res.text = 'The control unit decodes the instruction: opcode ' + ins.op +
+          (ins.mode === 'none' ? ', no operand.' : ', operand ' + (ins.mode === 'imm' ? '#' + ins.operand : ins.mode === 'reg' ? ins.operand : (ins.label ? ins.label + ' (address ' + ins.operand + ')' : ins.operand)) + '.');
+        break;
+      }
+      case 5: {
+        var done = this.execute(r.CIR, res);
+        if (!done) return res;      // waiting for input
+        this.cycles++;
+        break;
+      }
+    }
+    this.phase = (this.phase + 1) % 6;
+    res.halted = this.halted;
+    return res;
+  };
+
+  M.fetchOperand = function (ins, res) {
+    if (ins.mode === 'imm') return ins.operand;
+    var v = this.readData(ins.operand, ins.op);
+    this.reg.MAR = ins.operand; this.reg.MDR = { ins: false, value: v };
+    res.changed.push('MAR', 'MDR'); res.read = ins.operand;
+    return v;
+  };
+
+  M.execute = function (ins, res) {
+    var r = this.reg, self = this, a = ins.operand, v;
+    function setAcc(x, rtn, text) { r.ACC = wrap(x); res.changed.push('ACC'); res.rtn = rtn; res.text = text; }
+    switch (ins.op) {
+      case 'LDM': setAcc(a, 'ACC ← ' + a, 'The number ' + a + ' is loaded straight into the ACC (immediate addressing).'); break;
+      case 'LDD': v = this.fetchOperand(ins, res);
+        setAcc(v, 'ACC ← [' + a + ']', 'The contents of address ' + a + ' (' + v + ') are loaded into the ACC (direct addressing).'); break;
+      case 'LDI': {
+        var p = this.readData(a, 'LDI'); v = this.readData(p, 'LDI');
+        r.MAR = p; r.MDR = { ins: false, value: v }; res.changed.push('MAR', 'MDR'); res.read = p;
+        setAcc(v, 'ACC ← [[' + a + ']]', 'Address ' + a + ' holds ' + p + '. That is used as the address of the data, so ' + v + ' is loaded into the ACC (indirect addressing).'); break;
+      }
+      case 'LDX': {
+        var ea = a + r.IX; v = this.readData(ea, 'LDX');
+        r.MAR = ea; r.MDR = { ins: false, value: v }; res.changed.push('MAR', 'MDR'); res.read = ea;
+        setAcc(v, 'ACC ← [' + a + ' + IX]', 'The IX (' + r.IX + ') is added to ' + a + ' to give address ' + ea + '. Its contents (' + v + ') are loaded into the ACC (indexed addressing).'); break;
+      }
+      case 'LDR':
+        if (ins.mode === 'reg') { r.IX = r.ACC; res.rtn = 'IX ← [ACC]'; res.text = 'The contents of the ACC (' + r.ACC + ') are copied to the IX.'; }
+        else { r.IX = wrap(a); res.rtn = 'IX ← ' + a; res.text = 'The number ' + a + ' is loaded into the index register.'; }
+        res.changed.push('IX'); break;
+      case 'MOV': r.IX = r.ACC; res.changed.push('IX'); res.rtn = 'IX ← [ACC]'; res.text = 'The contents of the ACC (' + r.ACC + ') are copied to the IX.'; break;
+      case 'STO': {
+        var tc = this.mem[a];
+        if (tc && tc.ins && a < r.PC + 0 && false) { /* self-modifying code is allowed */ }
+        this.mem[a] = { ins: false, value: r.ACC };
+        r.MAR = a; r.MDR = { ins: false, value: r.ACC }; res.changed.push('MAR', 'MDR'); res.write = a;
+        res.rtn = '[' + a + '] ← [ACC]'; res.text = 'The contents of the ACC (' + r.ACC + ') are stored at address ' + a + '.'; break;
+      }
+      case 'ADD': v = this.fetchOperand(ins, res);
+        setAcc(r.ACC + v, 'ACC ← [ACC] + ' + (ins.mode === 'imm' ? a : '[' + a + ']'), v + ' is added to the ACC.'); break;
+      case 'SUB': v = this.fetchOperand(ins, res);
+        setAcc(r.ACC - v, 'ACC ← [ACC] − ' + (ins.mode === 'imm' ? a : '[' + a + ']'), v + ' is subtracted from the ACC.'); break;
+      case 'INC': r[a] = wrap(r[a] + 1); res.changed.push(a); res.rtn = a + ' ← [' + a + '] + 1'; res.text = '1 is added to the ' + a + '.'; break;
+      case 'DEC': r[a] = wrap(r[a] - 1); res.changed.push(a); res.rtn = a + ' ← [' + a + '] − 1'; res.text = '1 is subtracted from the ' + a + '.'; break;
+      case 'JMP': r.PC = a; res.changed.push('PC'); res.rtn = 'PC ← ' + a; res.text = 'The PC is set to ' + a + ', so execution jumps there.'; break;
+      case 'CMP': v = this.fetchOperand(ins, res);
+        this.flag = r.ACC === v; res.changed.push('FLAG');
+        res.rtn = 'compare [ACC] with ' + (ins.mode === 'imm' ? a : '[' + a + ']');
+        res.text = 'The ACC (' + r.ACC + ') is compared with ' + v + '. They are ' + (this.flag ? 'equal' : 'not equal') + ', so the compare flag is ' + (this.flag ? 'TRUE' : 'FALSE') + '.'; break;
+      case 'CMI': {
+        var p2 = this.readData(a, 'CMI'); v = this.readData(p2, 'CMI');
+        r.MAR = p2; r.MDR = { ins: false, value: v }; res.changed.push('MAR', 'MDR', 'FLAG'); res.read = p2;
+        this.flag = r.ACC === v;
+        res.rtn = 'compare [ACC] with [[' + a + ']]';
+        res.text = 'Address ' + a + ' holds ' + p2 + ', and address ' + p2 + ' holds ' + v + '. The ACC (' + r.ACC + ') is ' + (this.flag ? 'equal' : 'not equal') + ' to it.'; break;
+      }
+      case 'JPE': case 'JPN': {
+        if (this.flag === null) throw new AsmError(ins.op + ' was reached before any CMP, so there is nothing to test.', 0);
+        var take = ins.op === 'JPE' ? this.flag : !this.flag;
+        if (take) { r.PC = a; res.changed.push('PC'); }
+        res.rtn = take ? 'PC ← ' + a : 'no jump';
+        res.text = 'The last compare was ' + (this.flag ? 'TRUE' : 'FALSE') + ', so ' + (take ? 'the PC is set to ' + a + ' and execution jumps.' : 'execution carries on with the next instruction.'); break;
+      }
+      case 'IN':
+        if (!this.inputQueue.length) { res.needInput = true; res.rtn = 'waiting for a key'; res.text = 'IN is waiting for one character from the keyboard.'; return false; }
+        var ch = this.inputQueue.shift();
+        setAcc(ch.charCodeAt(0), 'ACC ← key', 'The key "' + ch + '" was pressed. Its character code (' + ch.charCodeAt(0) + ') is stored in the ACC.'); break;
+      case 'OUT':
+        this.output += String.fromCharCode(r.ACC & 0xFFFF);
+        res.rtn = 'output [ACC]'; res.text = 'The character with code ' + r.ACC + ' ("' + String.fromCharCode(r.ACC & 0xFFFF) + '") is sent to the screen.'; res.out = true; break;
+      case 'END': this.halted = true; res.rtn = 'halt'; res.text = 'END returns control to the operating system. The program has finished.'; break;
+      case 'AND': v = this.fetchOperand(ins, res); setAcc(r.ACC & v, 'ACC ← [ACC] AND ' + v, 'Bitwise AND of the ACC with ' + bin8(v) + '.'); break;
+      case 'OR': v = this.fetchOperand(ins, res); setAcc(r.ACC | v, 'ACC ← [ACC] OR ' + v, 'Bitwise OR of the ACC with ' + bin8(v) + '.'); break;
+      case 'XOR': v = this.fetchOperand(ins, res); setAcc(r.ACC ^ v, 'ACC ← [ACC] XOR ' + v, 'Bitwise XOR of the ACC with ' + bin8(v) + '.'); break;
+      case 'LSL': setAcc((r.ACC << a) & 0xFF, 'ACC ← [ACC] shifted left ' + a, 'The bits in the ACC move ' + a + ' place(s) left. Zeros fill the right-hand end.'); break;
+      case 'LSR': setAcc((r.ACC & 0xFF) >>> a, 'ACC ← [ACC] shifted right ' + a, 'The bits in the ACC move ' + a + ' place(s) right. Zeros fill the left-hand end.'); break;
+    }
+    return true;
+  };
+
+  // Run whole instructions until halt, input needed, or a limit.
+  M.run = function (maxCycles) {
+    var limit = maxCycles || 100000, start = this.cycles;
+    while (!this.halted) {
+      var res = this.step();
+      if (res.needInput) return { needInput: true };
+      if (this.cycles - start > limit) throw new AsmError('The program ran ' + limit + ' instructions without reaching END. Check for an endless loop.', 0);
+    }
+    return { halted: true };
+  };
+
+  function bin8(v) {
+    var bits = (v >= 0 && v <= 255) ? 8 : 16;
+    var u = v < 0 ? v + 65536 : v, s = u.toString(2);
+    while (s.length < bits) s = '0' + s;
+    return s.replace(/(\d{4})(?=\d)/g, '$1 ');
+  }
+
+  var api = { assemble: assemble, Machine: Machine, AsmError: AsmError, bin: bin8, OPS: OPS };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.CPU = api;
+})(typeof window !== 'undefined' ? window : this);

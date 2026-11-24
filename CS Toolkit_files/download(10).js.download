@@ -1,0 +1,101 @@
+/* Python check: students write code for a task and get feedback on each test, in the browser. */
+(function () {
+  'use strict';
+  var T = window.Toolkit, h = T.h;
+  var TASKS = [
+    { id: 't01', title: 'Temperature converter', unit: '7.6', brief: 'Ask for a temperature in Celsius. Print the temperature in Fahrenheit. Formula: F = C * 9 / 5 + 32.',
+      starter: 'celsius = float(input("Celsius: "))\n# work out fahrenheit and print it\n',
+      tests: [{ name: '0 degrees C gives 32', inputs: ['0'], numbers: [32] }, { name: '100 degrees C gives 212', inputs: ['100'], numbers: [212] }, { name: 'Decimals: 36.6 gives 97.88', inputs: ['36.6'], numbers: [97.88], hint: 'Use float() instead of int() so decimals are accepted.' }, { name: 'Below zero: -40 gives -40', inputs: ['-40'], numbers: [-40] }] },
+    { id: 't02', title: 'Grade calculator', unit: '8.1', brief: 'Ask for a mark from 0 to 100. Print Grade A for 80 or more, Grade B for 60 to 79, Grade C for 40 to 59, and Ungraded below 40. If the mark is not between 0 and 100, print Invalid.',
+      starter: 'mark = int(input("Enter a mark: "))\n',
+      tests: [{ name: '85 is Grade A', inputs: ['85'], contains: ['Grade A'] }, { name: 'Boundary: 80 is Grade A', inputs: ['80'], contains: ['Grade A'], hint: 'Check whether you used > where the task needs >=.' }, { name: 'Boundary: 79 is Grade B', inputs: ['79'], contains: ['Grade B'], not_contains: ['Grade A'] }, { name: '40 is Grade C', inputs: ['40'], contains: ['Grade C'], hint: 'Check whether you used > where the task needs >=.' }, { name: '12 is Ungraded', inputs: ['12'], contains: ['Ungraded'] }, { name: 'Only one grade is printed', inputs: ['95'], not_contains: ['Grade B', 'Grade C', 'Ungraded'], hint: 'Use elif so that only one branch runs.' }, { name: '150 is Invalid', inputs: ['150'], contains: ['Invalid'], not_contains: ['Grade'], hint: 'Test for marks outside 0 to 100 before working out the grade.' }, { name: '-5 is Invalid', inputs: ['-5'], contains: ['Invalid'], not_contains: ['Ungraded'] }] },
+    { id: 't03', title: 'Times table', unit: '8.1', brief: 'Ask for a whole number. Print its times table from 1 to 12, one line each, in the form 7 x 3 = 21.',
+      starter: 'number = int(input("Number: "))\n',
+      tests: [{ name: 'First line for 7', inputs: ['7'], contains: ['7 x 1 = 7'] }, { name: 'Last line for 7', inputs: ['7'], contains: ['7 x 12 = 84'], hint: 'range(1, 12) stops at 11. Use range(1, 13).' }, { name: 'Does not go past 12', inputs: ['7'], not_contains: ['7 x 13'] }, { name: 'Does not start at 0', inputs: ['7'], not_contains: ['7 x 0'], hint: 'range(12) starts at 0. Use range(1, 13).' }, { name: 'Works for another number', inputs: ['12'], contains: ['12 x 12 = 144'] }] },
+    { id: 't04', title: 'Password check', unit: '8.1', brief: 'Keep asking for a new password until it has at least 8 characters and is not the word password. Then print Accepted and the number of attempts.',
+      starter: 'attempts = 0\n',
+      tests: [{ name: 'Accepts a good password first time', inputs: ['sunflower9'], contains: ['Accepted'], numbers: [1] }, { name: 'Rejects a short password, then accepts', inputs: ['abc', 'sunflower9'], contains: ['Accepted'], numbers: [2] }, { name: 'Rejects the word password', inputs: ['password', 'abc', 'longenough'], contains: ['Accepted'], numbers: [3], hint: 'The loop needs both rules: length and not equal to password.' }, { name: 'Exactly 8 characters is accepted', inputs: ['abcdefgh'], contains: ['Accepted'], numbers: [1], hint: 'At least 8 means len(password) >= 8.' }] },
+    { id: 't05', title: 'count_vowels function', unit: '9.1', brief: 'Write a function count_vowels(word) that returns the number of vowels (a, e, i, o, u) in word. Capital letters count too.',
+      starter: 'def count_vowels(word):\n    \n',
+      tests: [{ name: "count_vowels('banana') is 3", function: 'count_vowels', args: ['banana'], returns: 3 }, { name: 'Counts capital vowels', function: 'count_vowels', args: ['Education'], returns: 5, hint: 'Change the word to lower case first with word.lower().' }, { name: 'No vowels gives 0', function: 'count_vowels', args: ['rhythm'], returns: 0 }, { name: 'Empty string gives 0', function: 'count_vowels', args: [''], returns: 0 }] },
+    { id: 't06', title: 'List statistics', unit: '9.1', brief: 'Write two functions. average(numbers) returns the mean of a list of numbers. above_average(numbers) returns how many items are greater than the mean.',
+      starter: 'def average(numbers):\n    \n\ndef above_average(numbers):\n    \n',
+      tests: [{ name: 'average([2, 4, 6]) is 4', function: 'average', args: [[2, 4, 6]], returns: 4.0 }, { name: 'average of one item', function: 'average', args: [[7]], returns: 7.0 }, { name: 'above_average counts correctly', function: 'above_average', args: [[20, 22, 19, 25, 30, 28, 24]], returns: 3 }, { name: 'above_average when all equal', function: 'above_average', args: [[5, 5, 5]], returns: 0, hint: 'Use > and not >=.' }] }
+  ];
+  T.pyTasks = TASKS;
+
+  T.register('python', function (view) {
+    var task = TASKS[0], worker = null, booted = false, busy = false;
+    var sel = h('select', { id: 'pyTask', 'aria-label': 'Task' }, TASKS.map(function (t, i) { return h('option', { value: String(i), text: 'Unit ' + t.unit + ': ' + t.title }); }));
+    var brief = h('p'), status = h('div', { class: 'msg' }), results = h('div', { class: 'col', style: 'gap:6px' });
+    var ed = T.editor({ id: 'pyCode', label: 'Python program', short: true, value: '' });
+    var runBtn = h('button', { class: 'btn primary', text: 'Check my code', onclick: run });
+    function load(i) {
+      task = TASKS[i]; brief.textContent = task.brief;
+      ed.set(T.store('py-' + task.id) || task.starter); results.textContent = '';
+      status.className = 'msg'; status.textContent = 'Write your program, then press Check my code. Python loads the first time you check, which can take up to a minute.';
+    }
+    sel.addEventListener('change', function () { load(+sel.value); });
+    ed.ta.addEventListener('input', function () { T.store('py-' + task.id, ed.get()); });
+
+    function fail(text) { status.className = 'msg bad'; status.textContent = text; busy = false; runBtn.disabled = false; }
+    function newWorker() {
+      try { worker = new Worker('js/py-worker.js'); } catch (e) { worker = null; }
+      booted = false; return worker;
+    }
+    function ask(msg, ms) {
+      return new Promise(function (resolve, reject) {
+        var timer = setTimeout(function () { worker.terminate(); worker = null; reject({ timeout: true }); }, ms);
+        worker.onmessage = function (ev) { clearTimeout(timer); if (ev.data.type === 'failed') reject({ error: ev.data.error }); else resolve(ev.data); };
+        worker.onerror = function (ev) { clearTimeout(timer); reject({ error: ev.message || 'worker error' }); };
+        worker.postMessage(msg);
+      });
+    }
+    function ensure() {
+      if (worker && booted) return Promise.resolve();
+      if (!worker && !newWorker()) return Promise.reject({ error: 'no worker' });
+      status.className = 'msg'; status.textContent = 'Loading Python\u2026';
+      return ask({ type: 'boot' }, 90000).then(function () { booted = true; });
+    }
+    function row(name, ok, msg) {
+      return h('div', { class: 'msg ' + (ok ? 'good' : 'bad') }, [h('b', { text: (ok ? 'PASS  ' : 'FIX  ') + name }), msg ? h('div', { text: msg }) : null]);
+    }
+    function run() {
+      if (busy) return; busy = true; runBtn.disabled = true; results.textContent = '';
+      var src = ed.get(), i = 0, passed = 0, seen = {};
+      function next() {
+        if (i >= task.tests.length) {
+          status.className = 'msg ' + (passed === task.tests.length ? 'good' : '');
+          status.textContent = 'Score: ' + passed + ' out of ' + task.tests.length + '. ' + (passed === task.tests.length ? 'Every test passed.' : 'Fix the first FIX item, then check again.');
+          busy = false; runBtn.disabled = false; return;
+        }
+        var t = task.tests[i];
+        status.textContent = 'Running test ' + (i + 1) + ' of ' + task.tests.length + '\u2026';
+        ensure().then(function () { return ask({ type: 'run', id: i, source: src, test: t }, 6000); }).then(function (d) {
+          var r = d.result; if (r.ok) passed++;
+          var msg = r.msg; if (msg && seen[msg]) msg = 'Same problem as above.'; seen[r.msg] = true;
+          results.appendChild(row(t.name, r.ok, msg)); i++; next();
+        }, function (e) {
+          if (e.timeout && booted) {
+            results.appendChild(row(t.name, false, 'Your program did not finish within a few seconds. This usually means a loop never ends. Check that the loop condition can become False.'));
+            i++; next();
+          } else {
+            fail('Python could not be loaded in this view, so code cannot be checked here. Teachers can use the downloadable grader (python-autograder.zip) instead.');
+          }
+        });
+      }
+      next();
+    }
+
+    view.appendChild(h('div', { class: 'view-head' }, [
+      h('span', { class: 'tag', text: 'Practice with instant feedback' }),
+      h('h1', { text: 'Python check' }),
+      h('p', { text: 'Choose a task, write the program and check it. Each test says what was expected and what your program did.' })
+    ]));
+    view.appendChild(h('div', { class: 'grid2 wide-left' }, [
+      h('div', { class: 'panel' }, [h('div', { class: 'row' }, [sel]), brief, ed.el, h('div', { class: 'row' }, [runBtn])]),
+      h('div', { class: 'panel' }, [h('h3', { text: 'Feedback' }), status, results])
+    ]));
+    load(0);
+  });
+})();

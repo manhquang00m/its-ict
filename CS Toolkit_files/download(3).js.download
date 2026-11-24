@@ -1,0 +1,224 @@
+/* Pseudocode runner screen. */
+(function () {
+  'use strict';
+  var T = window.Toolkit, h = T.h;
+
+  T.register('pseudocode', function (view) {
+    var EX = window.PseudoExamples, P = window.Pseudo;
+    var saved = T.store('pseudo-code');
+    var ed = T.editor({ id: 'pseudoCode', label: 'Pseudocode program', arrow: true, value: saved || EX[0].code, onchange: function () { T.store('pseudo-code', ed.get()); } });
+
+    var sel = h('select', { id: 'pseudoExample', 'aria-label': 'Load an example' }, [h('option', { value: '', text: 'Load an example…' })]);
+    var groups = {};
+    EX.forEach(function (e, i) {
+      if (!groups[e.group]) { groups[e.group] = h('optgroup', { label: e.group }); sel.appendChild(groups[e.group]); }
+      groups[e.group].appendChild(h('option', { value: String(i), text: e.name }));
+    });
+    sel.addEventListener('change', function () {
+      if (sel.value === '') return;
+      reset(); ed.set(EX[+sel.value].code); T.store('pseudo-code', ed.get()); sel.value = '';
+    });
+
+    var runBtn = h('button', { class: 'btn primary', id: 'pseudoRun', text: 'Run', onclick: function () { go(false); } });
+    var stepBtn = h('button', { class: 'btn', id: 'pseudoStep', text: 'Step', onclick: function () { go(true); } });
+    var stopBtn = h('button', { class: 'btn', id: 'pseudoStop', text: 'Reset', onclick: function () { reset(); } });
+    var strict = h('input', { type: 'checkbox', id: 'pseudoStrict' });
+    var arrowBtn = h('button', { class: 'btn sm', text: 'Insert ←', title: 'Insert the assignment arrow', onclick: function () { ed.insert('← '); } });
+
+    var out = h('div', { class: 'console', id: 'pseudoOut', 'aria-live': 'polite' });
+    var inField = h('input', { type: 'text', id: 'pseudoInput', autocomplete: 'off', 'aria-label': 'Program input' });
+    var inRow = h('form', { class: 'inrow', style: 'display:none' }, [inField, h('button', { class: 'btn primary', type: 'submit', text: 'Enter' })]);
+    inRow.addEventListener('submit', function (e) { e.preventDefault(); submitInput(); });
+    var status = h('p', { class: 'note', id: 'pseudoStatus', text: 'Press Run to execute the whole program, or Step to go one line at a time.' });
+
+    var varsBox = h('div', { class: 'tablebox' });
+    var traceBox = h('div', { class: 'tablebox' });
+    var filesBox = h('div', { class: 'col', style: 'gap:8px' });
+
+    view.appendChild(h('div', { class: 'view-head' }, [
+      h('span', { class: 'tag', text: 'Cambridge pseudocode · 0478 and 9618' }),
+      h('h1', { text: 'Pseudocode runner' }),
+      h('p', { text: 'Write pseudocode exactly as it appears in the exam, then run it. Type <- to get the assignment arrow. Keywords are in capitals.' })
+    ]));
+    view.appendChild(h('div', { class: 'grid2 wide-left' }, [
+      h('div', { class: 'col' }, [
+        h('div', { class: 'panel' }, [
+          h('div', { class: 'row' }, [sel, arrowBtn, h('label', { class: 'chk', for: 'pseudoStrict' }, [strict, 'Every variable must be declared'])]),
+          ed.el,
+          h('div', { class: 'row' }, [runBtn, stepBtn, stopBtn]),
+          status
+        ])
+      ]),
+      h('div', { class: 'col' }, [
+        h('div', { class: 'panel' }, [h('h3', { text: 'Output' }), out, inRow]),
+        h('div', { class: 'panel' }, [h('h3', { text: 'Variables' }), varsBox]),
+        h('div', { class: 'panel' }, [h('h3', { text: 'Trace table' }), h('p', { class: 'note', text: 'A new row appears each time a value changes or something is output, the same way you complete one in Paper 2.' }), traceBox]),
+        h('div', { class: 'panel' }, [h('h3', { text: 'Text files' }), filesBox])
+      ])
+    ]));
+
+    /* ----- run state ----- */
+    var it = null, gen = null, waiting = false, finished = false, timer = null, stepMode = false;
+    var files = {}, trace, cols, prevSnap, pendingOut, lastLine;
+
+    function reset() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      it = null; gen = null; waiting = false; finished = false;
+      out.textContent = ''; inRow.style.display = 'none';
+      ed.mark(0); varsBox.textContent = ''; traceBox.textContent = '';
+      status.textContent = 'Press Run to execute the whole program, or Step to go one line at a time.';
+      runBtn.disabled = false; stepBtn.disabled = false; runBtn.textContent = 'Run';
+      renderFiles();
+    }
+
+    function print(text, cls) { out.appendChild(h('div', { class: cls || '', text: text })); out.scrollTop = out.scrollHeight; }
+
+    function begin() {
+      out.textContent = '';
+      trace = []; cols = []; prevSnap = {}; pendingOut = []; lastLine = 0;
+      var copy = {};
+      Object.keys(files).forEach(function (k) { copy[k] = files[k].slice(); });
+      try {
+        it = new P.Interp(ed.get(), { strict: strict.checked, files: copy, output: function (s) { print(s); pendingOut.push(s); } });
+      } catch (e) { fail(e); return false; }
+      gen = it.start(); finished = false; waiting = false;
+      return true;
+    }
+
+    function fail(e) {
+      if (!(e instanceof P.PseudoError)) { print('Something unexpected went wrong: ' + e.message, 'errline'); }
+      else { print((e.line ? 'Line ' + e.line + ': ' : '') + e.message, 'errline'); if (e.line) ed.mark(e.line, true); }
+      status.textContent = 'The program stopped because of an error. Fix the highlighted line and run again.';
+      finished = true; gen = null; inRow.style.display = 'none'; waiting = false;
+      runBtn.textContent = 'Run'; renderVars(); renderTrace();
+    }
+
+    function record(line) {
+      // Compare variables with the previous snapshot; add a trace row when something changed.
+      var snap = it.snapshot(), row = { line: line, vals: {}, out: pendingOut.join(' / ') }, changed = pendingOut.length > 0;
+      pendingOut = [];
+      var now = {};
+      snap.forEach(function (v) {
+        if (v.isConst) return;
+        var key = v.name;
+        now[key] = v.text;
+        if (cols.indexOf(key) < 0 && v.text !== '') cols.push(key);
+        if (prevSnap[key] !== v.text && v.text !== '') { row.vals[key] = v.text; changed = true; }
+      });
+      prevSnap = now;
+      if (changed && trace.length < 400) trace.push(row);
+    }
+
+    function advance(single) {
+      var budget = single ? 1 : 20000, r;
+      try {
+        while (budget-- > 0) {
+          r = gen.next();
+          if (r.done) { record(lastLine); return done(); }
+          if (r.value.type === 'step') {
+            if (lastLine) record(lastLine);
+            lastLine = r.value.line;
+            if (single) { ed.mark(lastLine); status.textContent = 'Line ' + lastLine + ' runs next.'; renderVars(); renderTrace(); return; }
+          } else if (r.value.type === 'input') {
+            return askInput(r.value);
+          }
+        }
+      } catch (e) { return fail(e); }
+      timer = setTimeout(function () { timer = null; advance(false); }, 0);
+    }
+
+    function askInput(req) {
+      waiting = true; ed.mark(req.line); renderVars(); renderTrace();
+      inRow.style.display = 'flex'; inField.value = ''; inField.placeholder = 'Type a value for ' + req.name;
+      status.textContent = 'Line ' + req.line + ' is waiting for input.';
+      inField.focus();
+    }
+
+    function submitInput() {
+      if (!waiting) return;
+      var text = inField.value;
+      print('> ' + text, 'in');
+      waiting = false; inRow.style.display = 'none';
+      var r;
+      try { r = gen.next(text); } catch (e) { return fail(e); }
+      handleAfterInput(r);
+    }
+
+    function handleAfterInput(r) {
+      // The generator has consumed the input and moved on; treat the result like a normal advance.
+      if (r.done) { record(lastLine); return done(); }
+      if (r.value.type === 'input') return askInput(r.value);
+      if (r.value.type === 'step') {
+        record(lastLine); lastLine = r.value.line;
+        if (stepMode) { ed.mark(lastLine); status.textContent = 'Line ' + lastLine + ' runs next.'; renderVars(); renderTrace(); return; }
+      }
+      advance(false);
+    }
+
+    function done() {
+      finished = true; gen = null; ed.mark(0);
+      print('Program finished.', 'done');
+      status.textContent = 'Finished in ' + it.steps + ' steps.';
+      runBtn.textContent = 'Run';
+      files = it.files;
+      renderVars(); renderTrace(); renderFiles();
+    }
+
+    function go(single) {
+      if (waiting) { inField.focus(); return; }
+      if (timer) return;
+      if (!gen || finished) { if (!begin()) return; }
+      stepMode = single;
+      if (!single) { ed.mark(0); status.textContent = 'Running…'; }
+      advance(single);
+    }
+
+    function renderVars() {
+      varsBox.textContent = '';
+      if (!it) return;
+      var snap = it.snapshot();
+      if (!snap.length) { varsBox.appendChild(h('p', { class: 'note', text: 'No variables yet.' })); return; }
+      var tb = h('tbody');
+      snap.forEach(function (v) {
+        tb.appendChild(h('tr', {}, [h('td', { text: v.name }), h('td', { text: v.isConst ? 'CONSTANT' : v.type }), h('td', { text: v.scope }), h('td', { text: v.text === '' ? '(no value)' : (typeof v.value === 'string' ? '"' + v.text + '"' : v.text) })]));
+      });
+      varsBox.appendChild(h('table', { class: 't' }, [h('thead', {}, [h('tr', {}, [h('th', { text: 'Name' }), h('th', { text: 'Type' }), h('th', { text: 'Scope' }), h('th', { text: 'Value' })])]), tb]));
+    }
+
+    function renderTrace() {
+      traceBox.textContent = '';
+      if (!trace || !trace.length) return;
+      var head = h('tr', {}, [h('th', { text: 'Line' })]);
+      cols.forEach(function (c) { head.appendChild(h('th', { text: c })); });
+      head.appendChild(h('th', { text: 'OUTPUT' }));
+      var tb = h('tbody');
+      trace.forEach(function (r) {
+        var tr = h('tr', {}, [h('td', { text: String(r.line) })]);
+        cols.forEach(function (c) { tr.appendChild(h('td', { text: r.vals[c] === undefined ? '' : r.vals[c] })); });
+        tr.appendChild(h('td', { text: r.out }));
+        tb.appendChild(tr);
+      });
+      traceBox.appendChild(h('table', { class: 't' }, [h('thead', {}, [head]), tb]));
+      if (trace.length >= 400) traceBox.appendChild(h('p', { class: 'note', text: 'Only the first 400 rows are shown.' }));
+      traceBox.scrollTop = traceBox.scrollHeight;
+    }
+
+    function renderFiles() {
+      filesBox.textContent = '';
+      var names = Object.keys(files);
+      if (!names.length) filesBox.appendChild(h('p', { class: 'note', text: 'No files yet. Files your program writes appear here. You can also add one for your program to read.' }));
+      names.forEach(function (n) {
+        var ta = h('textarea', { rows: String(Math.min(6, Math.max(2, files[n].length))), style: 'width:100%;font-family:var(--font-code);font-size:13px;background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:6px', 'aria-label': 'Contents of ' + n });
+        ta.value = files[n].join('\n');
+        ta.addEventListener('input', function () { files[n] = ta.value === '' ? [] : ta.value.split('\n'); });
+        filesBox.appendChild(h('div', {}, [h('div', { class: 'row' }, [h('b', { class: 'mono', text: n }), h('button', { class: 'btn sm', text: 'Delete', onclick: function () { delete files[n]; renderFiles(); } })]), ta]));
+      });
+      var nameIn = h('input', { type: 'text', id: 'pseudoNewFile', placeholder: 'Data.txt', 'aria-label': 'New file name', style: 'max-width:160px' });
+      filesBox.appendChild(h('div', { class: 'row' }, [nameIn, h('button', { class: 'btn sm', text: 'Add file', onclick: function () {
+        var n = nameIn.value.trim(); if (!n || files[n]) return; files[n] = []; renderFiles();
+      } })]));
+    }
+
+    renderFiles();
+  });
+})();

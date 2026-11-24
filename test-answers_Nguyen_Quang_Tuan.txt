@@ -1,0 +1,138 @@
+45-MINUTE TEST — Data Representation / Data Transmission & Encryption
+Name: Nguyen Quang Tuan
+Class: TC28
+Time taken: 39:46 / 45:00
+Multiple choice: 20/22
+Short answer / calculations: marked by teacher
+
+Q1 [1.1] MCQ: 15  -> wrong
+Q2 [1.1] MCQ: 65536  -> wrong
+Q3 [1.2] MCQ: 15  -> correct
+Q4 [1.2] MCQ: A space  -> correct
+Q5 [1.3] MCQ: The result is no longer exact — the remainder is lost  -> correct
+Q6 [1.3] MCQ: The largest positive value is +127  -> correct
+Q7 [1.4] MCQ: No — the character '5' has its own character code (53 in ASCII)  -> correct
+Q8 [1.4] MCQ: 32  -> correct
+Q9 [1.5] MCQ: The number of samples taken per second  -> correct
+Q10 [1.5] MCQ: divide by 8  -> correct
+Q11 [1.6] MCQ: The number of bits used to represent the colour of each pixel  -> correct
+Q12 [1.6] MCQ: It is multiplied by 4  -> correct
+Q13 [1.7] MCQ: Nibble  -> correct
+Q14 [1.7] MCQ: To reduce storage costs, as they pay for the space used  -> correct
+Q15 [1.1] (3 marks): Convert the denary number 203 to an 8-bit binary number. Show your working. [3]
+Answer: 203 to binary is 11001011
+128 - 1
+64 -1
+8- 1
+2 - 1
+1 -1 
+
+Q16 [1.1] (3 marks): A game stores the player's score in an 8-bit register. The score is currently 240 and the player earns 25 more points.
+(a) Explain what goes wrong when the program adds the points. [2]
+(b) Suggest one change the programmer could make to stop this from happening. [1]
+Answer: a, an overflow error occur because 240 + 25 = 265, but a 8 bit register can only store 255 so it can cause the program to stop working
+b, The programmer can change the register to 16 bit instead to store more value
+
+Q17 [1.2] (2 marks): Convert the denary number 218 to hexadecimal. Show your working. [2]
+Answer: hexadecimal = DA
+218/16 =13 reminder 10
+13 = D
+10 = A
+
+Q18 [1.2] (3 marks): Programmers often show memory addresses in hexadecimal rather than in binary.
+Describe two reasons why. Also state whether the computer itself processes data in hexadecimal. [3]
+Answer: Hexademical is much shorter to read and write as they use fewer digit to represent the data ,which can help programmer to reduce the chance of error where it is easy to remember and understand compare to bit.
+
+Q19 [1.3] (3 marks): Represent the denary number −45 as an 8-bit two's complement binary number. Show each step of your working. [3]
+Answer: 45 denary = 00101101 bit
+invert all the bit, flip the bit
+= 11010010
+add 1 to the end
+11010011
+-> -45
+
+Q20 [1.3] (2 marks): The 8-bit register below holds 00001101 (denary 13). Show the contents of the register after a logical left shift of 2 places, and give its denary value. [2]
+Answer: 00110100 which help the bit to increase it value and the value is  52
+
+Q21 [1.4] (2 marks): (a) State what is meant by a character set . [1]
+(b) State the number of different characters that 7-bit ASCII can represent. [1]
+Answer: a,character set is a full list of characters a computer can represent with their code
+b, 128
+
+Q22 [1.4] (3 marks): The binary codes 01000011 01000001 01010100 are 8-bit ASCII codes for three capital letters. Use the fact that 'A' = 65 to decode them. Show the denary value of each code and write the word. [3]
+Answer: 01000011 = 67 01000001= 65 01010100 =64 
+65  = A so 67 = C and 64 = T
+THE word is "CAT"
+
+Q23 [1.5] (2 marks): (a) State what is meant by the sample resolution . [1]
+(b) State the effect on the file size of increasing the sample resolution. [1]
+Answer: a, The number of bit used to stored each sample
+b,Increasing the sample resolution increases the file size.
+
+Q24 [1.5] (3 marks): A mono sound clip lasts 5 seconds. It is recorded with a sample rate of 8000 Hz and a sample resolution of 8 bits.
+Calculate the file size in KiB. Show your working. [3]
+Answer: (left blank)
+
+Q25 [1.6] (3 marks): A bitmap image is 640 pixels wide and 480 pixels high. It has a colour depth of 8 bits.
+Calculate the file size in KiB. Show your working. [3]
+Answer: total pixel = 640 x 480 = 307200
+KIB = 307200 / 1024 = 300
+
+Q26 [1.6] (3 marks): A photographer increases the resolution and the colour depth of the photographs her camera takes.
+Describe the effect on the image quality and on the file size. [3]
+Answer: Increasing resolution and colour depth improves the image quality and increasing the file size.
+
+
+Q27 [1.7] (2 marks): State one difference between lossy and lossless compression. [2]
+Answer: lossless  can be reduce the size without permanently losing and data however lossy is file reduce by reduce data permanently remove data.
+
+Q28 [1.7] (3 marks): One row of pixels in an image is shown below (W = white, B = black).
+WWWWBBBWWWWWWBW
+(a) Show how run-length encoding (RLE) would store this row. [2]
+(b) State how many characters the original row has and how many the encoded row has. [1]
+Answer: a,RLE will group the word into 1 value as finding identical word
+b,original = 15 Now = 4W 3B 6W 1B 1W -> 5
+
+Q29 [2.1] MCQ: So the packets can be put back in the correct order when they arrive  -> correct
+Q30 [2.1] MCQ: 2, 3, 1  -> correct
+Q31 [2.2] MCQ: Several bits are sent at the same time down several wires  -> correct
+Q32 [2.2] MCQ: The standard cable length is limited (about 5 m)  -> correct
+Q33 [2.3] MCQ: data loss  -> correct
+Q34 [2.3] MCQ: Two bits being changed in the same byte  -> correct
+Q35 [2.4] MCQ: Online banking details  -> correct
+Q36 [2.4] MCQ: One — the same key encrypts and decrypts  -> correct
+Q37 [2.1] (2 marks): State two items of data that are stored in a packet header. [2]
+Answer: Destination IP address 
+Packet Number
+
+Q38 [2.1] (3 marks): A file of 1 000 000 bytes is sent across a network. Each packet carries a payload of 1 500 bytes (the last packet may carry less). The header and trailer of each packet together add 40 bytes.
+Calculate the number of packets needed. [2]
+Calculate the total number of extra bytes (header and trailer) sent. [1]
+Answer: (left blank)
+
+Q39 [2.2] (2 marks): State the difference between simplex and full-duplex data transmission. [2]
+Answer: Simplex is travel in only one direction, full duplex travel in both direction at the same time
+
+Q40 [2.2] (4 marks): A student plugs a new USB memory stick into a computer. Describe what happens so that the memory stick can be used. [4]
+Answer: The computer auto detect that a USB has been detect and find a suitable driver to upload to help the computer communicate with USB. The memory stick appears in the file manager, allowing the student to read and write files.
+
+Q41 [2.3] (2 marks): State two types of error that can happen to data during transmission. [2]
+Answer: Data loss and data change
+
+Q42 [2.3] (2 marks): A parity bit is added to the left of each 7-bit value. Write down the complete 8-bit byte in each case.
+1100101 using even parity [1]
+0101110 using odd parity [1]
+Answer: 01100101
+10101110
+
+Q43 [2.3] (3 marks): The first 12 digits of an ISBN-13 are 978123456789. Calculate the check digit using the ISBN-13 method (multiply the digits alternately by 1 and 3, add them, find the remainder after dividing by 10 and subtract it from 10; a result of 10 becomes 0). Show your working. [3]
+Answer: (left blank)
+
+Q44 [2.4] (3 marks): A Caesar cipher uses a key of 4: each letter is moved 4 places forward in the alphabet when encrypting.
+Encrypt the word CODE . [1]
+Decrypt the ciphertext LIPPS . [1]
+State whether this is symmetric or asymmetric encryption and give a reason. [1]
+Answer: (left blank)
+
+Q45 [2.4] (4 marks): Describe how symmetric encryption works and give its main problem. [4]
+Answer: Symmetric encryption use 1keys , key use for both encrypt and decrypt the data when send from sender to user, the encryption make the data meaningless and the hacker cannot understand. And the user use the same key get send from the sender to decrypt the data. The main problem is that symmetric encryption key can be hacked because it get send through the internet and can easily get stolen.

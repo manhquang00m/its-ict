@@ -1,0 +1,1058 @@
+/* Cambridge pseudocode interpreter (IGCSE 0478 and AS/A Level 9618 style).
+   Pure logic, no DOM. Works in the browser (window.Pseudo) and in Node (module.exports). */
+(function (root) {
+  'use strict';
+
+  var KEYWORDS = ('DECLARE CONSTANT INPUT OUTPUT IF THEN ELSE ENDIF CASE OF OTHERWISE ENDCASE FOR TO STEP NEXT ' +
+    'WHILE DO ENDWHILE REPEAT UNTIL PROCEDURE ENDPROCEDURE FUNCTION RETURNS ENDFUNCTION RETURN CALL AND OR NOT ' +
+    'DIV MOD TRUE FALSE ARRAY INTEGER REAL CHAR STRING BOOLEAN DATE BYREF BYVAL TYPE ENDTYPE OPENFILE READFILE ' +
+    'WRITEFILE CLOSEFILE READ WRITE APPEND').split(' ');
+  var KW = {};
+  KEYWORDS.forEach(function (k) { KW[k] = true; });
+  var BASE_TYPES = { INTEGER: 1, REAL: 1, CHAR: 1, STRING: 1, BOOLEAN: 1, DATE: 1 };
+
+  function PseudoError(message, line) {
+    this.name = 'PseudoError';
+    this.message = message;
+    this.line = line || 0;
+  }
+  PseudoError.prototype = Object.create(Error.prototype);
+
+  /* ---------- Tokenizer ---------- */
+  function tokenize(src) {
+    var lines = src.replace(/\r\n?/g, '\n').split('\n');
+    var toks = [];
+    for (var ln = 0; ln < lines.length; ln++) {
+      var s = lines[ln].replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+      var i = 0, n = s.length, lineNo = ln + 1, count = 0;
+      while (i < n) {
+        var c = s[i];
+        if (c === ' ' || c === '\t') { i++; continue; }
+        if (c === '/' && s[i + 1] === '/') break;
+        var m;
+        if (c === '"') {
+          var j = s.indexOf('"', i + 1);
+          if (j < 0) throw new PseudoError('This string is missing its closing quote (").', lineNo);
+          toks.push({ t: 'str', v: s.slice(i + 1, j), line: lineNo }); i = j + 1; count++; continue;
+        }
+        if (c === "'") {
+          var j2 = s.indexOf("'", i + 1);
+          if (j2 < 0) throw new PseudoError("This character is missing its closing quote (').", lineNo);
+          var body = s.slice(i + 1, j2);
+          if (body.length !== 1) throw new PseudoError("A CHAR holds exactly one character in single quotes, like 'A'. Use double quotes for a STRING.", lineNo);
+          toks.push({ t: 'chr', v: body, line: lineNo }); i = j2 + 1; count++; continue;
+        }
+        if ((m = /^\d+(\.\d+)?/.exec(s.slice(i)))) {
+          toks.push({ t: 'num', v: parseFloat(m[0]), real: !!m[1], line: lineNo }); i += m[0].length; count++; continue;
+        }
+        if ((m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(s.slice(i)))) {
+          var w = m[0];
+          toks.push({ t: KW[w] ? 'kw' : 'id', v: w, line: lineNo }); i += w.length; count++; continue;
+        }
+        var two = s.slice(i, i + 2);
+        if (two === '<-') { toks.push({ t: 'op', v: '←', line: lineNo }); i += 2; count++; continue; }
+        if (two === '<=' || two === '>=' || two === '<>') { toks.push({ t: 'op', v: two, line: lineNo }); i += 2; count++; continue; }
+        if (c === '←') { toks.push({ t: 'op', v: '←', line: lineNo }); i++; count++; continue; }
+        if (c === '≤') { toks.push({ t: 'op', v: '<=', line: lineNo }); i++; count++; continue; }
+        if (c === '≥') { toks.push({ t: 'op', v: '>=', line: lineNo }); i++; count++; continue; }
+        if (c === '≠') { toks.push({ t: 'op', v: '<>', line: lineNo }); i++; count++; continue; }
+        if ('=<>+-*/^&()[],:.'.indexOf(c) >= 0) { toks.push({ t: 'op', v: c, line: lineNo }); i++; count++; continue; }
+        throw new PseudoError('I do not recognise the symbol "' + c + '".', lineNo);
+      }
+      if (count) toks.push({ t: 'nl', line: lineNo });
+    }
+    toks.push({ t: 'eof', line: lines.length });
+    return toks;
+  }
+
+  /* ---------- Parser ---------- */
+  function Parser(toks) { this.toks = toks; this.p = 0; }
+  var P = Parser.prototype;
+  P.peek = function (o) { return this.toks[this.p + (o || 0)]; };
+  P.next = function () { return this.toks[this.p++]; };
+  P.isKw = function (v, o) { var t = this.peek(o); return t.t === 'kw' && t.v === v; };
+  P.isOp = function (v, o) { var t = this.peek(o); return t.t === 'op' && t.v === v; };
+  P.describe = function (t) {
+    if (t.t === 'nl') return 'the end of the line';
+    if (t.t === 'eof') return 'the end of the program';
+    if (t.t === 'str') return '"' + t.v + '"';
+    return '"' + t.v + '"';
+  };
+  P.fail = function (msg, t) {
+    t = t || this.peek();
+    // Hint when a keyword was typed in lower case somewhere on the line.
+    var hint = '';
+    for (var i = 0; i < this.toks.length; i++) {
+      var k = this.toks[i];
+      if (k.line === t.line && k.t === 'id' && KW[k.v.toUpperCase()] && k.v !== k.v.toUpperCase() &&
+          ['IF', 'THEN', 'ELSE', 'ENDIF', 'FOR', 'NEXT', 'WHILE', 'ENDWHILE', 'REPEAT', 'UNTIL', 'OUTPUT', 'INPUT', 'DECLARE', 'DO'].indexOf(k.v.toUpperCase()) >= 0) {
+        hint = ' Keywords are written in capitals: ' + k.v.toUpperCase() + '.'; break;
+      }
+    }
+    throw new PseudoError(msg + hint, t.line);
+  };
+  P.expectKw = function (v, ctx) {
+    if (!this.isKw(v)) this.fail('Expected ' + v + (ctx ? ' ' + ctx : '') + ' but found ' + this.describe(this.peek()) + '.');
+    return this.next();
+  };
+  P.expectOp = function (v, ctx) {
+    if (!this.isOp(v)) this.fail('Expected "' + v + '"' + (ctx ? ' ' + ctx : '') + ' but found ' + this.describe(this.peek()) + '.');
+    return this.next();
+  };
+  P.expectId = function (ctx) {
+    var t = this.peek();
+    if (t.t !== 'id') this.fail('Expected a name' + (ctx ? ' ' + ctx : '') + ' but found ' + this.describe(t) + '.');
+    return this.next();
+  };
+  P.skipNl = function () { while (this.peek().t === 'nl') this.p++; };
+
+  P.parseProgram = function () {
+    var body = this.parseBlock([]);
+    if (this.peek().t !== 'eof') this.fail('Unexpected ' + this.describe(this.peek()) + '. It does not match any open block.');
+    return body;
+  };
+
+  P.parseBlock = function (enders) {
+    var out = [];
+    for (;;) {
+      this.skipNl();
+      var t = this.peek();
+      if (t.t === 'eof') {
+        if (enders.length) this.fail('The program ended but ' + enders[enders.length - 1] + ' is missing.', t);
+        return out;
+      }
+      if (t.t === 'kw' && enders.indexOf(t.v) >= 0) return out;
+      out.push(this.parseStatement());
+    }
+  };
+
+  P.parseType = function () {
+    var t = this.peek();
+    if (t.t === 'kw' && t.v === 'ARRAY') {
+      this.next();
+      var dims = [];
+      if (this.isOp('[')) {
+        this.next();
+        do {
+          var lo = this.parseExpr(); this.expectOp(':', 'between the array bounds, like ARRAY[1:10]');
+          var hi = this.parseExpr(); dims.push([lo, hi]);
+        } while (this.isOp(',') && this.next());
+        this.expectOp(']');
+      }
+      this.expectKw('OF', 'after the array bounds');
+      return { array: true, dims: dims, of: this.parseType() };
+    }
+    if (t.t === 'kw' && BASE_TYPES[t.v]) { this.next(); return { base: t.v }; }
+    if (t.t === 'id') { this.next(); return { base: t.v, record: true }; }
+    this.fail('Expected a data type (INTEGER, REAL, CHAR, STRING, BOOLEAN) but found ' + this.describe(t) + '.');
+  };
+
+  P.parseParams = function () {
+    var params = [];
+    if (!this.isOp('(')) return params;
+    this.next();
+    var mode = 'BYVAL';
+    if (!this.isOp(')')) {
+      do {
+        if (this.isKw('BYREF') || this.isKw('BYVAL')) mode = this.next().v;
+        var name = this.expectId('for the parameter').v;
+        this.expectOp(':', 'then the parameter type');
+        params.push({ name: name, type: this.parseType(), mode: mode });
+      } while (this.isOp(',') && this.next());
+    }
+    this.expectOp(')');
+    return params;
+  };
+
+  P.parseFileName = function () {
+    var t = this.peek();
+    if (t.t === 'str') { this.next(); return { k: 'lit', v: t.v }; }
+    var s = '';
+    while (this.peek().t === 'id' || this.isOp('.')) s += this.next().v;
+    if (!s) this.fail('Expected a file name here.');
+    return { k: 'lit', v: s };
+  };
+
+  P.lineHasColon = function () {
+    var depth = 0;
+    for (var i = this.p; ; i++) {
+      var t = this.toks[i];
+      if (t.t === 'nl' || t.t === 'eof') return false;
+      if (t.t === 'op') {
+        if (t.v === '(' || t.v === '[') depth++;
+        else if (t.v === ')' || t.v === ']') depth--;
+        else if (t.v === ':' && depth === 0) return true;
+      }
+    }
+  };
+
+  P.parseStatement = function () {
+    var t = this.peek(), line = t.line, self = this;
+    if (t.t === 'kw') {
+      switch (t.v) {
+        case 'DECLARE': {
+          this.next();
+          var names = [this.expectId('after DECLARE').v];
+          while (this.isOp(',')) { this.next(); names.push(this.expectId().v); }
+          this.expectOp(':', 'then the data type, like DECLARE Total : INTEGER');
+          return { k: 'declare', names: names, type: this.parseType(), line: line };
+        }
+        case 'CONSTANT': {
+          this.next();
+          var cn = this.expectId('after CONSTANT').v;
+          if (this.isOp('=') || this.isOp('←')) this.next(); else this.fail('Expected = after the constant name, like CONSTANT Pi = 3.14');
+          return { k: 'const', name: cn, expr: this.parseExpr(), line: line };
+        }
+        case 'INPUT': {
+          this.next();
+          var targets = [this.parseLvalue()];
+          while (this.isOp(',')) { this.next(); targets.push(this.parseLvalue()); }
+          return { k: 'input', targets: targets, line: line };
+        }
+        case 'OUTPUT': {
+          this.next();
+          var items = [this.parseExpr()];
+          while (this.isOp(',')) { this.next(); items.push(this.parseExpr()); }
+          return { k: 'output', items: items, line: line };
+        }
+        case 'IF': {
+          this.next();
+          var cond = this.parseExpr();
+          this.skipNl(); this.expectKw('THEN', 'after the IF condition');
+          var thenB = this.parseBlock(['ELSE', 'ENDIF']), elseB = null;
+          if (this.isKw('ELSE')) { this.next(); elseB = this.parseBlock(['ENDIF']); }
+          this.expectKw('ENDIF');
+          return { k: 'if', cond: cond, then: thenB, else: elseB, line: line };
+        }
+        case 'CASE': {
+          this.next(); this.expectKw('OF', 'after CASE');
+          var subj = this.parseExpr(), clauses = [], other = null;
+          for (;;) {
+            this.skipNl();
+            if (this.isKw('ENDCASE')) { this.next(); break; }
+            if (this.peek().t === 'eof') this.fail('The program ended but ENDCASE is missing.');
+            if (this.isKw('OTHERWISE')) {
+              this.next(); if (this.isOp(':')) this.next();
+              other = this.parseCaseBody();
+              continue;
+            }
+            if (!this.lineHasColon()) this.fail('Each CASE option needs a value then a colon, like  1 : OUTPUT "One"');
+            var tests = [];
+            do {
+              var a = this.parseExpr();
+              if (this.isKw('TO')) { this.next(); tests.push({ lo: a, hi: this.parseExpr() }); }
+              else tests.push({ eq: a });
+            } while (this.isOp(',') && this.next());
+            this.expectOp(':');
+            clauses.push({ tests: tests, body: this.parseCaseBody(), line: this.peek().line });
+          }
+          return { k: 'case', subj: subj, clauses: clauses, other: other, line: line };
+        }
+        case 'FOR': {
+          this.next();
+          var v = this.expectId('for the loop counter').v;
+          this.expectOp('←', 'after the loop counter, like FOR Count ← 1 TO 10');
+          var from = this.parseExpr(); this.expectKw('TO', 'in the FOR loop');
+          var to = this.parseExpr(), step = null;
+          if (this.isKw('STEP')) { this.next(); step = this.parseExpr(); }
+          var body = this.parseBlock(['NEXT']);
+          this.expectKw('NEXT');
+          if (this.peek().t === 'id') {
+            var nx = this.next();
+            if (nx.v !== v) this.fail('This NEXT says "' + nx.v + '" but the loop counter is "' + v + '".', nx);
+          }
+          return { k: 'for', v: v, from: from, to: to, step: step, body: body, line: line };
+        }
+        case 'WHILE': {
+          this.next();
+          var wc = this.parseExpr();
+          if (this.isKw('DO')) this.next();
+          var wb = this.parseBlock(['ENDWHILE']); this.expectKw('ENDWHILE');
+          return { k: 'while', cond: wc, body: wb, line: line };
+        }
+        case 'REPEAT': {
+          this.next();
+          var rb = this.parseBlock(['UNTIL']);
+          var ul = this.expectKw('UNTIL').line;
+          return { k: 'repeat', body: rb, cond: this.parseExpr(), line: line, untilLine: ul };
+        }
+        case 'PROCEDURE': {
+          this.next();
+          var pn = this.expectId('for the procedure').v, pp = this.parseParams();
+          var pb = this.parseBlock(['ENDPROCEDURE']); this.expectKw('ENDPROCEDURE');
+          return { k: 'procdef', name: pn, params: pp, body: pb, line: line };
+        }
+        case 'FUNCTION': {
+          this.next();
+          var fn = this.expectId('for the function').v, fp = this.parseParams();
+          this.expectKw('RETURNS', 'then the type the function gives back');
+          var ft = this.parseType();
+          var fb = this.parseBlock(['ENDFUNCTION']); this.expectKw('ENDFUNCTION');
+          return { k: 'funcdef', name: fn, params: fp, returns: ft, body: fb, line: line };
+        }
+        case 'TYPE': {
+          this.next();
+          var tn = this.expectId('for the new type').v, fields = [];
+          for (;;) {
+            this.skipNl();
+            if (this.isKw('ENDTYPE')) { this.next(); break; }
+            this.expectKw('DECLARE', 'for each field inside TYPE');
+            var fname = this.expectId().v; this.expectOp(':');
+            fields.push({ name: fname, type: this.parseType() });
+          }
+          return { k: 'typedef', name: tn, fields: fields, line: line };
+        }
+        case 'RETURN': this.next(); return { k: 'return', expr: this.parseExpr(), line: line };
+        case 'CALL': {
+          this.next();
+          var cname = this.expectId('after CALL').v, args = [];
+          if (this.isOp('(')) {
+            this.next();
+            if (!this.isOp(')')) { do { args.push(this.parseExpr()); } while (this.isOp(',') && this.next()); }
+            this.expectOp(')');
+          }
+          return { k: 'call', name: cname, args: args, line: line };
+        }
+        case 'OPENFILE': {
+          this.next();
+          var f = this.parseFileName(); this.expectKw('FOR', 'then READ, WRITE or APPEND');
+          var md = this.peek();
+          if (!(md.t === 'kw' && (md.v === 'READ' || md.v === 'WRITE' || md.v === 'APPEND'))) this.fail('Expected READ, WRITE or APPEND after FOR.');
+          this.next();
+          return { k: 'openfile', file: f, mode: md.v, line: line };
+        }
+        case 'READFILE': {
+          this.next(); var rf = this.parseFileName(); this.expectOp(',', 'then the variable to read into');
+          return { k: 'readfile', file: rf, target: this.parseLvalue(), line: line };
+        }
+        case 'WRITEFILE': {
+          this.next(); var wf = this.parseFileName(); this.expectOp(',', 'then the data to write');
+          return { k: 'writefile', file: wf, expr: this.parseExpr(), line: line };
+        }
+        case 'CLOSEFILE': this.next(); return { k: 'closefile', file: this.parseFileName(), line: line };
+        case 'ELSE': case 'ENDIF': case 'NEXT': case 'ENDWHILE': case 'UNTIL': case 'ENDCASE':
+        case 'ENDPROCEDURE': case 'ENDFUNCTION': case 'OTHERWISE': case 'THEN': case 'ENDTYPE':
+          this.fail(t.v + ' appears here without a matching opening statement.');
+      }
+      this.fail('A statement cannot start with ' + t.v + '.');
+    }
+    if (t.t === 'id') {
+      var target = this.parseLvalue();
+      if (this.isOp('=')) this.fail('Use ← (type <-) to assign a value. The = sign only compares.');
+      if (!this.isOp('←')) {
+        if (target.k === 'var' && this.isOp('(')) this.fail('To run a procedure write CALL ' + target.name + '(...)');
+        this.fail('Expected ← (type <-) after "' + (target.name || 'the variable') + '" but found ' + this.describe(this.peek()) + '.');
+      }
+      this.next();
+      return { k: 'assign', target: target, expr: self.parseExpr(), line: line };
+    }
+    this.fail('A statement cannot start with ' + this.describe(t) + '.');
+  };
+
+  P.parseCaseBody = function () {
+    // Statements for one CASE option: up to the next option, OTHERWISE or ENDCASE.
+    var out = [];
+    for (;;) {
+      var hadNl = false;
+      while (this.peek().t === 'nl') { this.p++; hadNl = true; }
+      if (this.isKw('ENDCASE') || this.isKw('OTHERWISE') || this.peek().t === 'eof') return out;
+      if (hadNl && out.length && this.lineHasColon() && !this.isKw('DECLARE')) return out;
+      if (hadNl && !out.length && this.lineHasColon() && !this.isKw('DECLARE')) return out;
+      out.push(this.parseStatement());
+    }
+  };
+
+  P.parseLvalue = function () {
+    var t = this.expectId();
+    var node = { k: 'var', name: t.v, line: t.line };
+    for (;;) {
+      if (this.isOp('[')) {
+        this.next();
+        var idx = [this.parseExpr()];
+        while (this.isOp(',')) { this.next(); idx.push(this.parseExpr()); }
+        this.expectOp(']');
+        node = { k: 'index', base: node, idx: idx, line: t.line };
+      } else if (this.isOp('.') && this.peek(1).t === 'id') {
+        this.next();
+        node = { k: 'field', base: node, name: this.next().v, line: t.line };
+      } else return node;
+    }
+  };
+
+  P.parseExpr = function () { return this.parseOr(); };
+  P.parseOr = function () {
+    var l = this.parseAnd();
+    while (this.isKw('OR')) { var t = this.next(); l = { k: 'bin', op: 'OR', l: l, r: this.parseAnd(), line: t.line }; }
+    return l;
+  };
+  P.parseAnd = function () {
+    var l = this.parseNot();
+    while (this.isKw('AND')) { var t = this.next(); l = { k: 'bin', op: 'AND', l: l, r: this.parseNot(), line: t.line }; }
+    return l;
+  };
+  P.parseNot = function () {
+    if (this.isKw('NOT')) { var t = this.next(); return { k: 'un', op: 'NOT', e: this.parseNot(), line: t.line }; }
+    return this.parseCmp();
+  };
+  P.parseCmp = function () {
+    var l = this.parseAdd();
+    for (;;) {
+      var t = this.peek();
+      if (t.t === 'op' && ['=', '<>', '<', '>', '<=', '>='].indexOf(t.v) >= 0) {
+        this.next(); l = { k: 'bin', op: t.v, l: l, r: this.parseAdd(), line: t.line };
+      } else return l;
+    }
+  };
+  P.parseAdd = function () {
+    var l = this.parseMul();
+    for (;;) {
+      var t = this.peek();
+      if (t.t === 'op' && (t.v === '+' || t.v === '-' || t.v === '&')) {
+        this.next(); l = { k: 'bin', op: t.v, l: l, r: this.parseMul(), line: t.line };
+      } else return l;
+    }
+  };
+  P.parseMul = function () {
+    var l = this.parseUnary();
+    for (;;) {
+      var t = this.peek();
+      if ((t.t === 'op' && (t.v === '*' || t.v === '/')) || (t.t === 'kw' && (t.v === 'DIV' || t.v === 'MOD'))) {
+        this.next(); l = { k: 'bin', op: t.v, l: l, r: this.parseUnary(), line: t.line };
+      } else return l;
+    }
+  };
+  P.parseUnary = function () {
+    if (this.isOp('-')) { var t = this.next(); return { k: 'un', op: '-', e: this.parseUnary(), line: t.line }; }
+    if (this.isOp('+')) { this.next(); return this.parseUnary(); }
+    return this.parsePow();
+  };
+  P.parsePow = function () {
+    var b = this.parsePrimary();
+    if (this.isOp('^')) { var t = this.next(); return { k: 'bin', op: '^', l: b, r: this.parseUnary(), line: t.line }; }
+    return b;
+  };
+  P.parsePrimary = function () {
+    var t = this.peek();
+    if (t.t === 'num') { this.next(); return { k: 'lit', v: t.v, real: t.real, line: t.line }; }
+    if (t.t === 'str' || t.t === 'chr') { this.next(); return { k: 'lit', v: t.v, line: t.line }; }
+    if (t.t === 'kw' && (t.v === 'TRUE' || t.v === 'FALSE')) { this.next(); return { k: 'lit', v: t.v === 'TRUE', line: t.line }; }
+    if (t.t === 'op' && t.v === '(') {
+      this.next(); var e = this.parseExpr(); this.expectOp(')', 'to close the bracket'); return e;
+    }
+    if (t.t === 'kw' && (t.v === 'DIV' || t.v === 'MOD') && this.isOp('(', 1)) {
+      this.next(); this.next();
+      var a = this.parseExpr(); this.expectOp(',', 'between the two values'); var b = this.parseExpr(); this.expectOp(')');
+      return { k: 'bin', op: t.v, l: a, r: b, line: t.line };
+    }
+    if (t.t === 'id') {
+      if (this.isOp('(', 1)) {
+        this.next(); this.next();
+        var args = [];
+        if (t.v === 'EOF') { args.push(this.parseFileName()); }
+        else if (!this.isOp(')')) { do { args.push(this.parseExpr()); } while (this.isOp(',') && this.next()); }
+        this.expectOp(')', 'to close the brackets of ' + t.v);
+        return { k: 'callf', name: t.v, args: args, line: t.line };
+      }
+      return this.parseLvalue();
+    }
+    this.fail('Expected a value here but found ' + this.describe(t) + '.');
+  };
+
+  /* ---------- Runtime ---------- */
+  function fmt(v) {
+    if (v === undefined) return '?';
+    if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+    if (typeof v === 'number') {
+      if (Number.isInteger(v)) return String(v);
+      return String(parseFloat(v.toPrecision(12)));
+    }
+    if (v && v.arr) {
+      var keys = [];
+      if (v.dims.length === 1) {
+        for (var i = v.dims[0][0]; i <= v.dims[0][1]; i++) keys.push(fmtCell(v.data[i]));
+        return '[' + keys.join(', ') + ']';
+      }
+      var rows = [];
+      for (var r = v.dims[0][0]; r <= v.dims[0][1]; r++) {
+        var row = [];
+        for (var c = v.dims[1][0]; c <= v.dims[1][1]; c++) row.push(fmtCell(v.data[r + ',' + c]));
+        rows.push('[' + row.join(', ') + ']');
+      }
+      return '[' + rows.join(', ') + ']';
+    }
+    if (v && v.rec) {
+      return '{' + Object.keys(v.fields).map(function (k) { return k + ': ' + fmtCell(v.fields[k].value); }).join(', ') + '}';
+    }
+    return String(v);
+  }
+  function fmtCell(v) {
+    if (v === undefined) return '∅';
+    if (typeof v === 'string') return '"' + v + '"';
+    return fmt(v);
+  }
+  function typeName(type) {
+    if (!type) return 'any';
+    if (type.array) return 'ARRAY OF ' + typeName(type.of);
+    return type.base;
+  }
+  function describeValue(v) {
+    if (typeof v === 'number') return Number.isInteger(v) ? 'the INTEGER ' + v : 'the REAL ' + fmt(v);
+    if (typeof v === 'string') return 'the text "' + v + '"';
+    if (typeof v === 'boolean') return 'the BOOLEAN ' + fmt(v);
+    if (v && v.arr) return 'an array';
+    if (v && v.rec) return 'a ' + v.typeName + ' record';
+    return 'nothing';
+  }
+
+  function Interp(src, opts) {
+    opts = opts || {};
+    this.ast = new Parser(tokenize(src)).parseProgram();
+    this.out = opts.output || function () {};
+    this.files = opts.files || {};
+    this.open = {};
+    this.strict = !!opts.strict;
+    this.maxSteps = opts.maxSteps || 500000;
+    this.steps = 0;
+    this.globals = { vars: {}, parent: null, name: 'global' };
+    this.frames = [this.globals];
+    this.procs = {}; this.funcs = {}; this.types = {};
+    this.random = opts.random || Math.random;
+    var self = this;
+    (function hoist(list) {
+      list.forEach(function (s) {
+        if (s.k === 'procdef') self.procs[s.name] = s;
+        else if (s.k === 'funcdef') self.funcs[s.name] = s;
+        else if (s.k === 'typedef') self.types[s.name] = s;
+      });
+    })(this.ast);
+  }
+  var I = Interp.prototype;
+
+  I.err = function (msg, line) { throw new PseudoError(msg, line); };
+
+  I.newValue = function (type, env, line) {
+    if (!type) return undefined;
+    if (type.array) {
+      var dims = [];
+      for (var i = 0; i < type.dims.length; i++) {
+        var lo = this.evalSync(type.dims[i][0], env), hi = this.evalSync(type.dims[i][1], env);
+        if (!Number.isInteger(lo) || !Number.isInteger(hi)) this.err('Array bounds must be whole numbers.', line);
+        if (hi < lo) this.err('The upper bound of the array (' + hi + ') is smaller than the lower bound (' + lo + ').', line);
+        dims.push([lo, hi]);
+      }
+      if (!dims.length) this.err('Give the array bounds, like ARRAY[1:10] OF INTEGER.', line);
+      if (dims.length > 2) this.err('Arrays here can have one or two dimensions.', line);
+      return { arr: true, dims: dims, of: type.of, data: {} };
+    }
+    if (type.record) {
+      var def = this.types[type.base];
+      if (!def) this.err('"' + type.base + '" is not a data type. Check the spelling, or define it with TYPE.', line);
+      var rec = { rec: true, typeName: type.base, fields: {} };
+      for (var f = 0; f < def.fields.length; f++) {
+        rec.fields[def.fields[f].name] = { type: def.fields[f].type, value: this.newValue(def.fields[f].type, env, line) };
+      }
+      return rec;
+    }
+    return undefined;
+  };
+
+  // Array bounds are simple expressions; evaluate without the generator machinery.
+  I.evalSync = function (node, env) {
+    var g = this.ev(node, env), r = g.next();
+    while (!r.done) r = g.next();
+    return r.value;
+  };
+
+  I.copy = function (v) {
+    if (v && v.arr) {
+      var d = {}, self = this;
+      Object.keys(v.data).forEach(function (k) { d[k] = self.copy(v.data[k]); });
+      return { arr: true, dims: v.dims, of: v.of, data: d };
+    }
+    if (v && v.rec) {
+      var f = {}, self2 = this;
+      Object.keys(v.fields).forEach(function (k) { f[k] = { type: v.fields[k].type, value: self2.copy(v.fields[k].value) }; });
+      return { rec: true, typeName: v.typeName, fields: f };
+    }
+    return v;
+  };
+
+  I.check = function (type, v, line, what) {
+    if (!type) return v;
+    var ok = true;
+    if (type.array) ok = !!(v && v.arr);
+    else if (type.record) ok = !!(v && v.rec && v.typeName === type.base);
+    else switch (type.base) {
+      case 'INTEGER': ok = typeof v === 'number' && Number.isInteger(v); break;
+      case 'REAL': ok = typeof v === 'number'; break;
+      case 'STRING': case 'DATE': ok = typeof v === 'string'; break;
+      case 'CHAR': ok = typeof v === 'string' && v.length === 1; break;
+      case 'BOOLEAN': ok = typeof v === 'boolean'; break;
+    }
+    if (!ok) this.err(what + ' is ' + typeName(type) + ' but was given ' + describeValue(v) + '.', line);
+    return v;
+  };
+
+  I.lookup = function (name, env) {
+    if (env.vars[name]) return env.vars[name];
+    if (this.globals.vars[name]) return this.globals.vars[name];
+    return null;
+  };
+
+  I.ref = function* (node, env, forWrite) {
+    var self = this;
+    if (node.k === 'var') {
+      var cell = this.lookup(node.name, env);
+      if (!cell) {
+        if (!forWrite) this.err('"' + node.name + '" has not been given a value yet. Check the spelling (names are case-sensitive).', node.line);
+        if (this.strict) this.err('"' + node.name + '" has not been declared. Add DECLARE ' + node.name + ' : <type> first.', node.line);
+        cell = env.vars[node.name] = { type: null, value: undefined };
+      }
+      return {
+        get: function () {
+          if (cell.value === undefined) self.err('"' + node.name + '" has been declared but has no value yet.', node.line);
+          return cell.value;
+        },
+        set: function (v) {
+          if (cell.isConst) self.err('"' + node.name + '" is a CONSTANT, so its value cannot change.', node.line);
+          cell.value = self.check(cell.type, v, node.line, '"' + node.name + '"');
+        },
+        type: cell.type
+      };
+    }
+    if (node.k === 'index') {
+      var base = yield* this.ref(node.base, env, false), arr = base.get();
+      var label = node.base.name || 'array';
+      if (!(arr && arr.arr)) this.err('"' + label + '" is not an array, so it cannot use [ ].', node.line);
+      if (node.idx.length !== arr.dims.length) this.err('"' + label + '" has ' + arr.dims.length + ' dimension(s) but ' + node.idx.length + ' index value(s) were given.', node.line);
+      var parts = [];
+      for (var i = 0; i < node.idx.length; i++) {
+        var ix = yield* this.ev(node.idx[i], env);
+        if (!Number.isInteger(ix)) this.err('An array index must be a whole number, but this one is ' + fmtCell(ix) + '.', node.line);
+        if (ix < arr.dims[i][0] || ix > arr.dims[i][1]) this.err('Index ' + ix + ' is outside the bounds of "' + label + '" (' + arr.dims[i][0] + ' to ' + arr.dims[i][1] + ').', node.line);
+        parts.push(ix);
+      }
+      var key = parts.join(',');
+      if (arr.of && (arr.of.record || arr.of.array) && arr.data[key] === undefined) arr.data[key] = this.newValue(arr.of, env, node.line);
+      return {
+        get: function () {
+          if (arr.data[key] === undefined) self.err(label + '[' + key + '] has no value yet.', node.line);
+          return arr.data[key];
+        },
+        set: function (v) { arr.data[key] = self.check(arr.of, v, node.line, label + '[' + key + ']'); },
+        type: arr.of
+      };
+    }
+    if (node.k === 'field') {
+      var b = yield* this.ref(node.base, env, false), rec = b.get();
+      if (!(rec && rec.rec)) this.err('Only records have fields, so ".' + node.name + '" cannot be used here.', node.line);
+      var fc = rec.fields[node.name];
+      if (!fc) this.err('The type ' + rec.typeName + ' has no field called "' + node.name + '".', node.line);
+      return {
+        get: function () {
+          if (fc.value === undefined) self.err('The field "' + node.name + '" has no value yet.', node.line);
+          return fc.value;
+        },
+        set: function (v) { fc.value = self.check(fc.type, v, node.line, 'The field "' + node.name + '"'); },
+        type: fc.type
+      };
+    }
+    this.err('This cannot be assigned to.', node.line);
+  };
+
+  I.num = function (v, op, line) {
+    if (typeof v !== 'number') this.err('The operator ' + op + ' needs numbers, but it was given ' + describeValue(v) + '.' +
+      (op === '+' && typeof v === 'string' ? ' To join strings use &.' : ''), line);
+    return v;
+  };
+
+  I.ev = function* (node, env) {
+    switch (node.k) {
+      case 'lit': return node.v;
+      case 'var': case 'index': case 'field': {
+        var r = yield* this.ref(node, env, false);
+        return r.get();
+      }
+      case 'un': {
+        var e = yield* this.ev(node.e, env);
+        if (node.op === '-') return -this.num(e, '-', node.line);
+        if (typeof e !== 'boolean') this.err('NOT needs a TRUE/FALSE value, but it was given ' + describeValue(e) + '.', node.line);
+        return !e;
+      }
+      case 'bin': {
+        var op = node.op, l = yield* this.ev(node.l, env);
+        if (op === 'AND' || op === 'OR') {
+          var rr = yield* this.ev(node.r, env);
+          if (typeof l !== 'boolean' || typeof rr !== 'boolean') this.err(op + ' needs TRUE/FALSE values on both sides. Compare each side separately, like  X > 5 AND X < 10.', node.line);
+          return op === 'AND' ? (l && rr) : (l || rr);
+        }
+        var r2 = yield* this.ev(node.r, env);
+        switch (op) {
+          case '+': return this.num(l, '+', node.line) + this.num(r2, '+', node.line);
+          case '-': return this.num(l, '-', node.line) - this.num(r2, '-', node.line);
+          case '*': return this.num(l, '*', node.line) * this.num(r2, '*', node.line);
+          case '/':
+            if (this.num(r2, '/', node.line) === 0) this.err('Division by zero.', node.line);
+            return this.num(l, '/', node.line) / r2;
+          case '^': return Math.pow(this.num(l, '^', node.line), this.num(r2, '^', node.line));
+          case 'DIV': case 'MOD':
+            this.num(l, op, node.line); this.num(r2, op, node.line);
+            if (r2 === 0) this.err('Division by zero in ' + op + '.', node.line);
+            var q = Math.trunc(l / r2);
+            return op === 'DIV' ? q : l - q * r2;
+          case '&':
+            if (typeof l !== 'string' || typeof r2 !== 'string') this.err('& joins two strings. Convert numbers first with NUM_TO_STR.', node.line);
+            return l + r2;
+          default:
+            if (typeof l !== typeof r2) this.err('Cannot compare ' + describeValue(l) + ' with ' + describeValue(r2) + ' because they are different types.', node.line);
+            switch (op) {
+              case '=': return l === r2;
+              case '<>': return l !== r2;
+              case '<': return l < r2;
+              case '>': return l > r2;
+              case '<=': return l <= r2;
+              case '>=': return l >= r2;
+            }
+        }
+        break;
+      }
+      case 'callf': return yield* this.callFunction(node, env);
+    }
+    this.err('Cannot work out this expression.', node.line);
+  };
+
+  I.builtin = function* (node, env) {
+    var self = this, name = node.name, line = node.line, a = [];
+    if (name === 'EOF') {
+      var fn = node.args[0].v, st = this.open[fn];
+      if (!st || st.mode !== 'READ') this.err('The file "' + fn + '" is not open for READ.', line);
+      return { v: st.pos >= this.files[fn].length };
+    }
+    for (var i = 0; i < node.args.length; i++) a.push(yield* this.ev(node.args[i], env));
+    function need(n) { if (a.length !== n) self.err(name + ' needs ' + n + ' value(s) in its brackets but was given ' + a.length + '.', line); }
+    function str(v) { if (typeof v !== 'string') self.err(name + ' needs a string, but it was given ' + describeValue(v) + '.', line); return v; }
+    function numb(v) { if (typeof v !== 'number') self.err(name + ' needs a number, but it was given ' + describeValue(v) + '.', line); return v; }
+    function int(v) { if (!Number.isInteger(v)) self.err(name + ' needs a whole number, but it was given ' + describeValue(v) + '.', line); return v; }
+    switch (name) {
+      case 'LENGTH': need(1); return { v: str(a[0]).length };
+      case 'LCASE': case 'TO_LOWER': need(1); return { v: str(a[0]).toLowerCase() };
+      case 'UCASE': case 'TO_UPPER': need(1); return { v: str(a[0]).toUpperCase() };
+      case 'SUBSTRING': case 'MID': {
+        need(3); str(a[0]); int(a[1]); int(a[2]);
+        if (a[1] < 1) this.err(name + ' counts characters from 1, so the start position cannot be ' + a[1] + '.', line);
+        if (a[1] - 1 + a[2] > a[0].length) this.err(name + ' asked for characters beyond the end of "' + a[0] + '".', line);
+        return { v: a[0].substr(a[1] - 1, a[2]) };
+      }
+      case 'LEFT': need(2); str(a[0]); int(a[1]);
+        if (a[1] > a[0].length) this.err('LEFT asked for ' + a[1] + ' characters but "' + a[0] + '" only has ' + a[0].length + '.', line);
+        return { v: a[0].slice(0, a[1]) };
+      case 'RIGHT': need(2); str(a[0]); int(a[1]);
+        if (a[1] > a[0].length) this.err('RIGHT asked for ' + a[1] + ' characters but "' + a[0] + '" only has ' + a[0].length + '.', line);
+        return { v: a[1] === 0 ? '' : a[0].slice(-a[1]) };
+      case 'ROUND': {
+        need(2); numb(a[0]); int(a[1]);
+        var f = Math.pow(10, a[1]);
+        return { v: Math.round((a[0] + Number.EPSILON * Math.sign(a[0])) * f) / f };
+      }
+      case 'RANDOM': need(0); return { v: this.random() };
+      case 'RAND': need(1); return { v: this.random() * numb(a[0]) };
+      case 'INT': need(1); return { v: Math.trunc(numb(a[0])) };
+      case 'NUM_TO_STR': need(1); return { v: fmt(numb(a[0])) };
+      case 'STR_TO_NUM': need(1); str(a[0]);
+        if (!/^\s*-?\d+(\.\d+)?\s*$/.test(a[0])) this.err('STR_TO_NUM cannot turn "' + a[0] + '" into a number.', line);
+        return { v: parseFloat(a[0]) };
+      case 'IS_NUM': need(1); return { v: /^\s*-?\d+(\.\d+)?\s*$/.test(str(a[0])) };
+      case 'ASC': need(1); str(a[0]); if (a[0].length !== 1) this.err('ASC needs a single character.', line); return { v: a[0].charCodeAt(0) };
+      case 'CHR': need(1); return { v: String.fromCharCode(int(a[0])) };
+    }
+    return null;
+  };
+
+  I.bindArgs = function* (def, argNodes, env, line, kind) {
+    if (argNodes.length !== def.params.length) {
+      this.err(kind + ' ' + def.name + ' needs ' + def.params.length + ' argument(s) but was given ' + argNodes.length + '.', line);
+    }
+    var frame = { vars: {}, parent: this.globals, name: def.name };
+    for (var i = 0; i < def.params.length; i++) {
+      var p = def.params[i];
+      if (p.mode === 'BYREF') {
+        var an = argNodes[i];
+        if (['var', 'index', 'field'].indexOf(an.k) < 0) this.err('The BYREF parameter "' + p.name + '" needs a variable, not a calculated value.', line);
+        var r = yield* this.ref(an, env, true);
+        frame.vars[p.name] = this.aliasCell(r, p.type);
+      } else {
+        var v = this.copy(yield* this.ev(argNodes[i], env));
+        var ptype = p.type && p.type.array ? null : p.type;
+        if (p.type && p.type.array && !(v && v.arr)) this.err('The parameter "' + p.name + '" needs an array.', line);
+        frame.vars[p.name] = { type: ptype, value: this.check(ptype, v, line, 'The parameter "' + p.name + '"') };
+      }
+    }
+    return frame;
+  };
+
+  I.aliasCell = function (r, type) {
+    var cell = { type: null };
+    Object.defineProperty(cell, 'value', {
+      get: function () { try { return r.get(); } catch (e) { return undefined; } },
+      set: function (v) { r.set(v); },
+      enumerable: true
+    });
+    return cell;
+  };
+
+  I.callFunction = function* (node, env) {
+    var b = yield* this.builtin(node, env);
+    if (b) return b.v;
+    var def = this.funcs[node.name];
+    if (!def) {
+      if (this.procs[node.name]) this.err(node.name + ' is a procedure, so it does not give back a value. Run it with CALL ' + node.name + '.', node.line);
+      this.err('There is no function called "' + node.name + '". Check the spelling and capitals.', node.line);
+    }
+    var frame = yield* this.bindArgs(def, node.args, env, node.line, 'Function');
+    if (this.frames.length > 400) this.err('Too many nested calls. Check that the recursion has a base case.', node.line);
+    this.frames.push(frame);
+    var res = yield* this.block(def.body, frame);
+    this.frames.pop();
+    if (!res) this.err('Function ' + def.name + ' finished without a RETURN.', def.line);
+    return this.check(def.returns, res.ret, node.line, 'The value returned by ' + def.name);
+  };
+
+  I.block = function* (stmts, env) {
+    for (var i = 0; i < stmts.length; i++) {
+      var r = yield* this.exec(stmts[i], env);
+      if (r) return r;
+    }
+    return null;
+  };
+
+  I.tick = function* (line) {
+    if (++this.steps > this.maxSteps) this.err('The program has run ' + this.maxSteps + ' steps without finishing. Check for an infinite loop.', line);
+    yield { type: 'step', line: line };
+  };
+
+  I.fileState = function (name, mode, line) {
+    var st = this.open[name];
+    if (!st) this.err('The file "' + name + '" is not open. Use OPENFILE first.', line);
+    if (mode === 'READ' && st.mode !== 'READ') this.err('The file "' + name + '" is open for ' + st.mode + ', not READ.', line);
+    if (mode === 'WRITE' && st.mode === 'READ') this.err('The file "' + name + '" is open for READ, so it cannot be written to.', line);
+    return st;
+  };
+
+  I.convertInput = function (text, type, line) {
+    var t = type && !type.array && !type.record ? type.base : null;
+    var numeric = /^\s*-?\d+(\.\d+)?\s*$/.test(text);
+    if (t === 'INTEGER') {
+      if (!/^\s*-?\d+\s*$/.test(text)) this.err('The program expected a whole number but the input was "' + text + '".', line);
+      return parseInt(text, 10);
+    }
+    if (t === 'REAL') {
+      if (!numeric) this.err('The program expected a number but the input was "' + text + '".', line);
+      return parseFloat(text);
+    }
+    if (t === 'BOOLEAN') {
+      var u = text.trim().toUpperCase();
+      if (u !== 'TRUE' && u !== 'FALSE') this.err('The program expected TRUE or FALSE but the input was "' + text + '".', line);
+      return u === 'TRUE';
+    }
+    if (t === 'CHAR') {
+      if (text.length !== 1) this.err('The program expected a single character but the input was "' + text + '".', line);
+      return text;
+    }
+    if (t === 'STRING' || t === 'DATE') return text;
+    return numeric ? parseFloat(text) : text;
+  };
+
+  I.exec = function* (s, env) {
+    var self = this;
+    switch (s.k) {
+      case 'procdef': case 'funcdef': case 'typedef': return null;
+      case 'declare':
+        yield* this.tick(s.line);
+        s.names.forEach(function (n) {
+          if (env.vars[n]) self.err('"' + n + '" has already been declared.', s.line);
+          env.vars[n] = { type: s.type, value: self.newValue(s.type, env, s.line) };
+        });
+        return null;
+      case 'const': {
+        yield* this.tick(s.line);
+        var cv = yield* this.ev(s.expr, env);
+        if (env.vars[s.name]) this.err('"' + s.name + '" already exists.', s.line);
+        env.vars[s.name] = { type: null, value: cv, isConst: true };
+        return null;
+      }
+      case 'assign': {
+        yield* this.tick(s.line);
+        var v = this.copy(yield* this.ev(s.expr, env));
+        var r = yield* this.ref(s.target, env, true);
+        r.set(v);
+        return null;
+      }
+      case 'input':
+        yield* this.tick(s.line);
+        for (var i = 0; i < s.targets.length; i++) {
+          var tr = yield* this.ref(s.targets[i], env, true);
+          var text = yield { type: 'input', line: s.line, name: s.targets[i].name || 'value' };
+          if (text === null || text === undefined) this.err('The program needed more input but none was given.', s.line);
+          tr.set(this.convertInput(String(text), tr.type, s.line));
+        }
+        return null;
+      case 'output': {
+        yield* this.tick(s.line);
+        var parts = [];
+        for (var j = 0; j < s.items.length; j++) parts.push(fmt(yield* this.ev(s.items[j], env)));
+        this.out(parts.join(''), s.line);
+        return null;
+      }
+      case 'if': {
+        yield* this.tick(s.line);
+        var c = yield* this.ev(s.cond, env);
+        if (typeof c !== 'boolean') this.err('The IF condition must be TRUE or FALSE, but it worked out as ' + describeValue(c) + '.', s.line);
+        if (c) return yield* this.block(s.then, env);
+        if (s.else) return yield* this.block(s.else, env);
+        return null;
+      }
+      case 'case': {
+        yield* this.tick(s.line);
+        var subj = yield* this.ev(s.subj, env);
+        for (var ci = 0; ci < s.clauses.length; ci++) {
+          var cl = s.clauses[ci];
+          for (var ti = 0; ti < cl.tests.length; ti++) {
+            var t = cl.tests[ti], hit;
+            if (t.eq) hit = (yield* this.ev(t.eq, env)) === subj;
+            else hit = subj >= (yield* this.ev(t.lo, env)) && subj <= (yield* this.ev(t.hi, env));
+            if (hit) return yield* this.block(cl.body, env);
+          }
+        }
+        if (s.other) return yield* this.block(s.other, env);
+        return null;
+      }
+      case 'for': {
+        yield* this.tick(s.line);
+        var from = yield* this.ev(s.from, env), to = yield* this.ev(s.to, env);
+        var step = s.step ? yield* this.ev(s.step, env) : 1;
+        this.num(from, 'FOR', s.line); this.num(to, 'FOR', s.line); this.num(step, 'STEP', s.line);
+        if (step === 0) this.err('STEP cannot be 0, the loop would never end.', s.line);
+        var lv = yield* this.ref({ k: 'var', name: s.v, line: s.line }, env, true);
+        lv.set(from);
+        for (;;) {
+          var cur = lv.get();
+          if (step > 0 ? cur > to : cur < to) break;
+          var fr = yield* this.block(s.body, env);
+          if (fr) return fr;
+          yield* this.tick(s.line);
+          lv.set(lv.get() + step);
+        }
+        return null;
+      }
+      case 'while':
+        for (;;) {
+          yield* this.tick(s.line);
+          var wc = yield* this.ev(s.cond, env);
+          if (typeof wc !== 'boolean') this.err('The WHILE condition must be TRUE or FALSE.', s.line);
+          if (!wc) return null;
+          var wr = yield* this.block(s.body, env);
+          if (wr) return wr;
+        }
+      case 'repeat':
+        yield* this.tick(s.line);
+        for (;;) {
+          var rr = yield* this.block(s.body, env);
+          if (rr) return rr;
+          yield* this.tick(s.untilLine);
+          var uc = yield* this.ev(s.cond, env);
+          if (typeof uc !== 'boolean') this.err('The UNTIL condition must be TRUE or FALSE.', s.untilLine);
+          if (uc) return null;
+        }
+      case 'call': {
+        yield* this.tick(s.line);
+        var def = this.procs[s.name];
+        if (!def) {
+          if (this.funcs[s.name]) this.err(s.name + ' is a function. Use its value in an expression instead of CALL.', s.line);
+          this.err('There is no procedure called "' + s.name + '". Check the spelling and capitals.', s.line);
+        }
+        var frame = yield* this.bindArgs(def, s.args, env, s.line, 'Procedure');
+        if (this.frames.length > 400) this.err('Too many nested calls. Check that the recursion has a base case.', s.line);
+        this.frames.push(frame);
+        yield* this.block(def.body, frame);
+        this.frames.pop();
+        return null;
+      }
+      case 'return': {
+        yield* this.tick(s.line);
+        if (env === this.globals) this.err('RETURN can only be used inside a FUNCTION.', s.line);
+        return { ret: yield* this.ev(s.expr, env) };
+      }
+      case 'openfile': {
+        yield* this.tick(s.line);
+        var fn = s.file.v;
+        if (this.open[fn]) this.err('The file "' + fn + '" is already open.', s.line);
+        if (s.mode === 'READ') {
+          if (!this.files[fn]) this.err('There is no file called "' + fn + '" to read.', s.line);
+          this.open[fn] = { mode: 'READ', pos: 0 };
+        } else {
+          if (s.mode === 'WRITE' || !this.files[fn]) this.files[fn] = [];
+          this.open[fn] = { mode: s.mode };
+        }
+        return null;
+      }
+      case 'readfile': {
+        yield* this.tick(s.line);
+        var st = this.fileState(s.file.v, 'READ', s.line);
+        if (st.pos >= this.files[s.file.v].length) this.err('Tried to read past the end of "' + s.file.v + '". Test EOF() before reading.', s.line);
+        var rt = yield* this.ref(s.target, env, true);
+        rt.set(this.convertInput(this.files[s.file.v][st.pos++], rt.type && rt.type.base !== 'STRING' ? rt.type : { base: 'STRING' }, s.line));
+        return null;
+      }
+      case 'writefile': {
+        yield* this.tick(s.line);
+        this.fileState(s.file.v, 'WRITE', s.line);
+        this.files[s.file.v].push(fmt(yield* this.ev(s.expr, env)));
+        return null;
+      }
+      case 'closefile':
+        yield* this.tick(s.line);
+        if (!this.open[s.file.v]) this.err('The file "' + s.file.v + '" is not open.', s.line);
+        delete this.open[s.file.v];
+        return null;
+    }
+    this.err('Unknown statement.', s.line);
+  };
+
+  I.start = function () { return this.block(this.ast, this.globals); };
+
+  // Variables visible right now: current procedure's locals first, then globals.
+  I.snapshot = function () {
+    var out = [], seen = {};
+    var top = this.frames[this.frames.length - 1];
+    function add(env, scope) {
+      Object.keys(env.vars).forEach(function (n) {
+        if (seen[n]) return; seen[n] = true;
+        var c = env.vars[n];
+        out.push({ name: n, scope: scope, value: c.value, text: c.value === undefined ? '' : fmt(c.value), isConst: !!c.isConst, type: c.type ? typeName(c.type) : '' });
+      });
+    }
+    if (top !== this.globals) add(top, top.name);
+    add(this.globals, 'global');
+    return out;
+  };
+
+  /* Run to completion. inputs: array of strings or a function returning the next input. */
+  function run(src, opts) {
+    opts = opts || {};
+    var lines = [], inputs = opts.inputs || [], ii = 0;
+    var it = new Interp(src, {
+      output: function (s) { lines.push(s); }, files: opts.files, strict: opts.strict,
+      maxSteps: opts.maxSteps, random: opts.random
+    });
+    var g = it.start(), r = g.next();
+    while (!r.done) {
+      if (r.value.type === 'input') r = g.next(typeof inputs === 'function' ? inputs() : (ii < inputs.length ? inputs[ii++] : null));
+      else r = g.next();
+    }
+    return { output: lines, files: it.files, interp: it };
+  }
+
+  var api = { Interp: Interp, PseudoError: PseudoError, run: run, fmt: fmt, tokenize: tokenize, KEYWORDS: KEYWORDS };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Pseudo = api;
+})(typeof window !== 'undefined' ? window : this);

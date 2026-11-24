@@ -1,0 +1,140 @@
+/* Shell: hash router, DOM helper, shared code-editor widget. */
+(function () {
+  'use strict';
+  var tools = {}, started = {};
+
+  function h(tag, attrs, kids) {
+    var el = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k === 'html') el.innerHTML = v;
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) {
+      if (c === null || c === undefined || c === false) return;
+      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return el;
+  }
+
+  function svg(tag, attrs, kids) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') el.textContent = attrs[k]; else if (attrs[k] !== null && attrs[k] !== undefined) el.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) el.appendChild(c); });
+    return el;
+  }
+
+  /* Textarea with line numbers. opts: { id, value, arrow (turn <- into ←), short } */
+  function editor(opts) {
+    var gutter = h('div', { class: 'gutter', 'aria-hidden': 'true' });
+    var ta = h('textarea', { id: opts.id, spellcheck: 'false', autocapitalize: 'off', autocomplete: 'off', autocorrect: 'off', 'aria-label': opts.label || 'Code' });
+    var box = h('div', { class: 'editor' + (opts.short ? ' short' : '') }, [gutter, ta]);
+    var cur = 0, err = 0, count = 0;
+    function paint() {
+      var n = ta.value.split('\n').length;
+      if (n !== count) {
+        gutter.textContent = '';
+        for (var i = 1; i <= n; i++) gutter.appendChild(h('div', { text: String(i) }));
+        count = n;
+      }
+      for (var j = 0; j < gutter.children.length; j++) {
+        gutter.children[j].className = (j + 1 === err) ? 'err' : (j + 1 === cur) ? 'cur' : '';
+      }
+      gutter.scrollTop = ta.scrollTop;
+    }
+    ta.addEventListener('input', function () {
+      if (opts.arrow && ta.value.indexOf('<-') >= 0) {
+        var pos = ta.selectionStart, before = ta.value.slice(0, pos);
+        var removed = (before.match(/<-/g) || []).length;
+        ta.value = ta.value.replace(/<-/g, '←');
+        ta.selectionStart = ta.selectionEnd = pos - removed;
+      }
+      err = 0; paint();
+      if (opts.onchange) opts.onchange();
+    });
+    ta.addEventListener('scroll', function () { gutter.scrollTop = ta.scrollTop; });
+    ta.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        var s = ta.selectionStart;
+        ta.value = ta.value.slice(0, s) + '  ' + ta.value.slice(ta.selectionEnd);
+        ta.selectionStart = ta.selectionEnd = s + 2;
+        paint();
+      }
+    });
+    var api = {
+      el: box, ta: ta,
+      get: function () { return ta.value; },
+      set: function (v) { ta.value = v; cur = 0; err = 0; count = 0; paint(); },
+      mark: function (line, isErr) {
+        if (isErr) { err = line; } else { cur = line; err = 0; }
+        paint();
+        var l = isErr ? err : cur;
+        if (l) {
+          var top = (l - 1) * 21, view = ta.clientHeight;
+          if (top < ta.scrollTop || top > ta.scrollTop + view - 42) { ta.scrollTop = Math.max(0, top - view / 2); gutter.scrollTop = ta.scrollTop; }
+        }
+      },
+      insert: function (text) {
+        var s = ta.selectionStart;
+        ta.value = ta.value.slice(0, s) + text + ta.value.slice(ta.selectionEnd);
+        ta.selectionStart = ta.selectionEnd = s + text.length; ta.focus(); paint();
+      }
+    };
+    api.set(opts.value || '');
+    return api;
+  }
+
+  function subtabs(names, onpick) {
+    var bar = h('div', { class: 'subtabs', role: 'tablist' });
+    names.forEach(function (n, i) {
+      bar.appendChild(h('button', { role: 'tab', 'aria-selected': i === 0 ? 'true' : 'false', text: n, onclick: function () {
+        Array.prototype.forEach.call(bar.children, function (b, j) { b.setAttribute('aria-selected', j === i ? 'true' : 'false'); });
+        onpick(i);
+      } }));
+    });
+    return bar;
+  }
+
+  function store(key, value) {
+    try {
+      if (value === undefined) return localStorage.getItem('cstk-' + key);
+      localStorage.setItem('cstk-' + key, value);
+    } catch (e) { return null; }
+  }
+
+  var routers = {};
+  function show() {
+    var hash = (location.hash || '#home').slice(1), name = hash;
+    if (/^(unit|lesson)-/.test(hash)) name = 'lessons';
+    if (name !== 'home' && !tools[name]) { name = 'home'; hash = 'home'; }
+    Array.prototype.forEach.call(document.querySelectorAll('.view'), function (v) { v.classList.toggle('on', v.id === 'view-' + name); });
+    Array.prototype.forEach.call(document.querySelectorAll('#nav a'), function (a) {
+      if (a.getAttribute('href') === '#' + name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    if (tools[name] && !started[name]) {
+      started[name] = true;
+      try { routers[name] = tools[name](document.getElementById('view-' + name)); }
+      catch (e) { document.getElementById('view-' + name).appendChild(h('p', { class: 'msg bad', text: 'This tool could not start: ' + e.message })); }
+    }
+    if (routers[name] && routers[name].route) routers[name].route(hash);
+    window.scrollTo(0, 0);
+  }
+
+  window.Toolkit = {
+    h: h, svg: svg, editor: editor, subtabs: subtabs, store: store,
+    register: function (name, init) { tools[name] = init; },
+    start: function () {
+      var tile = document.getElementById('wmTile');
+      for (var i = 0; i < 40; i++) tile.appendChild(h('span', { text: 'learn with asset @learnwithasset' }));
+      window.addEventListener('hashchange', show);
+      show();
+    }
+  };
+})();
