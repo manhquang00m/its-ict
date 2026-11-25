@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Báo cáo điểm: Nguyễn Gia Khánh - Kiểm tra lại 35 phút SQL (OL13)</title>
+<style>
+:root { --navy: #12355b; --orange: #e07a1f; --bg: #f4f6fa; --ok: #1b7f3b; --bad: #b3261e; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #111; background: var(--bg); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+.card { background: #fff; border-radius: 10px; padding: 18px 20px; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+h1 { margin: 0 0 4px; color: var(--navy); font-size: 26px; }
+h2 { margin: 0 0 10px; font-size: 18px; color: var(--navy); }
+.muted { color: #555; }
+.score { font-size: 48px; font-weight: 800; color: var(--navy); margin: 6px 0 2px; }
+.score small { font-size: 22px; font-weight: 600; color: #555; }
+.draft { background: #fff4e5; border-left: 4px solid var(--orange); padding: 8px 12px; border-radius: 6px; margin-top: 10px; font-size: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { border: 1px solid #c9d1dc; padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: #e8f0fb; color: var(--navy); }
+td.n, th.n { text-align: center; white-space: nowrap; }
+tr.sub td { background: #f1f4f9; font-weight: 600; }
+tr.tot td { background: var(--navy); color: #fff; font-weight: 700; }
+.full { color: var(--ok); font-weight: 700; }
+.part { color: var(--orange); font-weight: 700; }
+.zero { color: var(--bad); font-weight: 700; }
+code, pre { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+:not(pre) > code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; }
+pre { background: #f2f3f5; padding: 8px 12px; border-radius: 6px; white-space: pre-wrap; margin: 8px 0; }
+ul { margin: 6px 0 0 20px; padding: 0; }
+li { margin: 3px 0; }
+@media print { body { background: #fff; } .card { box-shadow: none; border: 1px solid #ccd; } }
+</style></head><body>
+<div class="wrap">
+
+  <div class="card">
+    <h1>Báo cáo điểm: Kiểm tra lại 35 phút</h1>
+    <div class="muted">OL13 — SQL (W3Schools Try-it Editor, SQLite)</div>
+    <p style="margin:10px 0 0"><b>Học sinh:</b> Nguyễn Gia Khánh &nbsp;·&nbsp; <b>Lớp:</b> ol-13 &nbsp;·&nbsp; <b>Thời gian làm:</b> 35:00 / 35:00</p>
+    <div class="score">92<small> / 100</small></div>
+    <div class="muted">Nếu trừ 2 điểm cho mỗi lỗi nhỏ (thay vì 1): khoảng 86/100. Nếu không tính câu D3 bổ sung sau giờ: 77/100.</div>
+    <div class="draft">Đây là bản chấm nháp, đọc câu truy vấn theo thang điểm của đề, chưa chạy thử trên dữ liệu W3Schools. Câu D3 do học sinh bổ sung sau khi đã nộp bài (lúc nộp còn bỏ trống), có tính điểm hay không là do giáo viên quyết định. Điểm cuối cùng do giáo viên quyết định.</div>
+  </div>
+
+  <div class="card">
+    <h2>Điểm theo phần</h2>
+    <table>
+      <thead><tr><th>Phần</th><th class="n">Điểm</th><th>Ghi chú</th></tr></thead>
+      <tbody>
+        <tr><td>A: Tìm và sửa lỗi</td><td class="n">15 / 15</td><td>Đúng cả 3 câu.</td></tr>
+        <tr><td>B: Lọc, sắp xếp, hàm tổng hợp</td><td class="n">13 / 15</td><td>Một lỗi gõ tên cột, một lỗi thiếu dấu phẩy.</td></tr>
+        <tr><td>C: GROUP BY và HAVING</td><td class="n">18 / 20</td><td>C2 đúng hoàn toàn; C1 sai tên cột và thiếu dấu phẩy.</td></tr>
+        <tr><td>D: JOIN nhiều bảng và LEFT JOIN</td><td class="n">46 / 50</td><td>JOIN đúng hướng; D1 thiếu <code>LIMIT 5</code>; D3 bổ sung sau giờ, đúng.</td></tr>
+        <tr class="tot"><td>Tổng</td><td class="n">92 / 100</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Chi tiết từng câu</h2>
+    <table>
+      <thead><tr><th>Câu</th><th class="n">Điểm</th><th>Nhận xét</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td class="n full">5 / 5</td><td>Sửa đủ <code>products</code> và <code>order by price</code>.</td></tr>
+        <tr><td>A2</td><td class="n full">5 / 5</td><td>Sửa đủ alias <code>total_customers</code>, <code>customers</code>, <code>country</code>.</td></tr>
+        <tr><td>A3</td><td class="n full">5 / 5</td><td>Sửa bảng thành <code>orders</code>; đổi <code>BETWEEN</code> sang <code>&gt;= ... &lt;</code> là hợp lý.</td></tr>
+        <tr class="sub"><td colspan="3">Phần A: 15 / 15</td></tr>
+
+        <tr><td>B1</td><td class="n part">4 / 5</td><td>Logic <code>IN</code> + <code>AND</code> đúng. Gõ sai <code>custoemrname</code> (đúng: <code>customername</code>), trừ 1.</td></tr>
+        <tr><td>B2</td><td class="n full">5 / 5</td><td>Đúng hoàn toàn.</td></tr>
+        <tr><td>B3</td><td class="n part">4 / 5</td><td>Thiếu dấu phẩy giữa <code>as total_quantity</code> và <code>count(*)</code>, trừ 1.</td></tr>
+        <tr class="sub"><td colspan="3">Phần B: 13 / 15</td></tr>
+
+        <tr><td>C1</td><td class="n part">6 / 8</td><td>Gõ sai <code>suppplierID</code> (đúng: <code>supplierID</code>) và thiếu dấu phẩy sau đó, trừ 2. <code>HAVING</code> và <code>ORDER BY</code> đúng.</td></tr>
+        <tr><td>C2</td><td class="n full">12 / 12</td><td><code>WHERE</code> lọc năm, <code>HAVING</code> lọc từ 3 đơn, đúng hoàn toàn.</td></tr>
+        <tr class="sub"><td colspan="3">Phần C: 18 / 20</td></tr>
+
+        <tr><td>D1</td><td class="n part">12 / 15</td><td>JOIN 4 bảng và <code>GROUP BY</code> đúng. Thiếu dấu phẩy sau <code>c.country</code> (trừ 1) và <b>thiếu <code>LIMIT 5</code></b> (trừ 2).</td></tr>
+        <tr><td>D2</td><td class="n part">19 / 20</td><td>JOIN, <code>GROUP BY</code> 3 cột, <code>HAVING sum(...) &gt; 50000</code> đúng. Thiếu dấu phẩy sau <code>e.lastname</code>, trừ 1.</td></tr>
+        <tr><td>D3</td><td class="n full">15 / 15</td><td>Bài nộp ban đầu bỏ trống; học sinh bổ sung sau: <code>left join</code> + <code>where o.orderID is null</code>, đúng hoàn toàn.</td></tr>
+        <tr class="sub"><td colspan="3">Phần D: 46 / 50</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Nhận xét</h2>
+    <ul>
+      <li><b>Điểm mạnh:</b> hiểu <code>GROUP BY</code>/<code>HAVING</code>, phân biệt được <code>WHERE</code> và <code>HAVING</code>, nối 4 bảng đúng. D2 (20 điểm) gần như hoàn hảo.</li>
+      <li><b>Điểm yếu chính:</b> thiếu dấu phẩy trong danh sách SELECT ở 4 câu (B3, C1, D1, D2) và gõ sai tên cột (B1, C1). Có vẻ các câu này chưa được chạy lại trên W3Schools, vì chạy một lần là báo lỗi ngay.</li>
+      <li><b>D1:</b> quên <code>LIMIT 5</code> dù đề ghi rõ "lấy 5 quốc gia đầu". Cần đọc lại yêu cầu đề trước khi nộp.</li>
+      <li><b>D3:</b> lúc nộp bài còn bỏ trống (có thể do hết giờ), sau đó học sinh bổ sung và làm đúng. Chứng tỏ nắm được <code>LEFT JOIN</code> + <code>IS NULL</code>, chỉ thiếu thời gian.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Đáp án tham khảo cho chỗ mất điểm (D1)</h2>
+    <p class="muted" style="margin:0">D1 (thêm dấu phẩy và <code>LIMIT 5</code>):</p>
+<pre>select c.Country, sum(od.Quantity * p.Price) as total_spent
+from Customers c
+join Orders o on c.CustomerID = o.CustomerID
+join OrderDetails od on o.OrderID = od.OrderID
+join Products p on od.ProductID = p.ProductID
+group by c.Country
+order by total_spent desc
+limit 5</pre>
+  </div>
+
+</div>
+</body></html>

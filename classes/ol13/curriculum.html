@@ -31,18 +31,20 @@
   <main class="container">
     <p><a href="./">&larr; Quay lại OL13</a></p>
     <h1>OL13 &mdash; Kế hoạch và giáo trình các bài sau</h1>
-    <p class="lead">Xây dựng từ kết quả bài kiểm tra SQL (W3Schools) 65/100. Bắt đầu từ bài 07, tiếp nối bài 1&ndash;6 đã học.</p>
+    <p class="lead">Xây dựng từ bài kiểm tra SQL (W3Schools) 65/100 và bài kiểm tra lại 35 phút (77/100 lúc nộp, 92/100 nếu tính cả câu D3 bổ sung sau giờ). Bắt đầu từ bài 07, tiếp nối bài 1&ndash;6 đã học. Bản này đã điều chỉnh sau bài kiểm tra lại: JOIN nhiều bảng và LEFT JOIN không còn là điểm yếu về logic, trọng tâm chuyển sang độ chính xác khi gõ, đủ yêu cầu của đề và quản lý thời gian.</p>
 
     <div class="note">
       <strong>Giả định khi lập kế hoạch</strong>
       <ul>
         <li>Mỗi buổi khoảng 90 phút, học trên W3Schools Try-it Editor (SQLite) với bộ dữ liệu mẫu Northwind như bài kiểm tra.</li>
         <li>Số buổi mỗi tuần và ngày học chưa có thông tin nên chưa gán lịch. Giáo viên điều chỉnh số buổi và thứ tự theo tiến độ thật.</li>
-        <li>Đây là bản đề xuất. Giáo viên quyết định nội dung và thời lượng chính thức.</li>
+        <li>Hai bài kiểm tra không so sánh trực tiếp được: bài đầu 90 phút, bài kiểm tra lại 35 phút có gợi ý trong đề, và câu D3 được bổ sung sau khi đã nộp bài. Các mốc điểm ở mục 2 dựa trên điểm 77 (lúc nộp) để an toàn.</li>
+        <li>Đây là bản đề xuất. Giáo viên quyết định nội dung, thời lượng và các mốc điểm chính thức.</li>
       </ul>
     </div>
 
-    <h2>1. Chẩn đoán từ bài kiểm tra</h2>
+    <h2>1. Chẩn đoán từ hai bài kiểm tra</h2>
+    <h3>1a. Bài kiểm tra SQL 90 phút (65/100)</h3>
     <table class="grade">
       <thead><tr><th>Phát hiện</th><th>Bằng chứng</th><th>Xử lý ở bài</th></tr></thead>
       <tbody>
@@ -56,13 +58,26 @@
       </tbody>
     </table>
 
+    <h3>1b. Bài kiểm tra lại 35 phút (77/100 lúc nộp, 92/100 có D3)</h3>
+    <table class="grade">
+      <thead><tr><th>Phát hiện</th><th>Bằng chứng</th><th>Xử lý ở bài</th></tr></thead>
+      <tbody>
+        <tr><td>Đã nắm: sửa lỗi, lọc và sắp xếp, WHERE/HAVING, GROUP BY, JOIN 4 bảng với <code>SUM(Quantity * Price)</code>, LEFT JOIN &hellip; IS NULL</td><td>Phần A 15/15; C2 12/12; D1, D2 đúng logic; D3 đúng (làm sau giờ)</td><td>Không dạy lại, chuyển sang luyện tốc độ (bài 08, 09)</td></tr>
+        <tr><td>Thiếu dấu phẩy giữa các cột trong SELECT</td><td>B3, C1, D1, D2 (4 trong 11 câu)</td><td>Bài 07</td></tr>
+        <tr><td>Gõ sai tên cột</td><td>B1 (<code>custoemrname</code>), C1 (<code>suppplierID</code>)</td><td>Bài 07</td></tr>
+        <tr><td>Bỏ sót yêu cầu của đề</td><td>D1 thiếu <code>LIMIT 5</code></td><td>Bài 07 (checklist đối chiếu yêu cầu)</td></tr>
+        <tr><td>Hết giờ khi còn câu chưa làm</td><td>D3 bỏ trống lúc nộp (35:00/35:00), bổ sung đúng sau đó</td><td>Bài 07, 10, 12 (chia thời gian, làm câu chắc điểm trước)</td></tr>
+        <tr><td>Có vẻ không chạy lại câu truy vấn trước khi nộp (suy luận từ số lỗi cú pháp, cần hỏi lại học viên)</td><td>Lỗi thiếu dấu phẩy sẽ báo ngay khi chạy một lần</td><td>Bài 07 (quy trình bắt buộc chạy lại sau mỗi lần sửa)</td></tr>
+      </tbody>
+    </table>
+
     <h2>2. Mục tiêu và mốc đánh giá</h2>
     <table class="grade">
       <thead><tr><th>Mốc</th><th>Hình thức</th><th>Mục tiêu</th></tr></thead>
       <tbody>
-        <tr><td>Sau bài 07</td><td>Làm lại các câu sai của bài kiểm tra</td><td>Sửa đúng 100% câu lỗi typo và alias, không cần gợi ý</td></tr>
-        <tr><td>Bài 12</td><td>Kiểm tra lại 60 phút (JOIN, GROUP BY, subquery)</td><td>Từ 70 điểm trở lên, làm được E3, E4, E5 dạng tương tự</td></tr>
-        <tr><td>Bài 16</td><td>Kiểm tra tổng hợp cuối khoá</td><td>Từ 85 điểm trở lên ("nắm vững" theo thang của đề)</td></tr>
+        <tr><td>Sau bài 07</td><td>Làm lại các câu sai của hai bài kiểm tra; viết 5 câu truy vấn kiểu đề kiểm tra trong 15 phút</td><td>Sửa đúng 100% câu lỗi typo, alias và dấu phẩy, không cần gợi ý; 5 câu mới không còn lỗi cú pháp</td></tr>
+        <tr><td>Bài 12</td><td>Kiểm tra giữa khoá 60 phút (JOIN, GROUP BY, subquery)</td><td>Từ 85 điểm trở lên, tối đa 2 lỗi nhỏ, không bỏ trống câu nào, làm đủ trong thời gian</td></tr>
+        <tr><td>Bài 16</td><td>Kiểm tra tổng hợp cuối khoá</td><td>Từ 90 điểm trở lên, không có gợi ý trong đề, nộp đúng giờ</td></tr>
       </tbody>
     </table>
 
@@ -82,20 +97,26 @@
         <li>Giá trị chuỗi: đúng hoa thường như dữ liệu, kiểm tra bằng <code>SELECT DISTINCT</code> trước khi lọc. Khi kết quả rỗng thì dừng lại kiểm tra và ghi chú.</li>
         <li>Mẹo SQLite: <code>=</code> phân biệt hoa thường, <code>LIKE</code> không phân biệt với chữ ASCII.</li>
         <li>Quản lý thời gian: làm câu dễ trước, không bỏ trống, câu dở dang vẫn viết phần chắc chắn.</li>
+        <li>Lỗi hay gặp nhất ở bài kiểm tra lại: thiếu dấu phẩy giữa các cột trong <code>SELECT</code>. Cách tìm: đọc vị trí sau chữ <code>near</code> trong thông báo lỗi.</li>
+        <li>Checklist đối chiếu yêu cầu đề trước khi nộp: đúng cột, đúng alias, đúng <code>ORDER BY</code>, có <code>LIMIT</code> nếu đề yêu cầu, đúng điều kiện lọc.</li>
+        <li>Quy tắc cứng: sau mỗi lần sửa phải chạy lại, không dán đáp án khi chưa chạy.</li>
       </ul>
       <h4>Thực hành trên lớp</h4>
       <ul>
-        <li>Làm lại 15 câu bị trừ điểm (A5, A6, B1, B3, B4, B5, C2, C3, D1, D2, D4, E1, E3, E4, E5), tự tìm lỗi trước khi xem đáp án.</li>
-        <li>Bài tập tìm lỗi: 10 câu truy vấn cố ý có lỗi, học viên sửa và giải thích.</li>
+        <li>Làm lại 15 câu bị trừ điểm ở bài 90 phút (A5, A6, B1, B3, B4, B5, C2, C3, D1, D2, D4, E1, E3, E4, E5) và các câu bị trừ ở bài 35 phút (B1, B3, C1, D1, D2), tự tìm lỗi trước khi xem đáp án.</li>
+        <li>Bài tập tìm lỗi: 10 câu truy vấn cố ý có lỗi (ít nhất 4 câu thiếu dấu phẩy, 2 câu thiếu <code>LIMIT</code> hoặc <code>ORDER BY</code>), học viên sửa và giải thích.</li>
       </ul>
       <h4>Bài về nhà</h4>
-      <ul><li>Viết checklist cá nhân 5 dòng cho việc rà soát một câu truy vấn trước khi nộp.</li></ul>
+      <ul><li>Viết checklist cá nhân 5 dòng cho việc rà soát một câu truy vấn trước khi nộp, trong đó có "chạy lại sau mỗi lần sửa" và "đối chiếu yêu cầu đề".</li></ul>
     </div>
 
     <div class="lesson-plan">
       <h3>Bài 08 &mdash; INNER JOIN nhiều bảng</h3>
       <h4>Mục tiêu</h4>
-      <ul><li>Viết đúng truy vấn JOIN 3&ndash;4 bảng kết hợp GROUP BY (dạng E3, E4).</li></ul>
+      <ul>
+        <li>Viết đúng truy vấn JOIN 3&ndash;4 bảng kết hợp GROUP BY (dạng E3, E4) ngay từ lần chạy đầu và trong thời gian giới hạn.</li>
+        <li>Bài kiểm tra lại cho thấy logic JOIN 4 bảng đã đúng (D1, D2), nên bài này dành nhiều thời gian cho luyện tốc độ và độ chính xác hơn là giảng lại khái niệm.</li>
+      </ul>
       <h4>Nội dung</h4>
       <ul>
         <li>Đọc sơ đồ quan hệ: khoá chính, khoá ngoại giữa Customers, Orders, OrderDetails, Products, Categories, Suppliers, Employees.</li>
@@ -109,6 +130,8 @@
         <li>Doanh thu theo nhà cung cấp, theo quốc gia khách hàng, theo nhân viên.</li>
         <li>Top 5 sản phẩm bán chạy nhất (tổng Quantity) kèm tên danh mục.</li>
         <li>Làm lại E3 và E4 từ đầu, không xem đáp án.</li>
+        <li>Bấm giờ: mỗi câu JOIN 4 bảng 8 phút, hết giờ thì nộp phần đã có. Sau đó đối chiếu với checklist ở bài 07.</li>
+        <li>Mở rộng: JOIN thêm <code>Categories</code> hoặc <code>Suppliers</code>, kết hợp <code>HAVING</code> trên tổng doanh thu.</li>
       </ul>
       <h4>Bài về nhà</h4>
       <ul><li>6 bài JOIN 3&ndash;4 bảng, mỗi bài ghi lại các bước đã chạy thử.</li></ul>
@@ -117,7 +140,10 @@
     <div class="lesson-plan">
       <h3>Bài 09 &mdash; LEFT JOIN và tìm dòng không khớp</h3>
       <h4>Mục tiêu</h4>
-      <ul><li>Viết được truy vấn dạng "chưa từng &hellip;" bằng LEFT JOIN &hellip; IS NULL (dạng E5).</li></ul>
+      <ul>
+        <li>Viết được truy vấn dạng "chưa từng &hellip;" bằng LEFT JOIN &hellip; IS NULL (dạng E5) trong khoảng 5 phút. Ở bài kiểm tra lại học viên đã viết đúng nhưng sau giờ, nên mục tiêu chính là tốc độ.</li>
+        <li>Phần giảng rút gọn, dành phần lớn buổi cho luyện tập và các biến thể (đếm cả khách 0 đơn, <code>ON</code> khác <code>WHERE</code>).</li>
+      </ul>
       <h4>Nội dung</h4>
       <ul>
         <li>So sánh INNER JOIN và LEFT JOIN trên cùng dữ liệu, đếm số dòng khác nhau.</li>
@@ -150,7 +176,8 @@
       <ul>
         <li>Doanh thu theo tháng, theo nhân viên trong một năm.</li>
         <li>Khách có tổng chi tiêu trên một ngưỡng, kèm số đơn.</li>
-        <li>Mô phỏng thi: 3 bài báo cáo trong 30 phút, tập quản lý thời gian.</li>
+        <li>Mô phỏng thi: 3 bài báo cáo trong 30 phút, tập quản lý thời gian. Gợi ý chia giờ: câu dễ 5 phút, câu JOIN 4 bảng 10 phút. Câu bí thì viết phần chắc chắn rồi sang câu sau, quay lại nếu còn giờ.</li>
+        <li>Trước khi nộp dành 3 phút rà checklist (dấu phẩy, tên cột, <code>LIMIT</code>, <code>ORDER BY</code>).</li>
       </ul>
       <h4>Bài về nhà</h4>
       <ul><li>4 bài báo cáo tổng hợp, mỗi bài ghi chú nếu kết quả rỗng và đã kiểm tra thế nào.</li></ul>
@@ -180,14 +207,15 @@
     <div class="lesson-plan">
       <h3>Bài 12 &mdash; Kiểm tra lại giữa khoá (60 phút)</h3>
       <h4>Mục tiêu</h4>
-      <ul><li>Đo tiến bộ ở các điểm yếu: JOIN nhiều bảng, LEFT JOIN, độ chính xác khi gõ.</li></ul>
+      <ul><li>Đo tiến bộ ở các điểm yếu còn lại: độ chính xác khi gõ (dấu phẩy, tên cột), đủ yêu cầu của đề, quản lý thời gian; và kiến thức mới là subquery.</li></ul>
       <h4>Cấu trúc đề đề xuất (100 điểm)</h4>
       <ul>
-        <li>Ôn bài 1&ndash;6 (cột A&ndash;D): 30 điểm.</li>
+        <li>Ôn bài 1&ndash;6 (lọc, sắp xếp, tổng hợp, GROUP BY, HAVING): 20 điểm, vì phần này đã vững.</li>
         <li>JOIN nhiều bảng và GROUP BY: 30 điểm.</li>
         <li>LEFT JOIN, anti-join: 20 điểm.</li>
-        <li>Subquery: 20 điểm.</li>
+        <li>Subquery: 30 điểm.</li>
       </ul>
+      <p style="margin:.6rem 0 0">Không đưa gợi ý trong đề và đặt thời gian chặt hơn bài kiểm tra lại, để đo được tốc độ thật.</p>
       <h4>Sau thi</h4>
       <ul>
         <li>Chấm và so sánh với bài kiểm tra đầu, theo từng nhóm lỗi trong bảng chẩn đoán ở trên.</li>
@@ -245,7 +273,7 @@
     <div class="lesson-plan">
       <h3>Bài 16 &mdash; Ôn tập và kiểm tra tổng hợp cuối khoá</h3>
       <h4>Mục tiêu</h4>
-      <ul><li>Đạt 85 điểm trở lên theo thang của đề.</li></ul>
+      <ul><li>Đạt 90 điểm trở lên theo thang của đề, không có gợi ý trong đề, nộp đúng giờ.</li></ul>
       <h4>Hoạt động</h4>
       <ul>
         <li>Nửa đầu: ôn các lỗi còn lặp lại từ bài 12, làm đề luyện.</li>
@@ -261,6 +289,7 @@
       <li>45 phút: học viên tự làm bài thực hành, giáo viên chỉ gợi ý hướng, không đưa đáp án ngay.</li>
       <li>10 phút cuối: tổng kết, giao bài về nhà.</li>
       <li>Luôn nhắc: chạy thử từng câu, ghi chú khi kết quả rỗng, không để trống câu nào.</li>
+      <li>Từ bài 08: đầu mỗi buổi có 1 bài bấm giờ 5 phút (viết 1 câu truy vấn trọn vẹn), cuối bài rà checklist đối chiếu yêu cầu đề.</li>
     </ul>
   </main>
 
