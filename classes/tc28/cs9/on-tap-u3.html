@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ôn tập Unit 3 theo dạng bài | IGCSE CS 9 | ITS ICT</title>
+  <link rel="stylesheet" href="../../../assets/css/style.css">
+  <link rel="stylesheet" href="../../../assets/css/learn.css">
+  <style>
+    html[lang="en"] .vi, html:not([lang="en"]) .en { display: none !important; }
+    .rv { max-width: 820px; padding-bottom: 3rem; }
+    .rv h1 { margin: .4rem 0 .2rem; font-size: clamp(1.45rem, 3vw, 1.85rem); line-height: 1.25; color: var(--ink); }
+    .rv .lead { margin: .2rem 0 1rem; font-size: 1rem; }
+    .rv h2 { margin: 2rem 0 .6rem; font-size: 1.25rem; color: var(--ink); }
+    .rv-box { background: var(--soft); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+    .rv-box ul, .rv-box ol { margin: .3rem 0 0; padding-left: 1.2rem; }
+    .rv-toc { columns: 2; padding-left: 1.2rem; margin: .4rem 0; }
+    .rv-toc li { margin: .15rem 0; }
+    .rv-plan { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    .rv-plan th, .rv-plan td { border: 1px solid var(--line); padding: .45rem .6rem; text-align: left; vertical-align: top; }
+    .rv-plan th { background: var(--soft); }
+    .rv-type { border-top: 2px solid var(--ink); margin-top: 2rem; padding-top: .2rem; scroll-margin-top: 60px; }
+    .rv-type h2 { margin-top: .8rem; }
+    .rv-type .tag-k { font-size: .8rem; color: var(--muted); font-weight: 400; }
+    .rv-type h3 { margin: 1rem 0 .3rem; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .rv-type ul, .rv-type ol { margin: .2rem 0; padding-left: 1.2rem; }
+    .rv-type li { margin: .2rem 0; }
+    .rv-type .bad li::marker { color: var(--bad); }
+    .rv-missing { color: var(--bad); font-weight: 600; }
+    @media (max-width: 640px) { .rv-toc { columns: 1; } }
+  </style>
+</head>
+<body class="learn" data-chapter="3">
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="../../../">ITS ICT</a>
+      <nav>
+        <a href="../" class="active">IGCSE 9+10</a>
+        <a href="../../ol13/">OL13</a>
+      </nav>
+      <div class="seg" id="langSeg" role="group" aria-label="Ngôn ngữ / Language">
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="vi" aria-pressed="true">VI</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container rv">
+    <p class="crumb"><a href="../">← IGCSE 9+10</a></p>
+    <h1><span class="vi">Unit 3 · Ôn tập theo dạng bài</span><span class="en">Unit 3 · Revision by question type</span></h1>
+    <p class="lead">
+      <span class="vi">Algorithm design &amp; problem-solving. Toàn bộ 49 bài tự luận của chương 3 được chia thành 9 dạng. Mỗi dạng có cách nhận diện, cách làm, lỗi hay gặp và bài luyện kèm đáp án.</span>
+      <span class="en">Algorithm design &amp; problem-solving. All 49 written exercises in chapter 3 are grouped into 9 question types. Each type shows how to spot it, how to answer it, common mistakes, and practice questions with mark schemes.</span>
+    </p>
+
+    <div class="rv-box">
+      <strong class="vi">Cách dùng trang này</strong><strong class="en">How to use this page</strong>
+      <ol class="vi">
+        <li>Đọc phần <b>Nhận diện</b> và <b>Cách làm</b> của dạng bài.</li>
+        <li>Mở <b>Luyện tập</b>, làm từng bài <b>ra giấy</b> trước. Bí quá thì mới mở <b>Gợi ý</b>.</li>
+        <li>Mở <b>Đáp án &amp; cách chấm</b>, tự chấm theo từng [1]. Ghi lại id các bài bị mất điểm để làm lại ở buổi 7.</li>
+      </ol>
+      <ol class="en">
+        <li>Read <b>How to spot it</b> and <b>How to answer</b> for the question type.</li>
+        <li>Open <b>Practice</b> and answer each question <b>on paper</b> first. Open the <b>Hint</b> only if you are stuck.</li>
+        <li>Open the <b>Mark scheme</b> and mark yourself, one [1] at a time. Write down the ids of questions where you lost marks and redo them in session 7.</li>
+      </ol>
+    </div>
+
+    <h2><span class="vi">Lịch tự ôn (8 buổi, mỗi buổi 45–60 phút)</span><span class="en">Self-study plan (8 sessions, 45–60 minutes each)</span></h2>
+    <p>
+      <span class="vi">Cho kỳ thi cuối học kỳ 1 (đề gồm Unit 1–3, tuần bắt đầu 04/01/2027 theo lịch hiện tại). Gợi ý làm từ 19/12 đến 03/01, khoảng hai ngày một buổi. Đổi ngày tùy em, nhưng giữ thứ tự.</span>
+      <span class="en">For the end of semester 1 exam (Units 1–3, week starting 4 January 2027 on the current plan). Suggested from 19 December to 3 January, about one session every two days. Move the dates if you need to, but keep the order.</span>
+    </p>
+    <div class="tbl-wrap">
+      <table class="rv-plan">
+        <thead><tr><th><span class="vi">Buổi</span><span class="en">Session</span></th><th><span class="vi">Nội dung</span><span class="en">What to do</span></th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><span class="vi">Dạng <a href="#A">A</a>, rồi lật thẻ ghi nhớ chương 3 (<a href="cards.html?c=3">thẻ chương 3</a>).</span><span class="en">Type <a href="#A">A</a>, then go through the chapter 3 flashcards (<a href="cards.html?c=3">chapter 3 cards</a>).</span></td></tr>
+          <tr><td>2</td><td><span class="vi">Dạng <a href="#B">B</a> và <a href="#C">C</a>.</span><span class="en">Types <a href="#B">B</a> and <a href="#C">C</a>.</span></td></tr>
+          <tr><td>3</td><td><span class="vi">Dạng <a href="#D">D</a>, phần 1: 3.2-e3, 3.2-e4, 3.3-e4, 3.4-e2.</span><span class="en">Type <a href="#D">D</a>, part 1: 3.2-e3, 3.2-e4, 3.3-e4, 3.4-e2.</span></td></tr>
+          <tr><td>4</td><td><span class="vi">Dạng <a href="#D">D</a>, phần 2: 3.4-e3, 3.5-e6, 3.6-e3, 3.6-e4, 3.6-e5; và dạng <a href="#F">F</a>.</span><span class="en">Type <a href="#D">D</a>, part 2: 3.4-e3, 3.5-e6, 3.6-e3, 3.6-e4, 3.6-e5; and type <a href="#F">F</a>.</span></td></tr>
+          <tr><td>5</td><td><span class="vi">Dạng <a href="#E">E</a> và <a href="#G">G</a>.</span><span class="en">Types <a href="#E">E</a> and <a href="#G">G</a>.</span></td></tr>
+          <tr><td>6</td><td><span class="vi">Dạng <a href="#H">H</a>.</span><span class="en">Type <a href="#H">H</a>.</span></td></tr>
+          <tr><td>7</td><td><span class="vi">Dạng <a href="#I">I</a>, rồi làm lại các bài đã mất điểm ở buổi 1–6.</span><span class="en">Type <a href="#I">I</a>, then redo every question you lost marks on in sessions 1–6.</span></td></tr>
+          <tr><td>8</td><td><span class="vi">Làm lại <a href="../igcse9/unit-test.html?unit=u3">bài kiểm tra Unit 3 (20 phút)</a> có bấm giờ, rồi làm phần trắc nghiệm tự kiểm tra ở cuối <a href="chapter.html?c=3#selftest">trang chương 3</a>. Sau đó ôn tiếp Unit 1 và 2.</span><span class="en">Redo the <a href="../igcse9/unit-test.html?unit=u3">Unit 3 test (20 minutes)</a> with a timer, then the self-test quiz at the end of the <a href="chapter.html?c=3#selftest">chapter 3 page</a>. Then move on to Units 1 and 2.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2><span class="vi">9 dạng bài</span><span class="en">The 9 question types</span></h2>
+    <ul class="rv-toc">
+      <li><a href="#A"><span class="vi">A. Thuật ngữ, quy tắc, giá trị</span><span class="en">A. Terms, rules and values</span></a></li>
+      <li><a href="#B"><span class="vi">B. Giải thích</span><span class="en">B. Explain</span></a></li>
+      <li><a href="#C"><span class="vi">C. Phân rã, IPO, sơ đồ cấu trúc, lưu đồ</span><span class="en">C. Decomposition, IPO, structure diagrams, flowcharts</span></a></li>
+      <li><a href="#D"><span class="vi">D. Bảng theo dõi (trace table)</span><span class="en">D. Trace tables</span></a></li>
+      <li><a href="#E"><span class="vi">E. Đọc thuật toán: output, mục đích, chỗ sai</span><span class="en">E. Reading an algorithm: output, purpose, fault</span></a></li>
+      <li><a href="#F"><span class="vi">F. Thuật toán chuẩn tính tay</span><span class="en">F. Standard algorithms by hand</span></a></li>
+      <li><a href="#G"><span class="vi">G. Kiểm tra hợp lệ và dữ liệu kiểm thử</span><span class="en">G. Validation checks and test data</span></a></li>
+      <li><a href="#H"><span class="vi">H. Viết pseudocode</span><span class="en">H. Writing pseudocode</span></a></li>
+      <li><a href="#I"><span class="vi">I. Sửa / bổ sung thuật toán</span><span class="en">I. Correcting and amending algorithms</span></a></li>
+    </ul>
+
+    <!-- ===================== A ===================== -->
+    <section class="rv-type" id="A">
+      <h2><span class="vi">A. Thuật ngữ, quy tắc, giá trị</span><span class="en">A. Terms, rules and values</span> <span class="tag-k">State · Define · Name · Give</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề bắt đầu bằng <i>State, Define, Name, Give, State the value</i>. Thường 2–3 điểm, mỗi ý đúng 1 điểm.</li></ul>
+      <ul class="en"><li>The question starts with <i>State, Define, Name, Give, State the value</i>. Usually 2–3 marks, 1 mark per correct point.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ol class="vi">
+        <li>Nhìn số điểm để biết cần bao nhiêu ý.</li>
+        <li>Dùng đúng thuật ngữ trong sách: <i>analysis → design → coding → testing</i>; <i>terminator, parallelogram, diamond</i>.</li>
+        <li><i>Define</i>: nêu định nghĩa đầy đủ. Nếu đề hỏi thêm ví dụ thì cho ví dụ cụ thể.</li>
+        <li>Câu tính giá trị: viết cả phép tính, ví dụ <code>23 DIV 6 = 3</code>, <code>23 MOD 6 = 5</code>.</li>
+      </ol>
+      <ol class="en">
+        <li>Use the marks to decide how many points to give.</li>
+        <li>Use the exact textbook terms: <i>analysis → design → coding → testing</i>; <i>terminator, parallelogram, diamond</i>.</li>
+        <li><i>Define</i>: give the full definition. If an example is asked for, make it specific.</li>
+        <li>Value questions: show the working, e.g. <code>23 DIV 6 = 3</code>, <code>23 MOD 6 = 5</code>.</li>
+      </ol>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Vòng đời phát triển chương trình thiếu bước hoặc sai thứ tự.</li>
+        <li>Abstraction chỉ ghi "làm đơn giản" mà thiếu vế "giữ lại chi tiết cần cho bài toán".</li>
+        <li>Nhầm <code>DIV</code> (phần nguyên) với <code>MOD</code> (phần dư).</li>
+        <li><code>SUBSTRING(s, start, length)</code>: vị trí đếm từ 1, ví dụ <code>SUBSTRING("Cambridge", 4, 3) = "bri"</code>.</li>
+        <li>Chọn vòng lặp: biết trước số lần thì FOR; chạy ít nhất một lần thì REPEAT … UNTIL; có thể không chạy lần nào thì WHILE.</li>
+      </ul>
+      <ul class="bad en">
+        <li>Missing a stage of the program development life cycle, or giving the stages in the wrong order.</li>
+        <li>Defining abstraction as just "making it simpler" without "keeping the details needed to solve the problem".</li>
+        <li>Mixing up <code>DIV</code> (whole-number part) and <code>MOD</code> (remainder).</li>
+        <li><code>SUBSTRING(s, start, length)</code> counts from 1, e.g. <code>SUBSTRING("Cambridge", 4, 3) = "bri"</code>.</li>
+        <li>Choosing a loop: known number of repeats → FOR; must run at least once → REPEAT … UNTIL; may not run at all → WHILE.</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (10 bài)</span><span class="en">Practice (10 questions)</span></summary>
+        <div class="rv-set" data-ids="3.1-e1,3.1-e2,3.1-e3,3.2-e1,3.2-e2,3.3-e1,3.3-e2,3.3-e3,3.4-e1,3.7-e1"></div>
+      </details>
+    </section>
+
+    <!-- ===================== B ===================== -->
+    <section class="rv-type" id="B">
+      <h2><span class="vi">B. Giải thích</span><span class="en">B. Explain</span> <span class="tag-k">Explain · Explain two reasons/benefits</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề có <i>Explain</i>, <i>Explain why</i>, <i>Explain two …</i>. Thường 2–4 điểm.</li></ul>
+      <ul class="en"><li>The question says <i>Explain</i>, <i>Explain why</i>, <i>Explain two …</i>. Usually 2–4 marks.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ol class="vi">
+        <li>Mỗi điểm là một ý. Đề <i>"Explain two …" [4]</i> thì mỗi lý do 2 ý: <b>ý chính</b> + <b>hệ quả</b> (viết theo mẫu "…, nên …").</li>
+        <li>Gắn câu trả lời vào tình huống trong đề (nhóm 5 lập trình viên, chương trình nhập điểm 0–100…).</li>
+        <li>Hai lý do phải khác nhau thật, không viết lại một ý bằng từ khác.</li>
+      </ol>
+      <ol class="en">
+        <li>One mark per point. For <i>"Explain two …" [4]</i>, give each reason two points: <b>the point</b> + <b>its consequence</b> ("…, so …").</li>
+        <li>Link your answer to the scenario in the question (a team of five programmers, a mark-entry program for 0–100…).</li>
+        <li>The two reasons must really be different, not the same idea in other words.</li>
+      </ol>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Lẫn <b>verification</b> với <b>validation</b>. Verification kiểm tra dữ liệu nhập có <i>khớp bản gốc</i> không: visual check, double entry check. Validation kiểm tra dữ liệu có <i>hợp lý</i> không: range, length, type, presence, format, check digit.</li>
+        <li>Quên rằng validation không bắt được dữ liệu hợp lý nhưng sai, ví dụ nhập 15 thay vì 51.</li>
+        <li>Chỉ nêu ý chính mà không có hệ quả, nên mất nửa số điểm.</li>
+      </ul>
+      <ul class="bad en">
+        <li>Mixing up <b>verification</b> and <b>validation</b>. Verification checks that the data entered <i>matches the original</i>: visual check, double entry check. Validation checks that the data is <i>reasonable</i>: range, length, type, presence, format, check digit.</li>
+        <li>Forgetting that validation cannot catch data that is reasonable but wrong, e.g. 15 typed instead of 51.</li>
+        <li>Giving the point without its consequence, which loses half the marks.</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (6 bài)</span><span class="en">Practice (6 questions)</span></summary>
+        <div class="rv-set" data-ids="3.1-e6,3.1-e7,3.5-e3,3.5-e4,3.6-e6,3.7-e5"></div>
+      </details>
+    </section>
+
+    <!-- ===================== C ===================== -->
+    <section class="rv-type" id="C">
+      <h2><span class="vi">C. Phân rã, IPO, sơ đồ cấu trúc, lưu đồ</span><span class="en">C. Decomposition, IPO, structure diagrams, flowcharts</span> <span class="tag-k">Give an example of each part · Describe the diagram</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề cho một hệ thống và hỏi ví dụ <i>Input / Process / Output / Storage</i>, hoặc yêu cầu <i>describe</i> sơ đồ cấu trúc hay lưu đồ. Thường 4–5 điểm.</li></ul>
+      <ul class="en"><li>The question describes a system and asks for examples of <i>Input / Process / Output / Storage</i>, or asks you to <i>describe</i> a structure diagram or flowchart. Usually 4–5 marks.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ol class="vi">
+        <li><b>IPO + Storage</b>: lấy ví dụ từ chính đề. Input là dữ liệu đưa vào, Process là việc tính toán, Output là thứ hiện ra, Storage là thứ lưu lại (file).</li>
+        <li><b>Sơ đồ cấu trúc</b>: hộp trên cùng là cả hệ thống; tầng dưới là các hệ con; hộp con nối đúng dưới hộp cha bằng đường thẳng từ trên xuống.</li>
+        <li><b>Mô tả lưu đồ</b>: đi từ START đến STOP, nêu tên ký hiệu và nội dung từng hộp. INPUT/OUTPUT dùng parallelogram, xử lý dùng hình chữ nhật, quyết định dùng diamond có điều kiện chính xác và hai lối ra Yes/No, các hộp nối bằng flow line có mũi tên.</li>
+      </ol>
+      <ol class="en">
+        <li><b>IPO + Storage</b>: take every example from the scenario. Input is the data going in, Process is the calculation, Output is what is shown, Storage is what is saved (a file).</li>
+        <li><b>Structure diagram</b>: the top box is the whole system; the next level holds the sub-systems; each lower box is joined under the correct parent box by lines going down.</li>
+        <li><b>Describing a flowchart</b>: go from START to STOP, naming each symbol and what it contains. INPUT/OUTPUT use a parallelogram, a process uses a rectangle, a decision uses a diamond with a precise condition and two exits labelled Yes/No, and all boxes are joined by flow lines with arrows.</li>
+      </ol>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Ví dụ chung chung, không lấy từ đề.</li>
+        <li>Đặt hộp con dưới nhầm hộp cha trong sơ đồ cấu trúc.</li>
+        <li>Dùng hình chữ nhật cho INPUT/OUTPUT, hoặc quên START/STOP.</li>
+        <li>Điều kiện mơ hồ ("đủ cao?") thay vì <code>Height &gt;= 1.2?</code>.</li>
+      </ul>
+      <ul class="bad en">
+        <li>Generic examples that are not taken from the scenario.</li>
+        <li>Putting a sub-system under the wrong parent box in a structure diagram.</li>
+        <li>Using a rectangle for INPUT/OUTPUT, or leaving out START/STOP.</li>
+        <li>A vague condition ("tall enough?") instead of <code>Height &gt;= 1.2?</code>.</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (4 bài)</span><span class="en">Practice (4 questions)</span></summary>
+        <div class="rv-set" data-ids="3.1-e4,3.1-e5,3.2-e5,3.2-e6"></div>
+      </details>
+    </section>
+
+    <!-- ===================== D ===================== -->
+    <section class="rv-type" id="D">
+      <h2><span class="vi">D. Bảng theo dõi (trace table)</span><span class="en">D. Trace tables</span> <span class="tag-k">Complete the trace table</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề cho pseudocode hoặc lưu đồ, dữ liệu nhập theo thứ tự, và một bảng có sẵn tên cột. Thường 3–5 điểm.</li></ul>
+      <ul class="en"><li>The question gives pseudocode or a flowchart, the input values in order, and a table with column headings. Usually 3–5 marks.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ol class="vi">
+        <li>Dòng đầu ghi giá trị khởi tạo (ví dụ <code>Total = 0</code>).</li>
+        <li>Đi từng lệnh một. Chỉ ghi vào cột khi biến đó <b>thay đổi</b>; mỗi lượt lặp thường là một dòng mới.</li>
+        <li>Kiểm tra điều kiện vòng lặp ở mỗi lượt: WHILE kiểm tra <b>trước</b>, REPEAT kiểm tra <b>sau</b>. FOR có <code>STEP -2</code> thì đếm lùi.</li>
+        <li>Lời nhắc (prompt) và OUTPUT ghi vào cột OUTPUT đúng thời điểm được in.</li>
+        <li>Dùng dữ liệu nhập đúng thứ tự đề cho, gạch từng giá trị khi đã dùng.</li>
+      </ol>
+      <ol class="en">
+        <li>Put the starting values in the first row (e.g. <code>Total = 0</code>).</li>
+        <li>Work through one statement at a time. Only write in a column when that variable <b>changes</b>; each pass of a loop is usually a new row.</li>
+        <li>Check the loop condition on every pass: WHILE tests <b>before</b>, REPEAT tests <b>after</b>. A FOR loop with <code>STEP -2</code> counts down.</li>
+        <li>Write prompts and OUTPUT values in the OUTPUT column at the moment they are output.</li>
+        <li>Use the input values in the order given, crossing each one off as you use it.</li>
+      </ol>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Chạy thừa hoặc thiếu một lượt vì đọc sai điều kiện dừng.</li>
+        <li>Quên cập nhật một biến thứ hai trong cùng lượt.</li>
+        <li>Ghi OUTPUT trong mỗi lượt trong khi lệnh OUTPUT nằm sau vòng lặp.</li>
+        <li>Tính sai <code>MOD</code> / <code>DIV</code>, nhất là với số chẵn/lẻ (<code>Number MOD 2 = 0</code> là số chẵn).</li>
+      </ul>
+      <ul class="bad en">
+        <li>One pass too many or too few because the stopping condition was misread.</li>
+        <li>Forgetting to update a second variable in the same pass.</li>
+        <li>Writing OUTPUT on every pass when the OUTPUT statement is after the loop.</li>
+        <li>Getting <code>MOD</code> / <code>DIV</code> wrong, especially for even/odd (<code>Number MOD 2 = 0</code> means even).</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (9 bài)</span><span class="en">Practice (9 questions)</span></summary>
+        <div class="rv-set" data-ids="3.2-e3,3.2-e4,3.3-e4,3.4-e2,3.4-e3,3.5-e6,3.6-e3,3.6-e4,3.6-e5"></div>
+      </details>
+    </section>
+
+    <!-- ===================== E ===================== -->
+    <section class="rv-type" id="E">
+      <h2><span class="vi">E. Đọc thuật toán: output, mục đích, chỗ sai</span><span class="en">E. Reading an algorithm: output, purpose, fault</span> <span class="tag-k">State the output · State the purpose · Explain what has gone wrong</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề cho một đoạn thuật toán ngắn, hỏi giá trị output, mục đích của thuật toán, vì sao kết quả sai, hoặc giá trị kiểm thử nào làm lộ lỗi.</li></ul>
+      <ul class="en"><li>The question gives a short algorithm and asks for the output, its purpose, why the result is wrong, or which test value would show up the error.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ol class="vi">
+        <li>Chạy thử nhanh (dry-run) với dữ liệu đề cho, nháp một bảng theo dõi nhỏ.</li>
+        <li><b>Mục đích</b>: mô tả việc thuật toán làm bằng ý nghĩa (ví dụ "tính tổng các chữ số của một số"), không đọc lại từng lệnh.</li>
+        <li><b>Chỗ sai</b>: so output thực tế với output mong đợi, chỉ ra dòng gây lỗi, giải thích và viết cách sửa.</li>
+      </ol>
+      <ol class="en">
+        <li>Dry-run the algorithm with the given data using a quick trace table on scrap paper.</li>
+        <li><b>Purpose</b>: describe what the algorithm achieves (e.g. "adds up the digits of a number"), not each statement in turn.</li>
+        <li><b>Fault</b>: compare the actual output with the expected output, point to the line that causes it, explain why, and write the correction.</li>
+      </ol>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Đổi chỗ hai biến mà không dùng biến tạm: <code>Temp ← NumA</code>, <code>NumA ← NumB</code>, <code>NumB ← Temp</code>.</li>
+        <li>Khởi tạo <code>Largest ← 0</code> sẽ sai khi mọi số đều âm. Nên gán giá trị đầu tiên nhập vào.</li>
+        <li>Lỗi <code>&gt;</code> thay cho <code>&gt;=</code> chỉ lộ ra ở đúng giá trị biên (ví dụ 50).</li>
+      </ul>
+      <ul class="bad en">
+        <li>Swapping two variables without a temporary variable: <code>Temp ← NumA</code>, <code>NumA ← NumB</code>, <code>NumB ← Temp</code>.</li>
+        <li>Starting with <code>Largest ← 0</code> fails when every number is negative. Use the first value input instead.</li>
+        <li>A <code>&gt;</code> instead of <code>&gt;=</code> error only shows up with the exact boundary value (e.g. 50).</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (5 bài)</span><span class="en">Practice (5 questions)</span></summary>
+        <div class="rv-set" data-ids="3.2-e7,3.3-e7,3.4-e6,3.6-e7,3.7-e4"></div>
+      </details>
+    </section>
+
+    <!-- ===================== F ===================== -->
+    <section class="rv-type" id="F">
+      <h2><span class="vi">F. Thuật toán chuẩn tính tay</span><span class="en">F. Standard algorithms by hand</span> <span class="tag-k">Bubble sort · Linear search · Check digit</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề cho một danh sách hoặc một mã số, yêu cầu viết từng bước sắp xếp, tìm kiếm, hoặc tính check digit.</li></ul>
+      <ul class="en"><li>The question gives a list or a code and asks you to show each step of a sort, a search, or a check digit calculation.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ul class="vi">
+        <li><b>Bubble sort</b>: so từng cặp kề nhau từ trái sang phải, đổi chỗ nếu sai thứ tự. Ghi danh sách sau <b>mỗi lần so sánh</b> nếu đề yêu cầu. Hết một lượt (pass) thì số lớn nhất đã về cuối. Đếm số lần đổi chỗ.</li>
+        <li><b>Linear search</b>: so lần lượt từ phần tử đầu tiên, dừng khi tìm thấy. Số lần so sánh bằng vị trí tìm thấy; không có trong danh sách thì phải so hết n phần tử.</li>
+        <li><b>Check digit</b>: làm đúng quy tắc đề cho (ví dụ cộng bốn chữ số rồi <code>MOD 10</code>), viết từng bước, rồi so với chữ số kiểm tra được nhập.</li>
+      </ul>
+      <ul class="en">
+        <li><b>Bubble sort</b>: compare each pair of neighbours from left to right and swap them if they are in the wrong order. Write the list after <b>each comparison</b> if asked. After one pass the largest value is at the end. Count the swaps.</li>
+        <li><b>Linear search</b>: compare from the first item until the item is found. The number of comparisons equals the position found; if the item is not there, all n items are compared.</li>
+        <li><b>Check digit</b>: follow the rule in the question exactly (e.g. add four digits, then <code>MOD 10</code>), show every step, then compare with the check digit that was entered.</li>
+      </ul>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Đổi chỗ cả khi cặp đã đúng thứ tự, hoặc bỏ sót cặp cuối của lượt.</li>
+        <li>Đếm sai số lần so sánh khi không tìm thấy.</li>
+        <li>Quên rằng check digit kiểu cộng không phát hiện được lỗi đổi chỗ hai chữ số (74191 và 47191 cho cùng tổng).</li>
+      </ul>
+      <ul class="bad en">
+        <li>Swapping a pair that is already in order, or missing the last pair in a pass.</li>
+        <li>Miscounting comparisons when the item is not found.</li>
+        <li>Forgetting that an adding-up check digit cannot detect two swapped digits (74191 and 47191 give the same sum).</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (3 bài)</span><span class="en">Practice (3 questions)</span></summary>
+        <div class="rv-set" data-ids="3.4-e4,3.4-e5,3.5-e7"></div>
+      </details>
+    </section>
+
+    <!-- ===================== G ===================== -->
+    <section class="rv-type" id="G">
+      <h2><span class="vi">G. Kiểm tra hợp lệ và dữ liệu kiểm thử</span><span class="en">G. Validation checks and test data</span> <span class="tag-k">Name the check · Give test data</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề mô tả một quy định (tuổi 5–18, mật khẩu ít nhất 8 ký tự…) và hỏi loại validation check phù hợp, hoặc yêu cầu cho ví dụ từng loại test data.</li></ul>
+      <ul class="en"><li>The question describes a rule (age 5–18, password at least 8 characters…) and asks for the most suitable validation check, or for an example of each type of test data.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ul class="vi">
+        <li><b>Validation check</b>: range (trong khoảng), length (số ký tự), type (đúng kiểu, ví dụ số nguyên), presence (không bỏ trống), format (đúng khuôn, ví dụ DD/MM/YYYY), check digit (chữ số kiểm tra).</li>
+        <li><b>Test data</b> (theo mark scheme của bộ bài):
+          <ul>
+            <li>Normal: hợp lệ, trong khoảng, phải được chấp nhận.</li>
+            <li>Abnormal: phải bị từ chối, do ngoài khoảng hoặc sai kiểu (ví dụ "ten").</li>
+            <li>Extreme: giá trị nhỏ nhất hoặc lớn nhất vẫn được chấp nhận (ví dụ 5 và 18).</li>
+            <li>Boundary: giá trị ở giới hạn cùng với giá trị ngay ngoài giới hạn (ví dụ 4 và 5, hoặc 18 và 19).</li>
+          </ul>
+        </li>
+        <li>Luôn đưa giá trị cụ thể lấy từ khoảng trong đề, và nói rõ giá trị đó được chấp nhận hay bị từ chối.</li>
+      </ul>
+      <ul class="en">
+        <li><b>Validation checks</b>: range, length (number of characters), type (e.g. whole number), presence (not left empty), format (e.g. DD/MM/YYYY), check digit.</li>
+        <li><b>Test data</b> (as used in these mark schemes):
+          <ul>
+            <li>Normal: valid data inside the range that should be accepted.</li>
+            <li>Abnormal: data that must be rejected, out of range or of the wrong type (e.g. "ten").</li>
+            <li>Extreme: the smallest or largest value that is still accepted (e.g. 5 and 18).</li>
+            <li>Boundary: a value on the limit together with the value just outside it (e.g. 4 and 5, or 18 and 19).</li>
+          </ul>
+        </li>
+        <li>Always give specific values from the range in the question, and say whether each one is accepted or rejected.</li>
+      </ul>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Nhầm extreme với boundary.</li>
+        <li>Chọn type check khi quy định là về số ký tự (phải là length check).</li>
+        <li>Ghi "một số lớn" thay vì một giá trị cụ thể.</li>
+      </ul>
+      <ul class="bad en">
+        <li>Mixing up extreme and boundary data.</li>
+        <li>Choosing a type check when the rule is about the number of characters (that is a length check).</li>
+        <li>Writing "a big number" instead of a specific value.</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (4 bài)</span><span class="en">Practice (4 questions)</span></summary>
+        <div class="rv-set" data-ids="3.5-e1,3.5-e2,3.6-e1,3.6-e2"></div>
+      </details>
+    </section>
+
+    <!-- ===================== H ===================== -->
+    <section class="rv-type" id="H">
+      <h2><span class="vi">H. Viết pseudocode</span><span class="en">H. Writing pseudocode</span> <span class="tag-k">Write pseudocode that …</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề bắt đầu bằng <i>Write pseudocode</i>, thường kèm yêu cầu bắt buộc (dùng CONSTANT, dùng REPEAT … UNTIL, dùng LENGTH…). Thường 4–6 điểm.</li></ul>
+      <ul class="en"><li>The question starts <i>Write pseudocode</i>, often with required features (use a CONSTANT, use REPEAT … UNTIL, use LENGTH…). Usually 4–6 marks.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ol class="vi">
+        <li>Gạch chân mọi yêu cầu trong đề. Mỗi yêu cầu thường ứng với 1 điểm.</li>
+        <li>Viết theo khung: khai báo và khởi tạo → INPUT có lời nhắc → xử lý / vòng lặp → OUTPUT có thông báo.</li>
+        <li>Dùng đúng cú pháp 0478: <code>←</code>, <code>CONSTANT VAT ← 0.2</code>, <code>FOR … TO … NEXT</code>, <code>REPEAT … UNTIL</code>, <code>WHILE … DO … ENDWHILE</code>, <code>IF … THEN … ELSE … ENDIF</code>.</li>
+        <li>Đặt tên biến có nghĩa (<code>TotalMark</code>, không phải <code>t</code>).</li>
+        <li>Chạy thử lại với một giá trị hợp lệ và một giá trị sai trước khi chuyển câu.</li>
+      </ol>
+      <ol class="en">
+        <li>Underline every requirement in the question. Each one is usually worth 1 mark.</li>
+        <li>Follow the frame: declare and initialise → INPUT with a prompt → process / loop → OUTPUT with a message.</li>
+        <li>Use 0478 syntax: <code>←</code>, <code>CONSTANT VAT ← 0.2</code>, <code>FOR … TO … NEXT</code>, <code>REPEAT … UNTIL</code>, <code>WHILE … DO … ENDWHILE</code>, <code>IF … THEN … ELSE … ENDIF</code>.</li>
+        <li>Use meaningful identifiers (<code>TotalMark</code>, not <code>t</code>).</li>
+        <li>Dry-run your answer with one valid and one invalid value before moving on.</li>
+      </ol>
+      <h3><span class="vi">Lỗi hay gặp</span><span class="en">Common mistakes</span></h3>
+      <ul class="bad vi">
+        <li>Viết cú pháp Python (<code>=</code>, <code>input()</code>, thụt lề thay cho ENDIF).</li>
+        <li>Không dùng loại vòng lặp đề yêu cầu.</li>
+        <li>Quên khởi tạo biến tổng/đếm.</li>
+        <li>Điều kiện validation sai biên: "từ 6 đến 12 ký tự" là <code>LENGTH(Name) &gt;= 6 AND LENGTH(Name) &lt;= 12</code>.</li>
+      </ul>
+      <ul class="bad en">
+        <li>Writing Python syntax (<code>=</code>, <code>input()</code>, indentation instead of ENDIF).</li>
+        <li>Not using the type of loop the question asks for.</li>
+        <li>Forgetting to initialise a total or a counter.</li>
+        <li>Getting a validation limit wrong: "between 6 and 12 characters" is <code>LENGTH(Name) &gt;= 6 AND LENGTH(Name) &lt;= 12</code>.</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (5 bài)</span><span class="en">Practice (5 questions)</span></summary>
+        <div class="rv-set" data-ids="3.3-e5,3.3-e6,3.4-e7,3.5-e5,3.7-e7"></div>
+      </details>
+    </section>
+
+    <!-- ===================== I ===================== -->
+    <section class="rv-type" id="I">
+      <h2><span class="vi">I. Sửa / bổ sung thuật toán</span><span class="en">I. Correcting and amending algorithms</span> <span class="tag-k">Identify the errors · Amend the algorithm</span></h2>
+      <h3><span class="vi">Nhận diện</span><span class="en">How to spot it</span></h3>
+      <ul class="vi"><li>Đề cho thuật toán có lỗi (thường nói rõ số lỗi) hoặc yêu cầu thêm chức năng rồi viết lại toàn bộ. Thường 4–6 điểm.</li></ul>
+      <ul class="en"><li>The question gives an algorithm with errors (often saying how many) or asks you to add a feature and rewrite it in full. Usually 4–6 marks.</li></ul>
+      <h3><span class="vi">Cách làm</span><span class="en">How to answer</span></h3>
+      <ol class="vi">
+        <li>Đọc kỹ thuật toán <i>phải</i> làm gì, rồi chạy thử với vài giá trị để thấy chỗ sai.</li>
+        <li>Mỗi lỗi: chỉ ra dòng, nói vì sao sai, viết dòng đã sửa. Thường 2 điểm một lỗi.</li>
+        <li><i>Amend … write the complete amended pseudocode</i>: viết lại toàn bộ, giữ nguyên phần đúng, biến mới phải có khởi tạo.</li>
+        <li>Dò theo danh sách lỗi hay gặp bên dưới nếu chưa tìm đủ số lỗi.</li>
+      </ol>
+      <ol class="en">
+        <li>Read what the algorithm <i>should</i> do, then dry-run it with a few values to see where it goes wrong.</li>
+        <li>For each error: identify the line, say why it is wrong, and write the corrected line. Usually 2 marks per error.</li>
+        <li><i>Amend … write the complete amended pseudocode</i>: rewrite all of it, keep the parts that are right, and initialise any new variable.</li>
+        <li>If you have not found enough errors, work through the checklist below.</li>
+      </ol>
+      <h3><span class="vi">Danh sách lỗi hay gặp</span><span class="en">Error checklist</span></h3>
+      <ul class="bad vi">
+        <li>Khởi tạo sai (<code>Total ← 1</code> thay vì 0).</li>
+        <li>Toán tử so sánh sai (<code>&gt;</code> thay vì <code>&gt;=</code>, <code>=</code> thay vì <code>&lt;&gt;</code>).</li>
+        <li>Vòng lặp chạy sai số lần (<code>FOR Count ← 1 TO 7</code> khi cần 8).</li>
+        <li>Quên tăng biến đếm.</li>
+        <li>Sai AND/OR trong điều kiện.</li>
+        <li>OUTPUT hoặc phép tính trung bình đặt sai chỗ (trong vòng lặp).</li>
+        <li>Có thể chia cho 0 khi chưa có dữ liệu: kiểm tra <code>IF Count &gt; 0</code> trước khi chia.</li>
+      </ul>
+      <ul class="bad en">
+        <li>Wrong starting value (<code>Total ← 1</code> instead of 0).</li>
+        <li>Wrong comparison operator (<code>&gt;</code> instead of <code>&gt;=</code>, <code>=</code> instead of <code>&lt;&gt;</code>).</li>
+        <li>Loop runs the wrong number of times (<code>FOR Count ← 1 TO 7</code> when 8 are needed).</li>
+        <li>Counter not increased.</li>
+        <li>AND/OR the wrong way round in a condition.</li>
+        <li>OUTPUT or the average calculation in the wrong place (inside the loop).</li>
+        <li>Possible division by zero when no data was entered: check <code>IF Count &gt; 0</code> before dividing.</li>
+      </ul>
+      <details class="practice"><summary><span class="vi">Luyện tập (3 bài)</span><span class="en">Practice (3 questions)</span></summary>
+        <div class="rv-set" data-ids="3.7-e2,3.7-e3,3.7-e6"></div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      &copy; <span id="year"></span> ITS ICT
+      <div class="credit">Học liệu dựa trên bộ IGCSE CS 9 của Mr. Gilbert, theo sách Cambridge IGCSE &amp; O Level Computer Science (Hodder).</div>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/main.js"></script>
+  <script src="../../../assets/js/learn-data.js" data-base="../igcse9/js/"></script>
+  <script src="../../../assets/js/revise.js"></script>
+</body>
+</html>
