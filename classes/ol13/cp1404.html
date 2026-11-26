@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CP1404 Programming II, giáo trình chuẩn bị | OL13 | ITS ICT</title>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <style>
+    table.grade { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); margin: 1rem 0 2rem; font-size: .95rem; }
+    table.grade th, table.grade td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+    table.grade th { background: #f0f4ff; }
+    .lesson-plan { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .lesson-plan h3 { margin: 0 0 .25rem; }
+    .lesson-plan h4 { margin: .8rem 0 .2rem; font-size: .95rem; color: var(--muted); }
+    .lesson-plan ul { margin: .2rem 0 0; padding-left: 1.2rem; }
+    .lesson-plan .kw { margin: .8rem 0 0; font-size: .9rem; color: var(--muted); }
+    .note { background: #fff8e1; border: 1px solid #f5d27a; border-radius: var(--radius); padding: .8rem 1rem; margin: 1rem 0 2rem; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="../../">ITS ICT</a>
+      <nav>
+        <a href="../tc28/">IGCSE 9+10</a>
+        <a href="./" class="active">OL13</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <p><a href="./">&larr; Quay lại OL13</a></p>
+    <h1>CP1404 &middot; Programming II &mdash; giáo trình chuẩn bị</h1>
+    <p class="lead">Phát triển chương trình Python có nhiều thành phần. Nền cần có từ CP1401 là hàm, vòng lặp và danh sách; phần mới là quản lý đối tượng, sự kiện giao diện (Kivy), quản lý phiên bản code (Git), test và debug, và một phần API/Flask.</p>
+
+    <div class="note">
+      <strong>Giả định khi lập kế hoạch</strong>
+      <ul>
+        <li>Giáo trình chuẩn bị trước khi vào JCU TR1S 2027, xây từ bản tóm tắt chủ đề theo tài liệu công khai của JCU. Đây <strong>không</strong> phải đề cương chính thức của môn; khi có handbook hoặc danh mục practical của kỳ học thì đối chiếu và điều chỉnh.</li>
+        <li>Mỗi buổi khoảng 90 phút. Chưa có lịch nên chưa gán ngày; số buổi chia theo nội dung, giáo viên gộp hoặc tách bài theo tiến độ thật.</li>
+        <li>Chưa biết chắc trình độ Python hiện tại của học viên, nên bài 01 có kiểm tra đầu vào. Nếu học viên vững thì rút bài 01 còn nửa buổi.</li>
+        <li>Công cụ: Python 3 bản mới, một IDE có debugger (PyCharm hoặc VS Code), Git, tài khoản GitHub, thư viện <code>kivy</code>, <code>requests</code>, <code>flask</code> cài bằng <code>pip</code>.</li>
+        <li>Đây là bản đề xuất. Giáo viên quyết định nội dung, thời lượng và mốc đánh giá chính thức.</li>
+      </ul>
+    </div>
+
+    <h2>1. Chủ đề của môn và bài tương ứng</h2>
+    <table class="grade">
+      <thead><tr><th>Chủ đề</th><th>Kiến thức cần nắm</th><th>Keywords</th><th>Bài</th></tr></thead>
+      <tbody>
+        <tr><td>Luồng và hàm</td><td>Chia chương trình theo trách nhiệm; tham số đưa dữ liệu vào, <code>return</code> đưa kết quả về nơi gọi</td><td>control flow, function, parameter, return</td><td>01</td></tr>
+        <tr><td>File và ngoại lệ</td><td><code>with open</code> để đọc/ghi file; bắt lỗi chuyển kiểu hoặc thiếu file đúng ở bước có thể thất bại</td><td>file I/O, context manager, try/except, ValueError</td><td>02</td></tr>
+        <tr><td>Cấu trúc dữ liệu</td><td>List khi cần giữ thứ tự, dictionary khi cần tra theo khóa; chọn theo thao tác hay dùng</td><td>list, dictionary, key, value, iteration</td><td>03</td></tr>
+        <tr><td>Lớp và đối tượng</td><td>Lớp định nghĩa dữ liệu và hành vi; mỗi object có trạng thái riêng, method truy cập qua <code>self</code></td><td>class, object, attribute, method, self, __init__</td><td>04, 05</td></tr>
+        <tr><td>Kế thừa</td><td>Lớp con dùng lại dữ liệu/hành vi của lớp cha, override khi cần xử lý khác</td><td>inheritance, subclass, superclass, override</td><td>06</td></tr>
+        <tr><td>Git và chất lượng</td><td>Commit từng thay đổi rõ ràng, review qua pull request; dùng test và debugger để kiểm tra và truy lỗi</td><td>Git, commit, pull request, code review, testing, debugging</td><td>07, 08</td></tr>
+        <tr><td>GUI với Kivy</td><td>Xếp ô nhập, nút, nhãn; khi nhấn nút, một method đọc input, tính và cập nhật nhãn</td><td>GUI, Kivy, .kv, TextInput, Button, Label, on_release</td><td>09, 10</td></tr>
+        <tr><td>API và Flask</td><td>Chương trình gửi request, nhận response và xử lý dữ liệu trả về</td><td>API, request, response, Flask</td><td>11</td></tr>
+      </tbody>
+    </table>
+
+    <h2>2. Mốc đánh giá</h2>
+    <table class="grade">
+      <thead><tr><th>Mốc</th><th>Hình thức</th><th>Mục tiêu</th></tr></thead>
+      <tbody>
+        <tr><td>Bài 01</td><td>Kiểm tra đầu vào 30 phút: 4&ndash;5 bài nhỏ về hàm, vòng lặp, list</td><td>Xác định chỗ hổng nền CP1401 để quyết định thời lượng bài 01&ndash;03</td></tr>
+        <tr><td>Sau bài 08</td><td>Kiểm tra giữa môn 60 phút trên máy: đọc file thành list object, có lớp con, có test, nộp qua Git</td><td>Chương trình chạy đúng với file thiếu/sai dữ liệu, có ít nhất 3 test, lịch sử commit rõ ràng</td></tr>
+        <tr><td>Bài 12</td><td>Mini project cuối môn: app Kivy dùng class, có test, quản lý bằng Git</td><td>App chạy được, không crash khi nhập sai, giải thích được thiết kế class và từng commit</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. Lộ trình từng bài</h2>
+
+    <div class="lesson-plan">
+      <h3>Bài 01 &mdash; Ôn nền CP1401: luồng điều khiển và hàm</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Viết chương trình có <code>main()</code> gọi các hàm nhỏ, mỗi hàm một việc.</li>
+        <li>Phân biệt <code>print</code> trong hàm với <code>return</code> kết quả cho nơi gọi.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Cài Python, IDE, chạy file <code>.py</code>. Quy ước đặt tên <code>snake_case</code>, hằng số viết hoa.</li>
+        <li><code>if/elif/else</code>, <code>while</code> (lặp đến khi nhập hợp lệ), <code>for</code> với <code>range</code> và list.</li>
+        <li>Hàm: tham số, giá trị mặc định, <code>return</code> nhiều giá trị, phạm vi biến (biến cục bộ, tránh biến toàn cục).</li>
+        <li>Mẫu chương trình: <code>def main(): ...</code> và gọi <code>main()</code> ở cuối file.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Kiểm tra đầu vào 30 phút.</li>
+        <li>Tách một chương trình viết liền một khối (cho sẵn) thành 3&ndash;4 hàm, chạy lại để chắc kết quả không đổi.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>3 chương trình menu (nhập lựa chọn, lặp đến khi chọn Quit), mỗi lựa chọn là một hàm có <code>return</code>.</li></ul>
+      <p class="kw">Keywords: control flow, function, parameter, return, main</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 02 &mdash; File và ngoại lệ</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Đọc và ghi file văn bản/CSV bằng <code>with open</code>.</li>
+        <li>Đặt <code>try/except</code> đúng ở bước có thể thất bại, không bọc cả chương trình.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>with open(filename, "r", encoding="utf-8") as in_file</code>: file tự đóng khi ra khỏi khối (context manager). Chế độ <code>"r"</code>, <code>"w"</code>, <code>"a"</code>.</li>
+        <li>Đọc từng dòng, <code>strip()</code>, <code>split(",")</code>; module <code>csv</code> cho dữ liệu có dấu phẩy trong ô.</li>
+        <li><code>ValueError</code> khi <code>int()</code>/<code>float()</code> gặp chuỗi sai, <code>FileNotFoundError</code> khi thiếu file. <code>else</code> và <code>finally</code>.</li>
+        <li>Vòng lặp kiểm tra input: lặp đến khi người dùng nhập số hợp lệ trong khoảng cho phép.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Đọc file điểm (tên, điểm), bỏ qua và báo dòng lỗi, tính trung bình, ghi kết quả ra file mới.</li>
+        <li>Chạy thử với 3 trường hợp: file đúng, file có dòng sai kiểu, file không tồn tại.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Hàm <code>get_valid_number(prompt, low, high)</code> dùng lại được, và một chương trình đọc/ghi CSV dùng hàm đó.</li></ul>
+      <p class="kw">Keywords: file I/O, context manager, try/except, ValueError, FileNotFoundError, csv</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 03 &mdash; List và dictionary</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Chọn đúng cấu trúc dữ liệu dựa trên thao tác hay dùng: duyệt theo thứ tự hay tra theo khóa.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>List: thêm, xoá, cắt, sắp xếp; <code>sorted(items, key=...)</code>; list lồng (list of lists).</li>
+        <li>Dictionary: thêm/sửa theo khóa, <code>get</code> với giá trị mặc định, duyệt <code>items()</code>, đếm tần suất.</li>
+        <li>Khi nào dùng cái nào: tìm theo tên trong list phải duyệt hết, trong dict tra thẳng theo khóa.</li>
+        <li>List/dict comprehension cho các biến đổi đơn giản.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Đếm số lần xuất hiện của từng từ trong một file, in theo thứ tự giảm dần.</li>
+        <li>Cùng một bài tra cứu viết bằng list và bằng dict, so sánh độ dài code và cách tra.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Chương trình quản lý danh bạ nhỏ (dict tên &rarr; số điện thoại giả lập), đọc/ghi file ở bài 02.</li></ul>
+      <p class="kw">Keywords: list, dictionary, key, value, iteration, comprehension</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 04 &mdash; Lớp và đối tượng</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Viết class có <code>__init__</code>, attribute, method và <code>__str__</code>.</li>
+        <li>Hiểu mỗi object giữ trạng thái riêng; method đọc/sửa trạng thái qua <code>self</code>.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Class là bản thiết kế, object là thể hiện. Tạo nhiều object từ một class, sửa một object không ảnh hưởng object khác.</li>
+        <li>Method trả giá trị và method thay đổi trạng thái. <code>__str__</code> và <code>__repr__</code> để in object.</li>
+        <li>Mỗi class một file module, <code>import</code> vào chương trình chính; file client riêng để thử class.</li>
+        <li>List các object: đọc mỗi dòng file thành một object, lưu vào list, sắp xếp theo attribute.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Class <code>Book</code> (tên, tác giả, số trang, đã đọc hay chưa), method đánh dấu đã đọc, kiểm tra sách dài.</li>
+        <li>Đọc file sách thành list <code>Book</code>, in danh sách chưa đọc sắp theo số trang.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Tự chọn một đối tượng đời thường, viết class có ít nhất 3 attribute, 2 method và file client thử từng method.</li></ul>
+      <p class="kw">Keywords: class, object, attribute, method, self, __init__, __str__</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 05 &mdash; Thiết kế class cho bài toán: Risky Business</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Gom dữ liệu thuộc về nhau vào một object thay vì nhiều biến/list rời, rồi viết báo cáo trên list các object.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Theo bài tự kiểm tra trong bản tóm tắt: gom kết quả và trạng thái thắng/thua của mỗi lượt vào một object <code>Turn</code>.</li>
+        <li>Lưu các lượt trong một list; báo cáo tính trên list (tổng, số lượt thắng/thua, lượt tốt nhất).</li>
+        <li>Trường hợp biên: list rỗng không được làm chương trình chia cho 0 hoặc crash.</li>
+        <li>Luật chơi chi tiết lấy theo đề practical khi có; trên lớp dùng phiên bản đơn giản do giáo viên mô tả.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Viết class <code>Turn</code> và hàm báo cáo. Kiểm tra báo cáo với đúng 3 trường hợp: một lượt lời, một lượt lỗ, danh sách rỗng.</li>
+        <li>So sánh với phiên bản dùng nhiều list song song: phiên bản nào dễ sửa khi thêm một thông tin mới cho mỗi lượt.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Thêm một attribute mới vào <code>Turn</code> và cập nhật báo cáo; ghi lại những chỗ phải sửa.</li></ul>
+      <p class="kw">Keywords: class design, object, list of objects, edge case, empty list</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 06 &mdash; Kế thừa</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Viết lớp con dùng lại lớp cha, override method khi lớp con cần xử lý khác.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>class Child(Parent)</code>, gọi <code>super().__init__(...)</code> rồi thêm attribute riêng.</li>
+        <li>Override method; trong method override vẫn có thể gọi <code>super().method()</code> để dùng lại phần chung.</li>
+        <li>Lời gọi cùng một method trên list chứa cả object lớp cha và lớp con: mỗi object chạy phiên bản của mình.</li>
+        <li>Khi nào nên kế thừa (quan hệ "là một") và khi nào không nên.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Class <code>Vehicle</code> có quãng đường và chi phí; lớp con <code>Taxi</code> tính giá theo km, lớp con của <code>Taxi</code> có phụ phí riêng. Override method tính giá và <code>__str__</code>.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Mở rộng class ở bài 04 bằng một lớp con có ít nhất 1 method override, kèm file client.</li></ul>
+      <p class="kw">Keywords: inheritance, subclass, superclass, override, super()</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 07 &mdash; Testing và debugging</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Viết test cho hàm và method, gồm cả trường hợp biên.</li>
+        <li>Dùng debugger để truy lỗi thay vì đoán hoặc rải <code>print</code>.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>assert</code> với thông báo lỗi rõ ràng; <code>doctest</code> viết ví dụ trong docstring.</li>
+        <li>Chọn test case: trường hợp thường, biên (0, rỗng, giá trị lớn nhất), dữ liệu sai.</li>
+        <li>Debugger trong IDE: breakpoint, step over, step into, xem biến (watch), xem call stack.</li>
+        <li>Đọc traceback: dòng cuối là loại lỗi, các dòng trên chỉ đường đi tới lỗi.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Viết test cho class <code>Turn</code> (bài 05) và <code>Taxi</code> (bài 06).</li>
+        <li>Chương trình cho sẵn có 3 lỗi logic: dùng debugger tìm và sửa, ghi lại từng bước.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Bổ sung doctest cho các hàm ở bài 02 và 03, chạy cho tới khi tất cả pass.</li></ul>
+      <p class="kw">Keywords: testing, assert, doctest, debugging, breakpoint, traceback</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 08 &mdash; Git, GitHub và code review</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Quản lý code bằng Git: mỗi commit một thay đổi rõ ràng, làm việc qua branch và pull request.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>git init</code>, <code>status</code>, <code>add</code>, <code>commit</code>, <code>log</code>; viết commit message mô tả việc đã làm.</li>
+        <li><code>.gitignore</code> cho file không cần lưu (<code>__pycache__</code>, file cấu hình máy cá nhân). Không bao giờ commit mật khẩu hay API key.</li>
+        <li>Remote trên GitHub: <code>push</code>, <code>pull</code>. Branch, mở pull request, review và sửa theo nhận xét.</li>
+        <li>Đọc <code>git diff</code> trước khi commit để chắc chỉ commit đúng thứ cần.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Đưa code bài 01&ndash;07 lên một repo, mỗi bài ít nhất 1 commit.</li>
+        <li>Tạo branch sửa một lỗi, mở pull request, giáo viên review, học viên sửa và merge.</li>
+        <li>Nếu còn thời gian: kiểm tra giữa môn 60 phút (xem mục 2).</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Review pull request của giáo viên (cố ý có lỗi), viết ít nhất 3 nhận xét cụ thể.</li></ul>
+      <p class="kw">Keywords: Git, commit, branch, pull request, code review, .gitignore</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 09 &mdash; GUI với Kivy (1): bố cục và sự kiện</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Dựng màn hình có ô nhập, nút, nhãn bằng file <code>.kv</code>; khi nhấn nút gọi một method trong Python.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Cấu trúc app: class kế thừa <code>App</code>, method <code>build()</code>, nạp file <code>.kv</code>.</li>
+        <li>Layout (<code>BoxLayout</code>, <code>GridLayout</code>), widget <code>Label</code>, <code>Button</code>, <code>TextInput</code>, đặt <code>id</code> để tham chiếu.</li>
+        <li>Sự kiện <code>on_release</code> gọi method của app; đọc <code>TextInput.text</code>, ghi <code>Label.text</code>.</li>
+        <li>Tách giao diện (<code>.kv</code>) khỏi xử lý (Python).</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>App đổi đơn vị (ví dụ km sang dặm): nhập số, nhấn nút, hiện kết quả.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>App nhỏ tự chọn với ít nhất 2 ô nhập và 2 nút.</li></ul>
+      <p class="kw">Keywords: GUI, Kivy, .kv, layout, TextInput, Button, Label, on_release, event</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 10 &mdash; GUI với Kivy (2): xử lý input và kết hợp class</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>App không crash khi người dùng nhập sai; dữ liệu của app lấy từ các class đã viết.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Bắt <code>ValueError</code> trong method xử lý nút, hiện thông báo lỗi trên nhãn.</li>
+        <li>Tạo widget động từ list object (ví dụ mỗi object một <code>Button</code>), xoá/thêm widget.</li>
+        <li>App giữ trạng thái (list object) trong attribute; sự kiện cập nhật trạng thái rồi cập nhật giao diện.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>App danh sách sách dùng class <code>Book</code> (bài 04): đọc file, hiện mỗi sách một nút, nhấn để đánh dấu đã đọc, nhãn tổng số trang còn lại.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Bắt đầu mini project cuối môn: chọn đề, vẽ phác giao diện, liệt kê class cần có, tạo repo.</li></ul>
+      <p class="kw">Keywords: input validation, dynamic widgets, app state, Kivy</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 11 &mdash; API và Flask</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Gửi request tới một API công khai, kiểm tra response và xử lý dữ liệu JSON trả về.</li>
+        <li>Viết một web app Flask nhỏ có route trả HTML và JSON.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Mô hình request/response, HTTP method (<code>GET</code>, <code>POST</code>), status code (200, 404, 500).</li>
+        <li><code>requests.get(url, timeout=...)</code>, kiểm tra <code>status_code</code>, <code>response.json()</code> ra dict/list. Bắt lỗi mạng và lỗi dữ liệu thiếu khóa.</li>
+        <li>API cần key: đọc key từ biến môi trường, không ghi vào code, không commit lên Git.</li>
+        <li>Flask: <code>@app.route</code>, tham số trên URL, <code>request.args</code>, trả JSON, template đơn giản. Kiểm tra dữ liệu người dùng gửi lên trước khi dùng.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Chọn một API công khai không cần key (giáo viên chuẩn bị), lấy dữ liệu, in ra 5 dòng đầu dạng bảng.</li>
+        <li>Flask app có route <code>/</code> và route trả JSON từ list object.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Thêm một route Flask nhận tham số, kiểm tra tham số hợp lệ, trả lỗi 400 khi sai.</li></ul>
+      <p class="kw">Keywords: API, request, response, JSON, status code, Flask, route</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 12 &mdash; Ôn tập và mini project cuối môn</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Hoàn thành mini project dùng đủ: file, class, kế thừa (nếu hợp), Kivy, test, Git.</li></ul>
+      <h4>Hoạt động</h4>
+      <ul>
+        <li>Nửa đầu: ôn các lỗi lặp lại từ bài kiểm tra giữa môn và bài về nhà.</li>
+        <li>Nửa sau: học viên demo app, giải thích thiết kế class, chạy test, trình bày lịch sử commit.</li>
+        <li>Giáo viên review code như một pull request, ghi nhận xét theo nhóm: cấu trúc, xử lý lỗi, test, Git.</li>
+      </ul>
+      <p class="kw">Keywords: project, code review, refactoring</p>
+    </div>
+
+    <h2>4. Quy trình dùng chung cho mọi buổi</h2>
+    <ul>
+      <li>10 phút đầu: chữa bài về nhà, xem lịch sử commit của học viên (từ bài 08).</li>
+      <li>25 phút: giảng ngắn kèm live coding.</li>
+      <li>45 phút: học viên tự code, giáo viên gợi ý hướng, không đưa code mẫu ngay.</li>
+      <li>10 phút cuối: tổng kết, giao bài về nhà.</li>
+      <li>Luôn nhắc: chạy thử sau mỗi thay đổi nhỏ, thử cả input sai, đọc traceback trước khi hỏi.</li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">&copy; <span id="year"></span> ITS ICT</div>
+  </footer>
+  <script src="../../assets/js/main.js"></script>
+</body>
+</html>

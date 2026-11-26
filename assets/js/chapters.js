@@ -1,15 +1,13 @@
-// Trang chủ: dựng danh sách chương/chủ đề IGCSE từ dữ liệu của igcse9 (nạp qua assets/js/learn-data.js)
-// và link sang đề cương ôn thi classes/tc28/cs9/chapter.html?c=N.
+// Trang môn IGCSE (classes/tc28/): dựng danh sách chương/chủ đề từ dữ liệu của igcse9 (nạp qua assets/js/learn-data.js)
+// và link sang đề cương ôn thi cs9/chapter.html?c=N. Thư mục cs9 lấy từ data-base của thẻ script.
 // Dùng textContent/DOM API, không ghép HTML từ dữ liệu.
 (function () {
-  const BASE = 'classes/tc28/cs9/';
+  const me = document.currentScript;
+  const BASE = (me && me.dataset.base) || 'cs9/';
   const KEY = 'igcse9_lang'; // dùng chung với trang học để giữ lựa chọn EN | VI
 
   function getLang() {
     try { return localStorage.getItem(KEY) === 'en' ? 'en' : 'vi'; } catch (e) { return 'vi'; }
-  }
-  function setLang(l) {
-    try { localStorage.setItem(KEY, l); } catch (e) { /* bỏ qua */ }
   }
 
   function el(tag, cls, text) {
@@ -71,16 +69,12 @@
         ? units.length + ' chương · ' + total + ' chủ đề'
         : units.length + ' chapters · ' + total + ' topics';
     }
-    document.querySelectorAll('.seg button').forEach(b => {
-      b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
-    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.seg button').forEach(b => {
-      b.addEventListener('click', () => { setLang(b.dataset.lang); render(); });
-    });
-    render(); // cập nhật nút EN|VI ngay, danh sách hiện khi dữ liệu nạp xong
+    // Công tắc EN | VI nằm ở header (main.js), phát sự kiện 'langchange' khi đổi
+    document.addEventListener('langchange', render);
+    render(); // danh sách hiện khi dữ liệu nạp xong
     if (window.LearnData) window.LearnData.loadOverview().then(render).catch(() => { /* vẫn còn nút "Vào trang học" */ });
   });
 })();

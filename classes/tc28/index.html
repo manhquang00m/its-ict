@@ -3,35 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TC28 - IGCSE | ITS ICT</title>
+  <title>IGCSE 9+10 (TC28) | ITS ICT</title>
   <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body>
+<body class="subject">
   <header class="site-header">
     <div class="container">
       <a class="logo" href="../../">ITS ICT</a>
       <nav>
-        <a href="./" class="active">TC28</a>
+        <a href="./" class="active">IGCSE 9+10</a>
         <a href="../ol13/">OL13</a>
       </nav>
+      <div class="seg" id="langSeg" role="group" aria-label="Ngôn ngữ / Language">
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="vi" aria-pressed="true">VI</button>
+      </div>
     </div>
   </header>
 
   <main class="container">
-    <h1>TC28 &mdash; IGCSE (lớp 9, 10)</h1>
-    <p class="lead">Danh sách buổi học. Bài mới nhất ở trên cùng.</p>
+    <p class="crumb"><a href="../../" data-en="← Subjects">← Môn học</a></p>
+    <h1>IGCSE 9+10 <span class="tag">TC28</span></h1>
+    <p class="lead" data-en="Computer Science. Grade 9 content is available; grade 10 has no lessons yet.">Computer Science. Hiện có nội dung lớp 9; lớp 10 chưa có bài.</p>
 
-    <ul class="lessons">
-      <!-- Thêm buổi mới theo mẫu:
-      <li><a href="lesson-01.html"><span class="num">01</span> Tên bài</a></li>
-      -->
-      <li><a href="cs9/"><span class="num">CS9</span> IGCSE Computer Science 9 &mdash; đề cương ôn thi theo chương, bài tập &amp; tự kiểm tra (EN/VI)</a></li>
+    <h2 class="sec" data-en="Tests">Kiểm tra</h2>
+    <ul class="lessons cols">
+      <li><a href="igcse9/unit-test.html?unit=u1"><span class="num">U1</span> <span data-en="Unit 1 · 20 min">Unit 1 · 20 phút</span></a></li>
+      <li><a href="igcse9/unit-test.html?unit=u2"><span class="num">U2</span> <span data-en="Unit 2 · 20 min">Unit 2 · 20 phút</span></a></li>
+      <li><a href="igcse9/unit-test.html?unit=u3"><span class="num">U3</span> <span data-en="Unit 3 · 20 min">Unit 3 · 20 phút</span></a></li>
+      <li><a href="igcse9/unit-test.html?unit=u4"><span class="num">U4</span> <span data-en="Unit 4 · 20 min">Unit 4 · 20 phút</span></a></li>
+      <li><a href="igcse9/unit-test.html?unit=u5"><span class="num">U5</span> <span data-en="Unit 5 · 20 min">Unit 5 · 20 phút</span></a></li>
+      <li><a href="igcse9/unit-test.html?unit=u6"><span class="num">U6</span> <span data-en="Unit 6 · 20 min">Unit 6 · 20 phút</span></a></li>
     </ul>
+
+    <div class="section-head" style="margin-top:1.75rem">
+      <h2 class="sec" style="margin:0" data-en="Chapters and topics (grade 9)">Chương và chủ đề (lớp 9)</h2>
+      <span id="igcse-sub" class="sub"></span>
+    </div>
+    <div class="chapters" id="chapters">
+      <noscript><p>Bật JavaScript để xem danh sách chương, hoặc <a href="cs9/chapter.html?c=1">vào chương 1</a>.</p></noscript>
+    </div>
   </main>
 
   <footer class="site-footer">
     <div class="container">&copy; <span id="year"></span> ITS ICT</div>
   </footer>
   <script src="../../assets/js/main.js"></script>
+  <!-- Dữ liệu chương/chủ đề lấy từ igcse9/js qua loader dùng chung -->
+  <script src="../../assets/js/learn-data.js" data-base="igcse9/js/"></script>
+  <script src="../../assets/js/chapters.js" data-base="cs9/"></script>
 </body>
 </html>

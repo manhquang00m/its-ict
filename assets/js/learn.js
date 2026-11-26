@@ -235,7 +235,7 @@
     const app = document.getElementById('app');
     app.textContent = '';
     app.appendChild(el('p', { class: 'state' + (isErr ? ' err' : ''), text: msg }));
-    app.appendChild(el('p', null, [el('a', { href: './', text: t('backCourse') })]));
+    app.appendChild(el('p', null, [el('a', { href: '../', text: t('backCourse') })]));
   }
 
   function renderChapter() {
@@ -248,7 +248,7 @@
 
     const ids = unit.topics.map(x => x.id).join(',');
     app.appendChild(el('header', { class: 'ch-head' }, [
-      el('a', { class: 'back', href: './', text: t('back') }),
+      el('a', { class: 'back', href: '../', text: t('back') }),
       el('h1', { text: t('chapter') + ' ' + unit.num + ' · ' + unitTitle(unit) }),
       el('p', { class: 'sub' }, [
         t('semester') + ' ' + (unit.semester || 1) + ' · ' + unit.topics.length + ' ' + t('topics') + ' · ',
@@ -446,10 +446,10 @@
     const box = el('nav', { class: 'pager', 'aria-label': 'pager' });
     box.appendChild(unit.num > 1
       ? el('a', { href: chapterHref(unit.num - 1), text: t('prevCh') + (unit.num - 1) })
-      : el('a', { href: './', text: t('back') }));
+      : el('a', { href: '../', text: t('back') }));
     box.appendChild(unit.num < 6
       ? el('a', { href: chapterHref(unit.num + 1), text: t('nextCh') + (unit.num + 1) + ' ›' })
-      : el('a', { href: './', text: t('backCourse') + ' ›' }));
+      : el('a', { href: '../', text: t('backCourse') + ' ›' }));
     return box;
   }
 

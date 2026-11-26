@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Unit test — IGCSE CS 9</title><style>:root { --navy: #12355b; --orange: #e07a1f; --bg: #f4f6fa; --ok: #1b7f3b; --bad: #b3261e; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #111; background: var(--bg); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+.card { background: #fff; border-radius: 10px; padding: 18px 20px; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+h1 { margin: 0 0 4px; color: var(--navy); font-size: 26px; }
+h2 { margin: 22px 0 10px; font-size: 19px; color: #fff; background: var(--navy); padding: 8px 14px; border-radius: 8px; }
+.muted { color: #555; }
+.hidden { display: none !important; }
+a.back { color: var(--navy); font-weight: 600; text-decoration: none; }
+a.back:hover { text-decoration: underline; }
+label.f { display: block; margin: 12px 0 4px; font-weight: 600; }
+input[type=text] { width: 100%; max-width: 420px; padding: 9px 11px; font: inherit; border: 1.5px solid #9aa7b8; border-radius: 6px; }
+button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; padding: 10px 18px; background: var(--navy); color: #fff; font-weight: 600; }
+button.sec { background: #e3e8ef; color: var(--navy); }
+button.warn { background: var(--orange); }
+#langBtns { display: flex; gap: 8px; margin-top: 4px; }
+#langBtns button { background: #e3e8ef; color: var(--navy); padding: 6px 14px; }
+#langBtns button[aria-pressed=true] { background: var(--navy); color: #fff; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #4a90e2; outline-offset: 2px; }
+.err { color: var(--bad); margin-top: 8px; min-height: 1.4em; }
+ul.rules { margin: 8px 0 14px 20px; padding: 0; }
+code, pre { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+:not(pre) > code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; }
+
+/* sticky exam bar */
+#bar { position: sticky; top: 0; z-index: 10; background: var(--navy); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+#bar .in { max-width: 860px; margin: 0 auto; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+#bar .who { flex: 1 1 160px; font-size: 14px; opacity: .9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#timer { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#timer.low { color: #ffb4a8; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .45; } }
+#prog { font-size: 14px; }
+#pal { max-width: 860px; margin: 0 auto; padding: 0 16px 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+#pal button { padding: 2px 0; width: 36px; height: 28px; font-size: 13px; border-radius: 5px; background: rgba(255,255,255,.18); }
+#pal button.done { background: #5cb270; color: #04210f; }
+
+/* questions */
+.q { background: #fff; border-radius: 10px; padding: 14px 18px; margin: 0 0 12px; box-shadow: 0 1px 3px rgba(0,0,0,.12); scroll-margin-top: 110px; }
+.q .qh { font-weight: 600; margin-bottom: 8px; }
+.q .no { color: var(--navy); }
+.q .tag { float: right; font-size: 12px; color: #667; font-weight: 400; }
+.body p { margin: 4px 0; } .body ul, .body ol { margin: 4px 0 4px 22px; padding: 0; }
+.body pre { background: #f2f3f5; padding: 6px 10px; border-radius: 6px; white-space: pre-wrap; margin: 6px 0; }
+.body table { border-collapse: collapse; margin: 6px 0; } .body th, .body td { border: 1px solid #888; padding: 3px 9px; }
+textarea { width: 100%; min-height: 120px; margin-top: 8px; padding: 9px 11px; font: inherit; line-height: 1.45; border: 1.5px solid #9aa7b8; border-radius: 6px; resize: vertical; }
+
+/* result */
+.res { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.res span { min-width: 54px; text-align: center; padding: 4px 6px; border-radius: 6px; font-size: 14px; border: 1.5px solid #ccd; }
+.res .ok { background: #e3f4e8; border-color: var(--ok); color: var(--ok); }
+.res .blank { background: #f1f1f1; color: #666; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+#toast { min-height: 1.4em; margin-top: 8px; color: var(--ok); }
+</style></head><body>
+<div id="bar" class="hidden"><div class="in"><div class="who" id="who"></div><div id="prog"></div><div id="timer" aria-live="off">--:--</div><button class="warn" id="submit" type="button"></button></div><div id="pal"></div></div>
+<div class="wrap">
+  <div id="start" class="card hidden">
+    <p style="margin:0 0 10px"><a class="back" id="backS" href="index.html#resources"></a></p>
+    <h1 id="sTitle"></h1>
+    <div class="muted" id="sSub"></div>
+    <ul class="rules" id="rules"></ul>
+    <div class="muted" id="langLabel" style="font-weight:600"></div>
+    <div id="langBtns"><button type="button" data-l="en" aria-pressed="true">English</button><button type="button" data-l="vi" aria-pressed="false">Tiếng Việt</button></div>
+    <label class="f" for="name" id="lName"></label><input id="name" type="text" maxlength="60" autocomplete="off">
+    <label class="f" for="cls" id="lCls"></label><input id="cls" type="text" maxlength="30" autocomplete="off">
+    <div class="err" id="serr" role="alert"></div>
+    <button id="go" type="button"></button>
+  </div>
+  <div id="exam" class="hidden">
+    <div id="questions"></div>
+    <div class="card"><button class="warn" id="submit2" type="button"></button></div>
+  </div>
+  <div id="result" class="card hidden">
+    <p style="margin:0 0 10px"><a class="back" id="backR" href="index.html#resources"></a></p>
+    <h1 id="rTitle"></h1><div class="muted" id="rname"></div>
+    <div class="muted" id="rtime"></div>
+    <div class="res" id="res"></div>
+    <div class="muted" id="rwr"></div>
+    <div class="btns"><button id="dl" type="button"></button><button class="sec" id="cp" type="button"></button><button class="sec" id="again" type="button"></button></div>
+    <div id="toast" role="status"></div>
+  </div>
+  <div id="bad" class="card hidden"><p id="badMsg"></p><p><a class="back" id="badLink" href="index.html#resources"></a></p></div>
+</div>
+<script src="js/exercises-ch1.js"></script>
+<script src="js/exercises-ch2.js"></script>
+<script src="js/exercises-ch3.js"></script>
+<script src="js/exercises-ch4a.js"></script>
+<script src="js/exercises-ch4b.js"></script>
+<script src="js/exercises-ch5.js"></script>
+<script src="js/unit-test.js"></script>
+</body></html>

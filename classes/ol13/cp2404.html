@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CP2404 Database Modelling, giáo trình chuẩn bị | OL13 | ITS ICT</title>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <style>
+    table.grade { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); margin: 1rem 0 2rem; font-size: .95rem; }
+    table.grade th, table.grade td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+    table.grade th { background: #f0f4ff; }
+    .lesson-plan { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .lesson-plan h3 { margin: 0 0 .25rem; }
+    .lesson-plan h4 { margin: .8rem 0 .2rem; font-size: .95rem; color: var(--muted); }
+    .lesson-plan ul { margin: .2rem 0 0; padding-left: 1.2rem; }
+    .lesson-plan .kw { margin: .8rem 0 0; font-size: .9rem; color: var(--muted); }
+    .note { background: #fff8e1; border: 1px solid #f5d27a; border-radius: var(--radius); padding: .8rem 1rem; margin: 1rem 0 2rem; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="../../">ITS ICT</a>
+      <nav>
+        <a href="../tc28/">IGCSE 9+10</a>
+        <a href="./" class="active">OL13</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <p><a href="./">&larr; Quay lại OL13</a></p>
+    <h1>CP2404 &middot; Database Modelling &mdash; giáo trình chuẩn bị</h1>
+    <p class="lead">Từ một yêu cầu bằng chữ, thiết kế cơ sở dữ liệu, triển khai thành bảng và dùng SQL để kiểm tra kết quả. Câu hỏi đầu tiên luôn là: <em>"Một dòng trong bảng này đại diện cho gì?"</em> Học viên đã có nền truy vấn SQL từ <a href="curriculum.html">giáo trình SQL</a>, nên môn này tập trung vào thiết kế.</p>
+
+    <div class="note">
+      <strong>Giả định khi lập kế hoạch</strong>
+      <ul>
+        <li>Giáo trình chuẩn bị trước khi vào JCU TR1S 2027, xây từ bản tóm tắt chủ đề theo tài liệu công khai của JCU. Đây <strong>không</strong> phải đề cương chính thức của môn; khi có handbook của kỳ học thì đối chiếu và điều chỉnh.</li>
+        <li>Mỗi buổi khoảng 90 phút. Chưa có lịch nên chưa gán ngày; số buổi chia theo nội dung.</li>
+        <li>Trùng với <a href="curriculum.html">giáo trình SQL</a> bài 13 (INSERT/UPDATE/DELETE) và bài 14 (CREATE TABLE, ràng buộc). Nếu đã học xong hai bài đó thì bài 07 dưới đây rút gọn còn phần kiểm tra thiết kế.</li>
+        <li>Công cụ: draw.io (hoặc giấy) để vẽ ERD; một công cụ SQLite cho phép tạo bảng, ví dụ DB Browser for SQLite. W3Schools Try-it Editor chỉ dùng tiếp để ôn truy vấn trên Northwind.</li>
+        <li>Đây là bản đề xuất. Giáo viên quyết định nội dung, thời lượng và mốc đánh giá chính thức.</li>
+      </ul>
+    </div>
+
+    <h2>1. Chủ đề của môn và bài tương ứng</h2>
+    <table class="grade">
+      <thead><tr><th>Chủ đề</th><th>Kiến thức cần nắm</th><th>Keywords</th><th>Bài</th></tr></thead>
+      <tbody>
+        <tr><td>Mô hình quan hệ</td><td>Dữ liệu phân thành bảng, dòng, cột; DBMS lưu trữ, truy vấn và thực thi ràng buộc</td><td>relational model, table, row, column, DBMS</td><td>01</td></tr>
+        <tr><td>ERD và quan hệ</td><td>Xác định thực thể, thuộc tính, quan hệ; ghi số lượng tối thiểu và tối đa ở mỗi đầu quan hệ</td><td>ERD, entity, attribute, cardinality, optionality</td><td>02</td></tr>
+        <tr><td>Khóa và ràng buộc</td><td>PK nhận diện mỗi dòng; FK tham chiếu khóa của bảng liên quan; ràng buộc ngăn dữ liệu không hợp lệ</td><td>primary key, foreign key, composite key, UNIQUE, NOT NULL</td><td>03</td></tr>
+        <tr><td>Bảng trung gian</td><td>Tách nhiều&ndash;nhiều thành hai quan hệ một&ndash;nhiều; dữ liệu mô tả quan hệ đặt ở bảng trung gian</td><td>many-to-many, junction table, order line</td><td>04</td></tr>
+        <tr><td>Chuẩn hóa</td><td>1NF mỗi ô một giá trị; 2NF tránh phụ thuộc một phần vào khóa ghép; 3NF loại phụ thuộc bắc cầu</td><td>normalisation, 1NF, 2NF, 3NF, functional dependency</td><td>05, 06</td></tr>
+        <tr><td>Tạo và sửa dữ liệu</td><td>Chuyển thiết kế thành bảng có kiểu dữ liệu phù hợp; thử bản ghi hợp lệ và vi phạm để kiểm tra thiết kế</td><td>CREATE TABLE, INSERT, UPDATE, DELETE, constraint</td><td>07</td></tr>
+        <tr><td>Truy vấn và tổng hợp</td><td>JOIN ghép bảng; WHERE lọc dòng trước khi nhóm; GROUP BY tạo nhóm; HAVING lọc theo nhóm</td><td>SELECT, JOIN, WHERE, GROUP BY, HAVING, COUNT, SUM</td><td>08</td></tr>
+      </tbody>
+    </table>
+
+    <h2>2. Mốc đánh giá</h2>
+    <table class="grade">
+      <thead><tr><th>Mốc</th><th>Hình thức</th><th>Mục tiêu</th></tr></thead>
+      <tbody>
+        <tr><td>Sau bài 06</td><td>Kiểm tra giữa môn 60 phút trên giấy: từ một đề bài bằng chữ, vẽ ERD và chuẩn hóa một bảng phẳng đến 3NF</td><td>ERD có đủ cardinality và optionality ở cả hai đầu; xác định đúng PK, FK; chỉ ra được phụ thuộc nào vi phạm 2NF/3NF</td></tr>
+        <tr><td>Bài 09</td><td>Case study cuối môn: đề chữ &rarr; ERD &rarr; bảng &rarr; dữ liệu thử &rarr; truy vấn</td><td>Ràng buộc chặn được dữ liệu sai đã chuẩn bị; truy vấn báo cáo cho kết quả đúng và giải thích được</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. Lộ trình từng bài</h2>
+
+    <div class="lesson-plan">
+      <h3>Bài 01 &mdash; Mô hình quan hệ: một dòng đại diện cho gì?</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Mô tả chính xác ý nghĩa một dòng của mỗi bảng và vai trò của DBMS.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Bảng (relation), dòng (tuple/record), cột (attribute), miền giá trị. Thứ tự dòng không mang ý nghĩa.</li>
+        <li>DBMS làm gì: lưu trữ, truy vấn, thực thi ràng buộc, quản lý truy cập đồng thời.</li>
+        <li>Vì sao không dùng một bảng tính lớn: dư thừa, sửa một chỗ quên chỗ khác, xoá mất thông tin.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Với từng bảng Northwind (Customers, Orders, OrderDetails, Products, Categories, Suppliers, Employees, Shippers), viết một câu "Một dòng là &hellip;" và kiểm chứng bằng truy vấn đếm.</li>
+        <li>Ví dụ: một dòng OrderDetails là một sản phẩm trong một đơn, không phải một đơn.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Cho một bảng tính phẳng (đơn hàng gộp thông tin khách và sản phẩm), liệt kê các vấn đề khi thêm, sửa, xoá.</li></ul>
+      <p class="kw">Keywords: relational model, table, row, column, DBMS, redundancy, anomaly</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 02 &mdash; ERD: thực thể, thuộc tính, quan hệ</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Từ đề bài bằng chữ, vẽ ERD có cardinality (tối đa) và optionality (tối thiểu) ở cả hai đầu quan hệ.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Tìm thực thể từ danh từ, quan hệ từ động từ trong đề; loại các danh từ chỉ là thuộc tính.</li>
+        <li>Ký hiệu crow's foot: một, nhiều, bắt buộc, không bắt buộc. Đọc quan hệ theo hai chiều.</li>
+        <li>Quan hệ 1&ndash;1, 1&ndash;n, n&ndash;n. Câu hỏi kiểm tra: "Một khách hàng có thể có 0 đơn không? Một đơn có thể không có khách không?"</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Vẽ ERD Northwind rút gọn từ cấu trúc bảng đã biết.</li>
+        <li>2 đề chữ ngắn (thư viện, phòng khám), vẽ ERD trên draw.io, đọc to từng quan hệ theo hai chiều.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>ERD cho một đề chữ 8&ndash;10 câu (giáo viên giao), ghi rõ mỗi giả định khi đề không nói.</li></ul>
+      <p class="kw">Keywords: ERD, entity, attribute, relationship, cardinality, optionality, crow's foot</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 03 &mdash; Khóa và ràng buộc</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Chọn khóa chính, khóa ngoại và ràng buộc phù hợp cho từng bảng trong ERD.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Primary key: duy nhất, không NULL, ổn định. Natural key và surrogate key (mã tự tăng), ưu nhược.</li>
+        <li>Composite key: khóa gồm nhiều cột, ví dụ (OrderID, ProductID).</li>
+        <li>Foreign key: tham chiếu PK (hoặc cột UNIQUE) của bảng khác; FK nằm ở phía "nhiều".</li>
+        <li><code>UNIQUE</code>, <code>NOT NULL</code>, <code>CHECK</code>, <code>DEFAULT</code>: mỗi ràng buộc chặn loại dữ liệu sai nào.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Thêm PK, FK và ràng buộc vào ERD bài về nhà bài 02; với mỗi ràng buộc viết một ví dụ dữ liệu mà nó chặn.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Viết schema dạng chữ (tên bảng, cột, PK gạch chân, FK ghi bảng tham chiếu) cho ERD của mình.</li></ul>
+      <p class="kw">Keywords: primary key, foreign key, composite key, surrogate key, UNIQUE, NOT NULL, CHECK</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 04 &mdash; Quan hệ nhiều&ndash;nhiều và bảng trung gian</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Tách quan hệ n&ndash;n thành hai quan hệ 1&ndash;n và đặt đúng dữ liệu vào bảng trung gian.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Vì sao không lưu được n&ndash;n trực tiếp bằng FK: một ô phải chứa nhiều giá trị.</li>
+        <li>Bảng trung gian (junction table): PK thường là khóa ghép của hai FK, hoặc khóa riêng kèm <code>UNIQUE</code>.</li>
+        <li>Dữ liệu mô tả chính quan hệ (số lượng, giá lúc bán, ngày đăng ký) thuộc về bảng trung gian.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Bài tự kiểm tra trong bản tóm tắt: vẽ Customers &rarr; Orders &rarr; OrderDetails và nối Products với OrderDetails.</li>
+        <li>Giải thích vì sao <code>Quantity</code> và <code>UnitPriceAtSale</code> nằm ở từng dòng hàng: số lượng khác nhau theo từng sản phẩm trong từng đơn; giá sản phẩm có thể đổi sau này, còn giá lúc bán phải giữ nguyên để tính lại đơn cũ.</li>
+        <li>Thêm ví dụ: sinh viên&ndash;môn học (bảng đăng ký có điểm), diễn viên&ndash;phim (bảng vai diễn).</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Tìm và tách mọi quan hệ n&ndash;n trong ERD của mình, cập nhật schema.</li></ul>
+      <p class="kw">Keywords: many-to-many, junction table, associative entity, order line</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 05 &mdash; Chuẩn hóa (1): phụ thuộc hàm, 1NF, 2NF</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Viết được phụ thuộc hàm của một bảng và đưa bảng về 1NF, 2NF.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Phụ thuộc hàm A &rarr; B: biết A thì xác định duy nhất B. Lấy phụ thuộc từ nghĩa nghiệp vụ, không từ vài dòng dữ liệu mẫu.</li>
+        <li>1NF: mỗi ô một giá trị theo thiết kế, không có nhóm lặp (cột Product1, Product2, &hellip;), có khóa.</li>
+        <li>2NF: với khóa ghép, mọi thuộc tính không khóa phụ thuộc vào cả khóa, không chỉ một phần. Ví dụ <code>ProductName</code> trong bảng khóa (OrderID, ProductID) chỉ phụ thuộc ProductID.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Bảng phẳng đơn hàng (bài về nhà bài 01): liệt kê phụ thuộc hàm, đưa về 1NF rồi 2NF, chỉ ra dư thừa nào đã biến mất.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>2 bảng phẳng khác, đưa về 2NF, ghi phụ thuộc hàm của từng bảng kết quả.</li></ul>
+      <p class="kw">Keywords: normalisation, functional dependency, 1NF, 2NF, partial dependency, repeating group</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 06 &mdash; Chuẩn hóa (2): 3NF và đối chiếu với ERD</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Loại phụ thuộc bắc cầu để đạt 3NF; kiểm tra kết quả chuẩn hóa khớp với ERD.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>3NF: không có thuộc tính không khóa phụ thuộc vào thuộc tính không khóa khác. Ví dụ Orders chứa <code>CustomerID</code> và <code>CustomerCity</code>.</li>
+        <li>Quy trình đầy đủ: bảng phẳng &rarr; 1NF &rarr; 2NF &rarr; 3NF, mỗi bước ghi phụ thuộc đã xử lý.</li>
+        <li>Thiết kế từ ERD và thiết kế từ chuẩn hóa nên ra cùng tập bảng; nếu khác thì xem lại giả định.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Chuẩn hóa trọn vẹn một bảng phẳng đến 3NF, rồi vẽ ERD từ kết quả.</li>
+        <li>Kiểm tra giữa môn 60 phút (xem mục 2), có thể làm buổi riêng.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Sửa lại bài kiểm tra giữa môn, viết giải thích cho từng lỗi.</li></ul>
+      <p class="kw">Keywords: 3NF, transitive dependency, decomposition</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 07 &mdash; Triển khai thiết kế: tạo bảng và thử ràng buộc</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Chuyển schema thành <code>CREATE TABLE</code> chạy được, rồi chứng minh ràng buộc hoạt động bằng dữ liệu thử.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>CREATE TABLE</code> với kiểu dữ liệu phù hợp: số nguyên cho mã và số lượng, chuỗi cho mã có số 0 đầu, kiểu ngày, tiền lưu đúng độ chính xác.</li>
+        <li>Khai báo <code>PRIMARY KEY</code>, <code>FOREIGN KEY ... REFERENCES</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>. Thứ tự tạo bảng: bảng được tham chiếu trước.</li>
+        <li>SQLite: kiểm tra FK có đang bật không. Với sqlite3 dòng lệnh cần chạy <code>PRAGMA foreign_keys = ON;</code> ở mỗi lần kết nối, nếu không FK sẽ không được kiểm tra.</li>
+        <li><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> có <code>WHERE</code>; chạy <code>SELECT</code> cùng điều kiện trước khi sửa/xoá.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Tạo các bảng từ schema của học viên, thêm dữ liệu hợp lệ.</li>
+        <li>Mỗi ràng buộc thử ít nhất 1 bản ghi vi phạm (trùng PK, FK trỏ tới mã không tồn tại, NULL ở cột bắt buộc, CHECK sai) và ghi lại thông báo lỗi.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>File <code>.sql</code> gồm tạo bảng, dữ liệu mẫu và các câu vi phạm (đánh dấu bằng comment), chạy lại từ đầu không lỗi ngoài các câu cố ý vi phạm.</li></ul>
+      <p class="kw">Keywords: CREATE TABLE, data type, INSERT, UPDATE, DELETE, constraint, referential integrity</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 08 &mdash; Truy vấn và tổng hợp trên CSDL tự thiết kế</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Viết truy vấn báo cáo trên thiết kế của mình và hiểu kết quả đếm thay đổi thế nào sau JOIN.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Ôn nhanh JOIN, <code>WHERE</code> lọc dòng trước khi nhóm, <code>GROUP BY</code>, <code>HAVING</code> lọc theo nhóm (đã vững từ giáo trình SQL).</li>
+        <li>JOIN với bảng chi tiết nhân số dòng: một đơn có 3 dòng hàng thì sau khi ghép Orders với OrderDetails, <code>COUNT(*)</code> đếm 3 còn <code>COUNT(DISTINCT OrderID)</code> đếm 1.</li>
+        <li>Tổng tiền tính từ dòng hàng: <code>SUM(Quantity * UnitPriceAtSale)</code>.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Bài tự kiểm tra trong bản tóm tắt: tạo một đơn có ba dòng hàng, chạy cả hai cách đếm và giải thích.</li>
+        <li>5 truy vấn báo cáo trên CSDL của học viên: số đơn theo khách, doanh thu theo sản phẩm, khách chưa mua, nhóm có tổng vượt ngưỡng.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Mỗi truy vấn kèm một câu mô tả "một dòng kết quả đại diện cho gì".</li></ul>
+      <p class="kw">Keywords: SELECT, JOIN, WHERE, GROUP BY, HAVING, COUNT, COUNT(DISTINCT), SUM</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 09 &mdash; Case study trọn vòng và kiểm tra cuối môn</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Tự đi hết quy trình thiết kế cho một đề mới, không có gợi ý.</li></ul>
+      <h4>Hoạt động</h4>
+      <ul>
+        <li>Đề chữ mới (giáo viên soạn) &rarr; ERD &rarr; chuẩn hóa đến 3NF &rarr; <code>CREATE TABLE</code> &rarr; dữ liệu hợp lệ và vi phạm &rarr; 3 truy vấn báo cáo.</li>
+        <li>Học viên trình bày giả định, giải thích từng PK/FK và lý do đặt dữ liệu ở bảng trung gian.</li>
+        <li>Chấm theo nhóm: ERD, chuẩn hóa, triển khai, truy vấn; so sánh với bài giữa môn.</li>
+      </ul>
+      <p class="kw">Keywords: database design, case study</p>
+    </div>
+
+    <h2>4. Quy trình dùng chung cho mọi buổi</h2>
+    <ul>
+      <li>10 phút đầu: chữa bài về nhà, học viên đọc to "một dòng trong bảng này là gì" cho từng bảng của mình.</li>
+      <li>25 phút: giảng ngắn kèm ví dụ trên Northwind hoặc đề chữ.</li>
+      <li>45 phút: học viên tự thiết kế hoặc triển khai, giáo viên hỏi ngược thay vì sửa hộ.</li>
+      <li>10 phút cuối: tổng kết, giao bài về nhà.</li>
+      <li>Luôn nhắc: ghi giả định khi đề không nói rõ; kiểm tra thiết kế bằng dữ liệu thử, không chỉ bằng mắt.</li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">&copy; <span id="year"></span> ITS ICT</div>
+  </footer>
+  <script src="../../assets/js/main.js"></script>
+</body>
+</html>

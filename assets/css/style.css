@@ -34,6 +34,9 @@ a:hover { text-decoration: underline; }
 .site-header nav a { margin-left: 1.25rem; color: var(--muted); font-weight: 500; }
 .site-header nav a.active, .site-header nav a:hover { color: var(--primary); text-decoration: none; }
 
+.site-header nav { margin-left: auto; }
+.site-header .seg { margin-left: 1rem; }
+
 .lead { color: var(--muted); font-size: 1.1rem; }
 
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
@@ -64,8 +67,35 @@ pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: var(--r
 
 .site-footer { border-top: 1px solid var(--border); color: var(--muted); font-size: .9rem; padding: 1rem 0; }
 
-/* ===== Trang chủ (chỉ áp dụng cho body.home) ===== */
-.home { --accent: #2563eb; --accent-2: #7c3aed; --accent-soft: #eef2ff; }
+/* ===== Trang chủ (body.home) và trang môn học (body.subject) ===== */
+.home, .subject { --accent: #2563eb; --accent-2: #7c3aed; --accent-soft: #eef2ff; }
+
+/* Trang chủ: danh sách môn học */
+.subjects { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: .5rem; }
+a.subj {
+  display: flex; flex-direction: column; gap: .35rem; padding: 1.25rem 1.4rem; color: var(--fg);
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  border-top: 4px solid var(--accent); transition: transform .15s, box-shadow .15s;
+}
+a.subj:hover { text-decoration: none; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); border-color: var(--accent); }
+a.subj h2 { margin: .25rem 0 0; font-size: 1.5rem; letter-spacing: -.01em; }
+a.subj p { margin: 0; color: var(--muted); }
+a.subj .tag { align-self: flex-start; }
+a.subj .go { margin-top: .6rem; font-weight: 600; color: var(--accent); }
+a.subj-sql { --accent: #0d9488; }
+a.subj-sql .tag { background: #ccfbf1; color: #0f766e; }
+
+/* Trang môn học */
+.subject-sql { --accent: #0d9488; --accent-2: #0891b2; --accent-soft: #ecfeff; }
+.subject-sql .tag { background: #ccfbf1; color: #0f766e; }
+.subject h1 { display: flex; align-items: center; gap: .6rem; margin: .25rem 0 .25rem; }
+.subject .crumb { margin: 0; font-size: .9rem; }
+.subject h2.sec { font-size: 1.1rem; margin: 1.5rem 0 .5rem; }
+.subject main.container { width: 100%; }
+.subject .lessons { margin-top: 0; }
+.subject .lessons.cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .5rem; margin-top: .5rem; }
+.subject .lessons.cols li { margin: 0; }
+.subject .sub { color: var(--muted); font-size: .88rem; }
 .home .container { max-width: 1080px; }
 html { scroll-behavior: smooth; }
 

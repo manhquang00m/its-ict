@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MA1580 Foundations of Data Science, giáo trình chuẩn bị | OL13 | ITS ICT</title>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <style>
+    table.grade { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); margin: 1rem 0 2rem; font-size: .95rem; }
+    table.grade th, table.grade td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+    table.grade th { background: #f0f4ff; }
+    .lesson-plan { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .lesson-plan h3 { margin: 0 0 .25rem; }
+    .lesson-plan h4 { margin: .8rem 0 .2rem; font-size: .95rem; color: var(--muted); }
+    .lesson-plan ul { margin: .2rem 0 0; padding-left: 1.2rem; }
+    .lesson-plan .kw { margin: .8rem 0 0; font-size: .9rem; color: var(--muted); }
+    .note { background: #fff8e1; border: 1px solid #f5d27a; border-radius: var(--radius); padding: .8rem 1rem; margin: 1rem 0 2rem; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="../../">ITS ICT</a>
+      <nav>
+        <a href="../tc28/">IGCSE 9+10</a>
+        <a href="./" class="active">OL13</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <p><a href="./">&larr; Quay lại OL13</a></p>
+    <h1>MA1580 &middot; Foundations of Data Science &mdash; giáo trình chuẩn bị</h1>
+    <p class="lead">Theo dõi dữ liệu từ lúc nhập đến lúc diễn giải: đọc bảng, làm sạch, biến đổi, ghép, vẽ biểu đồ và kết luận có giới hạn rõ ràng. Thực hành bằng R. Có thêm phần so sánh khả năng mở rộng của thuật toán khi dữ liệu lớn dần.</p>
+
+    <div class="note">
+      <strong>Giả định khi lập kế hoạch</strong>
+      <ul>
+        <li>Giáo trình chuẩn bị trước khi vào JCU TR1S 2027, xây từ bản tóm tắt chủ đề theo tài liệu công khai của JCU (handbook chi tiết năm 2024). Đây <strong>không</strong> phải đề cương chính thức của môn; khi có handbook của kỳ học thì đối chiếu và điều chỉnh.</li>
+        <li>Mỗi buổi khoảng 90 phút. Chưa có lịch nên chưa gán ngày; số buổi chia theo nội dung.</li>
+        <li>Công cụ: R và RStudio cài trên máy, hoặc Posit Cloud nếu không cài được. Dạy base R trước; package như <code>dplyr</code>, <code>tidyr</code>, <code>ggplot2</code> chỉ giới thiệu thêm vì bản tóm tắt không nói môn dùng package nào.</li>
+        <li>Dữ liệu: giáo viên chuẩn bị các file CSV thực hành. Bộ dữ liệu Burdekin ở bài 09 chưa có trong tài liệu này, cần lấy từ môn học hoặc nguồn công khai trước buổi đó.</li>
+        <li>Học viên đã có nền SQL (JOIN, GROUP BY), nên bài 04&ndash;05 dạy theo hướng "cùng thao tác, cú pháp R".</li>
+        <li>Đây là bản đề xuất. Giáo viên quyết định nội dung, thời lượng và mốc đánh giá chính thức.</li>
+      </ul>
+    </div>
+
+    <h2>1. Chủ đề của môn và bài tương ứng</h2>
+    <table class="grade">
+      <thead><tr><th>Chủ đề</th><th>Kiến thức cần nắm</th><th>Keywords</th><th>Bài</th></tr></thead>
+      <tbody>
+        <tr><td>Dữ liệu và kiểu dữ liệu</td><td>Phân biệt số đo, nhãn nhóm, ngày tháng và mã định danh; giữ mã có số 0 đầu ở kiểu ký tự</td><td>data science, big data, numeric, categorical, identifier</td><td>01</td></tr>
+        <tr><td>Cấu trúc bảng</td><td>Ý nghĩa một dòng, đơn vị từng cột, khóa nhận diện; tidy data: mỗi biến một cột, mỗi quan sát một dòng</td><td>observation, variable, unit, data frame, tidy data</td><td>02</td></tr>
+        <tr><td>Thao tác với R</td><td>Đọc CSV, kiểm tra cấu trúc và tóm tắt trước khi tính; <code>is.na</code> đánh dấu giá trị thiếu</td><td>read.csv, str, summary, is.na, plot</td><td>01, 02, 03</td></tr>
+        <tr><td>Tiền xử lý</td><td>Kiểm tra giá trị thiếu, dòng trùng, đơn vị, giá trị bất thường; NA khác giá trị đo bằng 0</td><td>preprocessing, missing value, NA, duplicate, outlier</td><td>03</td></tr>
+        <tr><td>Biến đổi và ghép</td><td>Lọc dòng, đổi dạng rộng/dài, nhóm, ghép theo khóa; so số dòng trước/sau khi ghép</td><td>wrangling, filter, reshape, wide/long, group, join</td><td>04, 05</td></tr>
+        <tr><td>Trực quan hóa</td><td>Histogram cho phân bố, scatter cho quan hệ hai biến số, line cho biến đổi theo thời gian; ghi tên trục và đơn vị</td><td>histogram, scatter plot, time series, axis label</td><td>06</td></tr>
+        <tr><td>Thuật toán và quy mô</td><td>Duyệt một lần tỷ lệ với n, so mọi cặp tỷ lệ với n²; so sánh khi dữ liệu tăng</td><td>algorithm analysis, input size, scalability, O(n), O(n²)</td><td>07</td></tr>
+        <tr><td>Diễn giải kết quả</td><td>Gắn kết luận với mẫu, đơn vị và cách xử lý; nêu giới hạn của tỷ lệ khi nhóm ít quan sát</td><td>sample size, interpretation, limitation, association</td><td>08</td></tr>
+      </tbody>
+    </table>
+
+    <h2>2. Mốc đánh giá</h2>
+    <table class="grade">
+      <thead><tr><th>Mốc</th><th>Hình thức</th><th>Mục tiêu</th></tr></thead>
+      <tbody>
+        <tr><td>Sau bài 05</td><td>Kiểm tra giữa môn 60 phút trên máy: một file CSV có lỗi (thiếu, trùng, sai đơn vị), làm sạch, tổng hợp theo nhóm, ghép với bảng thứ hai</td><td>Báo cáo được số dòng ở mỗi bước; giải thích từng dòng bị loại hoặc sửa; kết quả tổng hợp đúng</td></tr>
+        <tr><td>Bài 10</td><td>Bài phân tích cuối môn: script R từ đọc dữ liệu đến biểu đồ, kèm một trang diễn giải</td><td>Script chạy lại từ đầu ra cùng kết quả; biểu đồ có tên trục và đơn vị; kết luận nêu cỡ mẫu và giới hạn</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. Lộ trình từng bài</h2>
+
+    <div class="lesson-plan">
+      <h3>Bài 01 &mdash; Làm quen R và các kiểu dữ liệu</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Chạy được script R trong RStudio, làm việc với vector và data frame.</li>
+        <li>Phân loại đúng một cột là số đo, nhãn nhóm, ngày tháng hay mã định danh.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>RStudio: console, script, environment; ghi code vào script để chạy lại được, không gõ thẳng console.</li>
+        <li>Vector, <code>c()</code>, chỉ số, phép toán theo vector. Kiểu <code>numeric</code>, <code>character</code>, <code>logical</code>, <code>factor</code>, <code>Date</code>. Hàm <code>class()</code>.</li>
+        <li>Mã định danh (mã bưu chính, mã trạm, số điện thoại) không phải số đo: không cộng, không lấy trung bình, giữ ở kiểu ký tự để không mất số 0 đầu.</li>
+        <li>Data frame: tạo, xem <code>head</code>, chọn cột bằng <code>$</code> và <code>[ , ]</code>.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Cho một bảng 10 cột, học viên phân loại từng cột và giải thích phép tính nào có nghĩa với cột đó.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Bài tập vector và data frame ngắn; tìm 3 ví dụ mã định danh trông giống số trong đời thường.</li></ul>
+      <p class="kw">Keywords: data science, numeric, categorical, factor, identifier, vector, data frame</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 02 &mdash; Đọc CSV và hiểu cấu trúc bảng</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Trước khi tính, trả lời được: một dòng là gì, mỗi cột đơn vị gì, cột nào là khóa, bảng có tidy không.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li><code>read.csv</code>, tham số <code>colClasses</code> để giữ cột mã ở kiểu ký tự. Kiểm tra bằng <code>str</code>, <code>summary</code>, <code>nrow</code>, <code>names</code>.</li>
+        <li>Quan sát (observation), biến (variable), đơn vị (unit). Khóa nhận diện: cột hoặc nhóm cột không trùng giữa các dòng.</li>
+        <li>Tidy data: mỗi biến một cột, mỗi quan sát một dòng. Nhận diện bảng không tidy (ví dụ mỗi tháng một cột).</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Đọc 2&ndash;3 file CSV, với mỗi file viết "Một dòng là &hellip;", đơn vị từng cột, và khóa; kiểm tra khóa có trùng không.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Mô tả cấu trúc một file CSV mới bằng một đoạn ngắn, kèm output <code>str</code> và <code>summary</code>.</li></ul>
+      <p class="kw">Keywords: read.csv, str, summary, observation, variable, unit, key, tidy data</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 03 &mdash; Tiền xử lý: thiếu, trùng, đơn vị, bất thường</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Tìm và xử lý có ghi chép các vấn đề dữ liệu trước khi phân tích.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Giá trị thiếu: <code>is.na</code>, <code>sum(is.na(x))</code>, <code>colSums(is.na(df))</code>. NA (không đo) khác 0 (đo được bằng 0); thay NA bằng 0 là sai trừ khi có lý do.</li>
+        <li>Hàm có <code>na.rm = TRUE</code>; nhớ báo đã bỏ bao nhiêu giá trị.</li>
+        <li>Dòng trùng: <code>duplicated</code>, trùng toàn dòng khác trùng khóa.</li>
+        <li>Đơn vị lẫn lộn (mm và cm, độ C và độ F), giá trị bất thường qua <code>summary</code>, <code>boxplot</code>. Bất thường chưa chắc là sai: kiểm tra trước khi bỏ.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Một file cố ý có NA, dòng trùng, một cột lẫn đơn vị và vài giá trị bất thường: làm sạch và ghi bảng "vấn đề &ndash; số dòng &ndash; cách xử lý".</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Làm sạch một file mới, nộp script và bảng ghi chép.</li></ul>
+      <p class="kw">Keywords: preprocessing, missing value, NA, is.na, na.rm, duplicate, outlier, unit</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 04 &mdash; Biến đổi dữ liệu (1): lọc, chọn, sắp xếp, nhóm</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Làm được trong R các thao tác đã quen trong SQL: <code>WHERE</code>, chọn cột, <code>ORDER BY</code>, <code>GROUP BY</code>.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Lọc dòng bằng điều kiện logic và <code>subset</code>; chọn cột; <code>order</code> để sắp xếp.</li>
+        <li>Tạo cột mới (tỷ lệ, đổi đơn vị, tách năm/tháng từ ngày bằng <code>format</code>).</li>
+        <li>Nhóm và tổng hợp: <code>aggregate</code>, <code>table</code>, <code>tapply</code>. Lưu ý <code>aggregate</code> dạng công thức mặc định bỏ dòng có NA: kiểm tra số dòng trước và sau.</li>
+        <li>Giới thiệu thêm: cùng thao tác bằng <code>dplyr</code> (<code>filter</code>, <code>select</code>, <code>arrange</code>, <code>group_by</code>, <code>summarise</code>).</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Cùng 5 câu hỏi viết bằng SQL (trên Northwind) và bằng R (trên CSV xuất từ Northwind hoặc dữ liệu tương tự), đối chiếu kết quả.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>6 câu hỏi tổng hợp trên dữ liệu đã làm sạch ở bài 03.</li></ul>
+      <p class="kw">Keywords: wrangling, filter, subset, order, aggregate, group, summarise</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 05 &mdash; Biến đổi dữ liệu (2): rộng/dài và ghép bảng</h3>
+      <h4>Mục tiêu</h4>
+      <ul>
+        <li>Chuyển bảng giữa dạng rộng và dạng dài theo nhu cầu phân tích.</li>
+        <li>Ghép bảng theo khóa và phát hiện ghép sai bằng số dòng.</li>
+      </ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Dạng rộng (mỗi tháng một cột) và dạng dài (một cột tháng, một cột giá trị). Dạng dài thường dễ nhóm và vẽ hơn.</li>
+        <li>Đổi dạng bằng <code>reshape</code> (base R) hoặc <code>pivot_longer</code>/<code>pivot_wider</code> (<code>tidyr</code>).</li>
+        <li><code>merge(x, y, by = ...)</code>: inner; <code>all.x = TRUE</code> tương đương LEFT JOIN.</li>
+        <li>So số dòng trước và sau khi ghép: tăng bất thường là do khóa trùng ở một phía; giảm là do khóa không khớp (kiểu dữ liệu khác, số 0 đầu bị mất, khoảng trắng).</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Bảng mưa dạng rộng (năm &times; 12 tháng) đổi sang dạng dài và ngược lại.</li>
+        <li>Ghép hai bảng có cố ý một khóa trùng và một khóa mất số 0 đầu; tìm nguyên nhân từ số dòng.</li>
+        <li>Kiểm tra giữa môn 60 phút (xem mục 2), có thể làm buổi riêng.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Sửa bài kiểm tra giữa môn, ghi rõ số dòng ở mỗi bước.</li></ul>
+      <p class="kw">Keywords: reshape, wide, long, merge, join, key, row count</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 06 &mdash; Trực quan hóa</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Chọn đúng loại biểu đồ cho câu hỏi và vẽ biểu đồ đọc được mà không cần giải thích thêm.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Histogram (<code>hist</code>): phân bố một biến số; ảnh hưởng của số cột (bins).</li>
+        <li>Scatter plot (<code>plot(x, y)</code>): quan hệ hai biến số.</li>
+        <li>Line plot (<code>plot(..., type = "l")</code>): biến đổi theo thời gian; sắp theo thời gian trước khi vẽ.</li>
+        <li>Bắt buộc: tiêu đề, tên trục có đơn vị (<code>main</code>, <code>xlab</code>, <code>ylab</code>). Giới thiệu thêm <code>ggplot2</code>.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Cùng một bộ dữ liệu, trả lời 3 câu hỏi bằng 3 loại biểu đồ; đổi biểu đồ với bạn (hoặc giáo viên) và đọc lại kết luận chỉ từ hình.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>3 biểu đồ cho dữ liệu đã làm sạch, mỗi biểu đồ kèm một câu nhận xét.</li></ul>
+      <p class="kw">Keywords: histogram, scatter plot, line plot, time series, axis label, unit</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 07 &mdash; Thuật toán và quy mô dữ liệu</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Ước lượng lượng việc của một cách làm khi dữ liệu tăng, và đo được bằng thực nghiệm.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Input size n. Duyệt một lần: lượng việc tỷ lệ với n, O(n). So mọi cặp: tỷ lệ với n², O(n²).</li>
+        <li>Ví dụ tìm phần tử trùng: so mọi cặp bằng hai vòng lặp, so với sắp xếp rồi so phần tử kề nhau, hoặc dùng <code>duplicated</code>.</li>
+        <li>Đo thời gian bằng <code>system.time</code> khi n = 1.000, 2.000, 4.000, &hellip;; n gấp đôi thì thời gian O(n) gấp khoảng đôi, O(n²) gấp khoảng bốn.</li>
+        <li>Vì sao điều này quan trọng với big data: cách làm chạy tốt trên dữ liệu nhỏ có thể không dùng được trên dữ liệu lớn.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Viết hai cách tìm trùng, đo thời gian với n tăng dần, vẽ line plot thời gian theo n cho cả hai.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Phân tích 3 đoạn code cho sẵn: O(n) hay O(n²), giải thích bằng số vòng lặp.</li></ul>
+      <p class="kw">Keywords: algorithm analysis, input size, scalability, O(n), O(n²), system.time</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 08 &mdash; Diễn giải kết quả</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Viết kết luận gắn với mẫu, đơn vị và cách xử lý dữ liệu, có nêu giới hạn.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Cỡ mẫu: tỷ lệ 2/3 và 200/300 bằng nhau nhưng độ tin khác nhau. Luôn báo kèm số quan sát của mỗi nhóm.</li>
+        <li>Association khác nguyên nhân: hai biến cùng tăng chưa có nghĩa biến này gây ra biến kia.</li>
+        <li>Kết luận phụ thuộc cách xử lý: bỏ NA, bỏ outlier, cách ghép đều có thể đổi kết quả. Ghi lại các quyết định đó.</li>
+        <li>Mẫu câu kết luận: "Trong [mẫu, n = &hellip;], [biến] [tăng/giảm] [bao nhiêu, đơn vị]; giới hạn: &hellip;".</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul><li>Cho 5 kết luận viết sẵn (có kết luận quá đà), học viên chỉ ra lỗi và viết lại.</li></ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Viết đoạn diễn giải cho 3 biểu đồ của bài 06 theo mẫu câu kết luận.</li></ul>
+      <p class="kw">Keywords: sample size, interpretation, limitation, association, causation</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 09 &mdash; Case study: tổng mưa mùa hè (dạng dữ liệu Burdekin)</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Xử lý một câu hỏi có nhóm vắt qua hai năm, kiểm tra dữ liệu thiếu trước khi so sánh.</li></ul>
+      <h4>Nội dung</h4>
+      <ul>
+        <li>Theo bài tự kiểm tra trong bản tóm tắt: mùa hè gồm tháng 12 năm t và tháng 1, 2 năm t+1, nên không nhóm theo năm dương lịch được.</li>
+        <li>Tạo cột mùa: tháng 12 gán mùa t, tháng 1 và 2 gán mùa t&minus;1 (hoặc quy ước ngược lại, miễn ghi rõ).</li>
+        <li>Đếm số tháng có dữ liệu mỗi mùa; mùa không đủ 3 tháng thì đánh dấu, không so sánh trực tiếp. Mùa đầu và cuối chuỗi thường thiếu tháng.</li>
+      </ul>
+      <h4>Thực hành trên lớp</h4>
+      <ul>
+        <li>Chọn một mùa, tính tổng bằng tay từ bảng gốc trước, rồi so với kết quả từ R.</li>
+        <li>Tính tổng cho mọi mùa đủ dữ liệu, vẽ line plot theo mùa, viết 2&ndash;3 câu diễn giải có nêu số mùa bị loại.</li>
+      </ul>
+      <h4>Bài về nhà</h4>
+      <ul><li>Làm tương tự cho mùa đông (tháng 6&ndash;8), so sánh với mùa hè.</li></ul>
+      <p class="kw">Keywords: time series, grouping, missing month, validation, hand calculation</p>
+    </div>
+
+    <div class="lesson-plan">
+      <h3>Bài 10 &mdash; Ôn tập và bài phân tích cuối môn</h3>
+      <h4>Mục tiêu</h4>
+      <ul><li>Tự đi hết quy trình với bộ dữ liệu mới: đọc, kiểm tra, làm sạch, biến đổi, vẽ, diễn giải.</li></ul>
+      <h4>Hoạt động</h4>
+      <ul>
+        <li>Nửa đầu: ôn các lỗi lặp lại từ bài kiểm tra giữa môn và bài về nhà.</li>
+        <li>Nửa sau hoặc buổi riêng: bài phân tích cuối môn (xem mục 2), nộp script và một trang diễn giải.</li>
+        <li>Chấm theo nhóm: cấu trúc bảng, tiền xử lý, biến đổi/ghép, biểu đồ, diễn giải; so sánh với bài giữa môn.</li>
+      </ul>
+      <p class="kw">Keywords: data analysis workflow, reproducible script, report</p>
+    </div>
+
+    <h2>4. Quy trình dùng chung cho mọi buổi</h2>
+    <ul>
+      <li>10 phút đầu: chữa bài về nhà, chạy lại script của học viên từ đầu để chắc chạy được.</li>
+      <li>25 phút: giảng ngắn kèm ví dụ chạy trực tiếp trong RStudio.</li>
+      <li>45 phút: học viên tự làm trên dữ liệu thật, giáo viên hỏi "một dòng là gì, đơn vị gì" trước khi gợi ý.</li>
+      <li>10 phút cuối: tổng kết, giao bài về nhà.</li>
+      <li>Luôn nhắc: <code>str</code> và <code>summary</code> trước khi tính; ghi số dòng sau mỗi bước lọc/ghép; biểu đồ phải có tên trục và đơn vị.</li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">&copy; <span id="year"></span> ITS ICT</div>
+  </footer>
+  <script src="../../assets/js/main.js"></script>
+</body>
+</html>
